@@ -1,6 +1,6 @@
 <div align=center>
 
-# FastAPI
+# FastAPI-SDK
 
 [![Release](https://img.shields.io/github/v/release/iimeta/fastapi-sdk?color=blue)](https://github.com/iimeta/fastapi-sdk/releases)
 [![License](https://img.shields.io/static/v1?label=license&message=MIT&color=green)](https://github.com/iimeta/fastapi-sdk/blob/main/LICENSE)
