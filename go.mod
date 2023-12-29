@@ -3,8 +3,8 @@ module github.com/iimeta/fastapi-sdk
 go 1.21.3
 
 require (
-	github.com/gogf/gf/v2 v2.5.7
-	github.com/sashabaranov/go-openai v1.17.8
+	github.com/gogf/gf/v2 v2.6.1
+	github.com/sashabaranov/go-openai v1.17.9
 )
 
 require (
