@@ -1,6 +1,6 @@
 module github.com/iimeta/fastapi-sdk
 
-go 1.21.3
+go 1.21
 
 require (
 	github.com/gogf/gf/v2 v2.6.1
