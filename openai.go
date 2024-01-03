@@ -21,7 +21,7 @@ func NewClient(ctx context.Context, model, apiKey string, baseURL ...string) *op
 
 	config := openai.DefaultConfig(apiKey)
 
-	if len(baseURL) > 0 {
+	if len(baseURL) > 0 && baseURL[0] != "" {
 		logger.Infof(ctx, "NewClient OpenAI model: %s, baseURL: %s", model, baseURL[0])
 		config.BaseURL = baseURL[0]
 	}
@@ -37,7 +37,7 @@ func NewProxyClient(ctx context.Context, model, apiKey string, proxyURL ...strin
 
 	transport := &http.Transport{}
 
-	if len(proxyURL) > 0 {
+	if len(proxyURL) > 0 && proxyURL[0] != "" {
 		logger.Infof(ctx, "NewProxyClient OpenAI model: %s, proxyURL: %s", model, proxyURL[0])
 		proxyUrl, err := url.Parse(proxyURL[0])
 		if err != nil {
