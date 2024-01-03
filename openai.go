@@ -6,6 +6,9 @@ import (
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/iimeta/fastapi-sdk/logger"
+	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/sdk"
 	"github.com/sashabaranov/go-openai"
 	"io"
 	"net/http"
@@ -14,12 +17,12 @@ import (
 
 func NewClient(ctx context.Context, model, apiKey string, baseURL ...string) *openai.Client {
 
-	Infof(ctx, "NewClient OpenAI model: %s, apiKey: %s", model, apiKey)
+	logger.Infof(ctx, "NewClient OpenAI model: %s, apiKey: %s", model, apiKey)
 
 	config := openai.DefaultConfig(apiKey)
 
 	if len(baseURL) > 0 {
-		Infof(ctx, "NewClient OpenAI model: %s, baseURL: %s", model, baseURL[0])
+		logger.Infof(ctx, "NewClient OpenAI model: %s, baseURL: %s", model, baseURL[0])
 		config.BaseURL = baseURL[0]
 	}
 
@@ -28,14 +31,14 @@ func NewClient(ctx context.Context, model, apiKey string, baseURL ...string) *op
 
 func NewProxyClient(ctx context.Context, model, apiKey string, proxyURL ...string) *openai.Client {
 
-	Infof(ctx, "NewProxyClient OpenAI model: %s, apiKey: %s", model, apiKey)
+	logger.Infof(ctx, "NewProxyClient OpenAI model: %s, apiKey: %s", model, apiKey)
 
 	config := openai.DefaultConfig(apiKey)
 
 	transport := &http.Transport{}
 
 	if len(proxyURL) > 0 {
-		Infof(ctx, "NewProxyClient OpenAI model: %s, proxyURL: %s", model, proxyURL[0])
+		logger.Infof(ctx, "NewProxyClient OpenAI model: %s, proxyURL: %s", model, proxyURL[0])
 		proxyUrl, err := url.Parse(proxyURL[0])
 		if err != nil {
 			panic(err)
@@ -52,77 +55,104 @@ func NewProxyClient(ctx context.Context, model, apiKey string, proxyURL ...strin
 
 func ChatCompletion(ctx context.Context, client *openai.Client, request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error) {
 
-	Infof(ctx, "ChatCompletion OpenAI model: %s", request.Model)
+	logger.Infof(ctx, "ChatCompletion OpenAI model: %s", request.Model)
 
 	now := gtime.Now().UnixMilli()
 
 	defer func() {
-		Infof(ctx, "ChatCompletion OpenAI model: %s, totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
+		logger.Infof(ctx, "ChatCompletion OpenAI model: %s, totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
 	}()
 
 	response, err := client.CreateChatCompletion(ctx, request)
 
 	if err != nil {
-		Errorf(ctx, "ChatCompletion OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletion OpenAI model: %s, error: %v", request.Model, err)
 		return openai.ChatCompletionResponse{}, err
 	}
 
-	Infof(ctx, "ChatCompletion OpenAI model: %s, response: %s", request.Model, gjson.MustEncodeString(response))
+	logger.Infof(ctx, "ChatCompletion OpenAI model: %s, response: %s", request.Model, gjson.MustEncodeString(response))
 
 	return response, nil
 }
 
-func ChatCompletionStream(ctx context.Context, client *openai.Client, request openai.ChatCompletionRequest) (responseChan chan openai.ChatCompletionStreamResponse, err error) {
+func ChatCompletionStream(ctx context.Context, client *openai.Client, request openai.ChatCompletionRequest) (responseChan chan model.ChatCompletionStreamResponse, err error) {
 
-	Infof(ctx, "ChatCompletionStream OpenAI model: %s", request.Model)
+	logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s", request.Model)
 
 	now := gtime.Now().UnixMilli()
 
 	defer func() {
 		if err != nil {
-			Infof(ctx, "ChatCompletionStream OpenAI model: %s, totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
+			logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s, totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
 		}
 	}()
 
 	stream, err := client.CreateChatCompletionStream(ctx, request)
 	if err != nil {
-		Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 
-	Infof(ctx, "ChatCompletionStream OpenAI model: %s, start", request.Model)
+	logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s, start", request.Model)
 
 	duration := gtime.Now().UnixMilli()
 
-	responseChan = make(chan openai.ChatCompletionStreamResponse)
+	responseChan = make(chan model.ChatCompletionStreamResponse)
 
 	if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
 
 		defer func() {
 			end := gtime.Now().UnixMilli()
-			Infof(ctx, "ChatCompletionStream OpenAI model: %s, connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s, connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 		}()
+
+		promptTokens, err := sdk.NumTokensFromMessages(request.Messages, request.Model)
+		if err != nil {
+			logger.Error(ctx, err)
+			return
+		}
+
+		completionTokens := 0
 
 		for {
 
-			response, err := stream.Recv()
-			if errors.Is(err, io.EOF) {
-				Infof(ctx, "ChatCompletionStream OpenAI model: %s, finished", request.Model)
-				stream.Close()
-				responseChan <- response
+			streamResponse, err := stream.Recv()
+			if err != nil && !errors.Is(err, io.EOF) {
+				logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
+				close(responseChan)
 				return
 			}
 
-			if err != nil {
-				Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
-				close(responseChan)
+			response := model.ChatCompletionStreamResponse{
+				ID:                streamResponse.ID,
+				Object:            streamResponse.Object,
+				Created:           streamResponse.Created,
+				Model:             streamResponse.Model,
+				Choices:           streamResponse.Choices,
+				PromptAnnotations: streamResponse.PromptAnnotations,
+			}
+
+			if response.Usage.CompletionTokens, err = sdk.NumTokensFromString(response.Choices[0].Delta.Content, request.Model); err != nil {
+				logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, NumTokensFromString error: %v", request.Model, err)
+				return
+			}
+
+			completionTokens += response.Usage.CompletionTokens
+			response.Usage.PromptTokens = promptTokens
+			response.Usage.CompletionTokens = completionTokens
+			response.Usage.TotalTokens = response.Usage.PromptTokens + response.Usage.CompletionTokens
+
+			if errors.Is(err, io.EOF) {
+				logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s, finished", request.Model)
+				stream.Close()
+				responseChan <- response
 				return
 			}
 
 			responseChan <- response
 		}
 	}, nil); err != nil {
-		Error(ctx, err)
+		logger.Error(ctx, err)
 		return responseChan, err
 	}
 
@@ -131,13 +161,13 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 
 func GenImage(ctx context.Context, client *openai.Client, model, prompt string) (url string, err error) {
 
-	Infof(ctx, "GenImage OpenAI model: %s, prompt: %s", model, prompt)
+	logger.Infof(ctx, "GenImage OpenAI model: %s, prompt: %s", model, prompt)
 
 	now := gtime.Now().UnixMilli()
 
 	defer func() {
-		Infof(ctx, "GenImage OpenAI model: %s, url: %s", model, url)
-		Infof(ctx, "GenImage OpenAI model: %s, totalTime: %d ms", model, gtime.Now().UnixMilli()-now)
+		logger.Infof(ctx, "GenImage OpenAI model: %s, url: %s", model, url)
+		logger.Infof(ctx, "GenImage OpenAI model: %s, totalTime: %d ms", model, gtime.Now().UnixMilli()-now)
 	}()
 
 	reqUrl := openai.ImageRequest{
@@ -150,7 +180,7 @@ func GenImage(ctx context.Context, client *openai.Client, model, prompt string) 
 
 	respUrl, err := client.CreateImage(ctx, reqUrl)
 	if err != nil {
-		Errorf(ctx, "GenImage OpenAI creation error: %v", err)
+		logger.Errorf(ctx, "GenImage OpenAI creation error: %v", err)
 		return "", err
 	}
 
@@ -161,15 +191,15 @@ func GenImage(ctx context.Context, client *openai.Client, model, prompt string) 
 
 func GenImageBase64(ctx context.Context, client *openai.Client, model, prompt string) (string, error) {
 
-	Infof(ctx, "GenImageBase64 OpenAI model: %s, prompt: %s", model, prompt)
+	logger.Infof(ctx, "GenImageBase64 OpenAI model: %s, prompt: %s", model, prompt)
 
 	now := gtime.Now().UnixMilli()
 
 	imgBase64 := ""
 
 	defer func() {
-		Infof(ctx, "GenImageBase64 OpenAI model: %s, len: %d", model, len(imgBase64))
-		Infof(ctx, "GenImageBase64 OpenAI model: %s, totalTime: %d ms", model, gtime.Now().UnixMilli()-now)
+		logger.Infof(ctx, "GenImageBase64 OpenAI model: %s, len: %d", model, len(imgBase64))
+		logger.Infof(ctx, "GenImageBase64 OpenAI model: %s, totalTime: %d ms", model, gtime.Now().UnixMilli()-now)
 	}()
 
 	reqBase64 := openai.ImageRequest{
@@ -182,7 +212,7 @@ func GenImageBase64(ctx context.Context, client *openai.Client, model, prompt st
 
 	respBase64, err := client.CreateImage(ctx, reqBase64)
 	if err != nil {
-		Errorf(ctx, "GenImageBase64 OpenAI model: %s, creation error: %v", model, err)
+		logger.Errorf(ctx, "GenImageBase64 OpenAI model: %s, creation error: %v", model, err)
 		return "", err
 	}
 
