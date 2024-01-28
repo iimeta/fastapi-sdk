@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/gogf/gf/v2 v2.6.2
 	github.com/pkoukk/tiktoken-go v0.1.6
-	github.com/sashabaranov/go-openai v1.18.3
+	github.com/sashabaranov/go-openai v1.19.1
 )
 
 require (
