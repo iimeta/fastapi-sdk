@@ -53,26 +53,36 @@ func NewProxyClient(ctx context.Context, model, apiKey string, proxyURL ...strin
 	return openai.NewClientWithConfig(config)
 }
 
-func ChatCompletion(ctx context.Context, client *openai.Client, request openai.ChatCompletionRequest) (openai.ChatCompletionResponse, error) {
+func ChatCompletion(ctx context.Context, client *openai.Client, request openai.ChatCompletionRequest) (res model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletion OpenAI model: %s", request.Model)
 
 	now := gtime.Now().UnixMilli()
 
 	defer func() {
-		logger.Infof(ctx, "ChatCompletion OpenAI model: %s, totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
+		res.TotalTime = gtime.Now().UnixMilli() - now
+		logger.Infof(ctx, "ChatCompletion OpenAI model: %s, totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
 	response, err := client.CreateChatCompletion(ctx, request)
-
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion OpenAI model: %s, error: %v", request.Model, err)
-		return openai.ChatCompletionResponse{}, err
+		return model.ChatCompletionResponse{}, err
 	}
 
 	logger.Infof(ctx, "ChatCompletion OpenAI model: %s, response: %s", request.Model, gjson.MustEncodeString(response))
 
-	return response, nil
+	res = model.ChatCompletionResponse{
+		ID:                response.ID,
+		Object:            response.Object,
+		Created:           response.Created,
+		Model:             response.Model,
+		Choices:           response.Choices,
+		Usage:             response.Usage,
+		SystemFingerprint: response.SystemFingerprint,
+	}
+
+	return res, nil
 }
 
 func ChatCompletionStream(ctx context.Context, client *openai.Client, request openai.ChatCompletionRequest) (responseChan chan model.ChatCompletionStreamResponse, err error) {
@@ -130,6 +140,7 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 				Model:             streamResponse.Model,
 				Choices:           streamResponse.Choices,
 				PromptAnnotations: streamResponse.PromptAnnotations,
+				ConnTime:          duration - now,
 			}
 
 			if response.Usage.CompletionTokens, err = sdk.NumTokensFromString(response.Choices[0].Delta.Content, request.Model); err != nil {
@@ -142,9 +153,19 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 			response.Usage.CompletionTokens = completionTokens
 			response.Usage.TotalTokens = response.Usage.PromptTokens + response.Usage.CompletionTokens
 
+			if response.Choices[0].FinishReason == "stop" {
+				end := gtime.Now().UnixMilli()
+				response.Duration = end - duration
+				response.TotalTime = end - now
+				logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s, finished", request.Model)
+			}
+
 			if errors.Is(err, io.EOF) {
 				logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s, finished", request.Model)
 				stream.Close()
+				end := gtime.Now().UnixMilli()
+				response.Duration = end - duration
+				response.TotalTime = end - now
 				responseChan <- response
 				return
 			}
