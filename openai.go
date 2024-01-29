@@ -154,10 +154,11 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 			response.Usage.TotalTokens = response.Usage.PromptTokens + response.Usage.CompletionTokens
 
 			if response.Choices[0].FinishReason == "stop" {
+				logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s, finished", request.Model)
+				stream.Close()
 				end := gtime.Now().UnixMilli()
 				response.Duration = end - duration
 				response.TotalTime = end - now
-				logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s, finished", request.Model)
 			}
 
 			if errors.Is(err, io.EOF) {
