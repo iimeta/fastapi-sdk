@@ -159,6 +159,7 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 				end := gtime.Now().UnixMilli()
 				response.Duration = end - duration
 				response.TotalTime = end - now
+				return
 			}
 
 			if errors.Is(err, io.EOF) {
