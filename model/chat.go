@@ -20,7 +20,6 @@ type ChatCompletionStreamResponse struct {
 	Model             string                              `json:"model"`
 	Choices           []openai.ChatCompletionStreamChoice `json:"choices"`
 	PromptAnnotations []openai.PromptAnnotation           `json:"prompt_annotations,omitempty"`
-	Usage             openai.Usage                        `json:"usage"`
 	ConnTime          int64                               `json:"-"`
 	Duration          int64                               `json:"-"`
 	TotalTime         int64                               `json:"-"`

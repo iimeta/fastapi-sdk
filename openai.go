@@ -3,12 +3,10 @@ package sdk
 import (
 	"context"
 	"errors"
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
-	"github.com/iimeta/fastapi-sdk/sdk"
 	"github.com/sashabaranov/go-openai"
 	"io"
 	"net/http"
@@ -55,13 +53,13 @@ func NewProxyClient(ctx context.Context, model, apiKey string, proxyURL ...strin
 
 func ChatCompletion(ctx context.Context, client *openai.Client, request openai.ChatCompletionRequest) (res model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletion OpenAI model: %s", request.Model)
+	logger.Infof(ctx, "ChatCompletion OpenAI model: %s start", request.Model)
 
 	now := gtime.Now().UnixMilli()
 
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
-		logger.Infof(ctx, "ChatCompletion OpenAI model: %s, totalTime: %d ms", request.Model, res.TotalTime)
+		logger.Infof(ctx, "ChatCompletion OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
 	response, err := client.CreateChatCompletion(ctx, request)
@@ -70,7 +68,7 @@ func ChatCompletion(ctx context.Context, client *openai.Client, request openai.C
 		return model.ChatCompletionResponse{}, err
 	}
 
-	logger.Infof(ctx, "ChatCompletion OpenAI model: %s, response: %s", request.Model, gjson.MustEncodeString(response))
+	logger.Infof(ctx, "ChatCompletion OpenAI model: %s finished", request.Model)
 
 	res = model.ChatCompletionResponse{
 		ID:                response.ID,
@@ -87,13 +85,13 @@ func ChatCompletion(ctx context.Context, client *openai.Client, request openai.C
 
 func ChatCompletionStream(ctx context.Context, client *openai.Client, request openai.ChatCompletionRequest) (responseChan chan model.ChatCompletionStreamResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s", request.Model)
+	logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s start", request.Model)
 
 	now := gtime.Now().UnixMilli()
 
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s, totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
+			logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
 		}
 	}()
 
@@ -103,8 +101,6 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 		return responseChan, err
 	}
 
-	logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s, start", request.Model)
-
 	duration := gtime.Now().UnixMilli()
 
 	responseChan = make(chan model.ChatCompletionStreamResponse)
@@ -113,16 +109,8 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 
 		defer func() {
 			end := gtime.Now().UnixMilli()
-			logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s, connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 		}()
-
-		promptTokens, err := sdk.NumTokensFromMessages(request.Messages, request.Model)
-		if err != nil {
-			logger.Error(ctx, err)
-			return
-		}
-
-		completionTokens := 0
 
 		for {
 
@@ -143,18 +131,8 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 				ConnTime:          duration - now,
 			}
 
-			if response.Usage.CompletionTokens, err = sdk.NumTokensFromString(response.Choices[0].Delta.Content, request.Model); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, NumTokensFromString error: %v", request.Model, err)
-				return
-			}
-
-			completionTokens += response.Usage.CompletionTokens
-			response.Usage.PromptTokens = promptTokens
-			response.Usage.CompletionTokens = completionTokens
-			response.Usage.TotalTokens = response.Usage.PromptTokens + response.Usage.CompletionTokens
-
 			if errors.Is(err, io.EOF) || response.Choices[0].FinishReason == "stop" {
-				logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s, finished", request.Model)
+				logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s finished", request.Model)
 				stream.Close()
 				end := gtime.Now().UnixMilli()
 				response.Duration = end - duration
