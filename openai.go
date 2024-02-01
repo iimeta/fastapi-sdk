@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 func NewClient(ctx context.Context, model, apiKey string, baseURL ...string) *openai.Client {
@@ -83,7 +84,7 @@ func ChatCompletion(ctx context.Context, client *openai.Client, request openai.C
 	return res, nil
 }
 
-func ChatCompletionStream(ctx context.Context, client *openai.Client, request openai.ChatCompletionRequest) (responseChan chan model.ChatCompletionStreamResponse, err error) {
+func ChatCompletionStream(ctx context.Context, client *openai.Client, request openai.ChatCompletionRequest) (responseChan chan *model.ChatCompletionStreamResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s start", request.Model)
 
@@ -103,7 +104,7 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 
 	duration := gtime.Now().UnixMilli()
 
-	responseChan = make(chan model.ChatCompletionStreamResponse)
+	responseChan = make(chan *model.ChatCompletionStreamResponse)
 
 	if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
 
@@ -116,12 +117,16 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 
 			streamResponse, err := stream.Recv()
 			if err != nil && !errors.Is(err, io.EOF) {
-				logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
+				if !errors.Is(err, context.Canceled) {
+					logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
+				}
+				responseChan <- nil
+				time.Sleep(time.Millisecond)
 				close(responseChan)
 				return
 			}
 
-			response := model.ChatCompletionStreamResponse{
+			response := &model.ChatCompletionStreamResponse{
 				ID:                streamResponse.ID,
 				Object:            streamResponse.Object,
 				Created:           streamResponse.Created,
