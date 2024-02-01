@@ -5,7 +5,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-func NumTokensFromString(text, model string) (int, error) {
+func NumTokensFromString(model ,text string) (int, error) {
 
 	if text == "" {
 		return 0, nil
@@ -19,7 +19,7 @@ func NumTokensFromString(text, model string) (int, error) {
 	return len(tkm.Encode(text, nil, nil)), nil
 }
 
-func NumTokensFromMessages(messages []openai.ChatCompletionMessage, model string) (numTokens int, err error) {
+func NumTokensFromMessages(model string, messages []openai.ChatCompletionMessage) (numTokens int, err error) {
 
 	if len(messages) == 0 {
 		return 0, nil
