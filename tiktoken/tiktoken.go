@@ -1,11 +1,11 @@
-package sdk
+package tiktoken
 
 import (
 	"github.com/pkoukk/tiktoken-go"
 	"github.com/sashabaranov/go-openai"
 )
 
-func NumTokensFromString(model ,text string) (int, error) {
+func NumTokensFromString(model, text string) (int, error) {
 
 	if text == "" {
 		return 0, nil
