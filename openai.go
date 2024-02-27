@@ -131,9 +131,17 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 				Object:            streamResponse.Object,
 				Created:           streamResponse.Created,
 				Model:             streamResponse.Model,
-				Choices:           streamResponse.Choices,
 				PromptAnnotations: streamResponse.PromptAnnotations,
 				ConnTime:          duration - now,
+			}
+
+			for _, choice := range streamResponse.Choices {
+				response.Choices = append(response.Choices, model.ChatCompletionStreamChoice{
+					Index:        choice.Index,
+					Delta:        choice.Delta,
+					FinishReason: choice.FinishReason,
+					//ContentFilterResults: choice.ContentFilterResults,
+				})
 			}
 
 			if errors.Is(err, io.EOF) || response.Choices[0].FinishReason == "stop" {
