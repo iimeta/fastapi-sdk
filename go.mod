@@ -3,9 +3,9 @@ module github.com/iimeta/fastapi-sdk
 go 1.22
 
 require (
-	github.com/gogf/gf/v2 v2.6.3
+	github.com/gogf/gf/v2 v2.6.4
 	github.com/pkoukk/tiktoken-go v0.1.6
-	github.com/sashabaranov/go-openai v1.20.1
+	github.com/sashabaranov/go-openai v1.20.2
 )
 
 require (
