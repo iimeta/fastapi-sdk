@@ -52,7 +52,7 @@ func NewProxyClient(ctx context.Context, model, apiKey string, proxyURL ...strin
 	return openai.NewClientWithConfig(config)
 }
 
-func ChatCompletion(ctx context.Context, client *openai.Client, request openai.ChatCompletionRequest) (res model.ChatCompletionResponse, err error) {
+func ChatCompletion(ctx context.Context, client *openai.Client, request openai.ChatCompletionRequest) (res *model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletion OpenAI model: %s start", request.Model)
 
@@ -66,12 +66,12 @@ func ChatCompletion(ctx context.Context, client *openai.Client, request openai.C
 	response, err := client.CreateChatCompletion(ctx, request)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion OpenAI model: %s, error: %v", request.Model, err)
-		return model.ChatCompletionResponse{}, err
+		return nil, err
 	}
 
 	logger.Infof(ctx, "ChatCompletion OpenAI model: %s finished", request.Model)
 
-	res = model.ChatCompletionResponse{
+	res = &model.ChatCompletionResponse{
 		ID:                response.ID,
 		Object:            response.Object,
 		Created:           response.Created,
@@ -164,7 +164,7 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 	return responseChan, nil
 }
 
-func Image(ctx context.Context, client *openai.Client, request openai.ImageRequest) (response openai.ImageResponse, err error) {
+func Image(ctx context.Context, client *openai.Client, request openai.ImageRequest) (res *model.ImageResponse, err error) {
 
 	logger.Infof(ctx, "Image OpenAI model: %s start", request.Model)
 
@@ -172,15 +172,21 @@ func Image(ctx context.Context, client *openai.Client, request openai.ImageReque
 
 	defer func() {
 		if err != nil {
+			res.TotalTime = gtime.Now().UnixMilli() - now
 			logger.Infof(ctx, "Image OpenAI model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
 		}
 	}()
 
-	response, err = client.CreateImage(ctx, request)
+	response, err := client.CreateImage(ctx, request)
 	if err != nil {
 		logger.Errorf(ctx, "Image OpenAI model: %s, error: %v", request.Model, err)
-		return openai.ImageResponse{}, err
+		return nil, err
 	}
 
-	return response, nil
+	res = &model.ImageResponse{
+		Created: response.Created,
+		Data:    response.Data,
+	}
+
+	return res, nil
 }
