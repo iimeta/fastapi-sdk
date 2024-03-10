@@ -52,7 +52,7 @@ func NewProxyClient(ctx context.Context, model, apiKey string, proxyURL ...strin
 	return openai.NewClientWithConfig(config)
 }
 
-func ChatCompletion(ctx context.Context, client *openai.Client, request openai.ChatCompletionRequest) (res *model.ChatCompletionResponse, err error) {
+func ChatCompletion(ctx context.Context, client *openai.Client, request openai.ChatCompletionRequest) (res model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletion OpenAI model: %s start", request.Model)
 
@@ -66,12 +66,12 @@ func ChatCompletion(ctx context.Context, client *openai.Client, request openai.C
 	response, err := client.CreateChatCompletion(ctx, request)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion OpenAI model: %s, error: %v", request.Model, err)
-		return nil, err
+		return model.ChatCompletionResponse{}, err
 	}
 
 	logger.Infof(ctx, "ChatCompletion OpenAI model: %s finished", request.Model)
 
-	res = &model.ChatCompletionResponse{
+	res = model.ChatCompletionResponse{
 		ID:                response.ID,
 		Object:            response.Object,
 		Created:           response.Created,
@@ -137,10 +137,10 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 
 			for _, choice := range streamResponse.Choices {
 				response.Choices = append(response.Choices, model.ChatCompletionStreamChoice{
-					Index:        choice.Index,
-					Delta:        choice.Delta,
-					FinishReason: choice.FinishReason,
-					//ContentFilterResults: choice.ContentFilterResults,
+					Index:                choice.Index,
+					Delta:                choice.Delta,
+					FinishReason:         choice.FinishReason,
+					ContentFilterResults: choice.ContentFilterResults,
 				})
 			}
 
@@ -164,7 +164,7 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 	return responseChan, nil
 }
 
-func Image(ctx context.Context, client *openai.Client, request openai.ImageRequest) (res *model.ImageResponse, err error) {
+func Image(ctx context.Context, client *openai.Client, request openai.ImageRequest) (res model.ImageResponse, err error) {
 
 	logger.Infof(ctx, "Image OpenAI model: %s start", request.Model)
 
@@ -180,10 +180,10 @@ func Image(ctx context.Context, client *openai.Client, request openai.ImageReque
 	response, err := client.CreateImage(ctx, request)
 	if err != nil {
 		logger.Errorf(ctx, "Image OpenAI model: %s, error: %v", request.Model, err)
-		return nil, err
+		return model.ImageResponse{}, err
 	}
 
-	res = &model.ImageResponse{
+	res = model.ImageResponse{
 		Created: response.Created,
 		Data:    response.Data,
 	}

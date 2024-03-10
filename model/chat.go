@@ -27,9 +27,9 @@ type ChatCompletionStreamResponse struct {
 }
 
 type ChatCompletionStreamChoice struct {
-	Index        int                                    `json:"index"`
-	Delta        openai.ChatCompletionStreamChoiceDelta `json:"delta"`
-	LogProbs     *openai.LogProbs                       `json:"logprobs"`
-	FinishReason openai.FinishReason                    `json:"finish_reason"`
-	//ContentFilterResults openai.ContentFilterResults            `json:"content_filter_results,omitempty"`
+	Index                int                                    `json:"index"`
+	Delta                openai.ChatCompletionStreamChoiceDelta `json:"delta"`
+	LogProbs             *openai.LogProbs                       `json:"logprobs"`
+	FinishReason         openai.FinishReason                    `json:"finish_reason"`
+	ContentFilterResults openai.ContentFilterResults            `json:"content_filter_results,omitempty"`
 }
