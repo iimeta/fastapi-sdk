@@ -164,64 +164,23 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 	return responseChan, nil
 }
 
-func GenImage(ctx context.Context, client *openai.Client, model, prompt string) (url string, err error) {
+func Image(ctx context.Context, client *openai.Client, request openai.ImageRequest) (response openai.ImageResponse, err error) {
 
-	logger.Infof(ctx, "GenImage OpenAI model: %s, prompt: %s", model, prompt)
+	logger.Infof(ctx, "Image OpenAI model: %s start", request.Model)
 
 	now := gtime.Now().UnixMilli()
 
 	defer func() {
-		logger.Infof(ctx, "GenImage OpenAI model: %s, url: %s", model, url)
-		logger.Infof(ctx, "GenImage OpenAI model: %s, totalTime: %d ms", model, gtime.Now().UnixMilli()-now)
+		if err != nil {
+			logger.Infof(ctx, "Image OpenAI model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
+		}
 	}()
 
-	reqUrl := openai.ImageRequest{
-		Model:          model,
-		Prompt:         prompt,
-		Size:           openai.CreateImageSize1024x1024,
-		ResponseFormat: openai.CreateImageResponseFormatURL,
-		N:              1,
-	}
-
-	respUrl, err := client.CreateImage(ctx, reqUrl)
+	response, err = client.CreateImage(ctx, request)
 	if err != nil {
-		logger.Errorf(ctx, "GenImage OpenAI creation error: %v", err)
-		return "", err
+		logger.Errorf(ctx, "Image OpenAI model: %s, error: %v", request.Model, err)
+		return openai.ImageResponse{}, err
 	}
 
-	url = respUrl.Data[0].URL
-
-	return url, nil
-}
-
-func GenImageBase64(ctx context.Context, client *openai.Client, model, prompt string) (string, error) {
-
-	logger.Infof(ctx, "GenImageBase64 OpenAI model: %s, prompt: %s", model, prompt)
-
-	now := gtime.Now().UnixMilli()
-
-	imgBase64 := ""
-
-	defer func() {
-		logger.Infof(ctx, "GenImageBase64 OpenAI model: %s, len: %d", model, len(imgBase64))
-		logger.Infof(ctx, "GenImageBase64 OpenAI model: %s, totalTime: %d ms", model, gtime.Now().UnixMilli()-now)
-	}()
-
-	reqBase64 := openai.ImageRequest{
-		Model:          model,
-		Prompt:         prompt,
-		Size:           openai.CreateImageSize1024x1024,
-		ResponseFormat: openai.CreateImageResponseFormatB64JSON,
-		N:              1,
-	}
-
-	respBase64, err := client.CreateImage(ctx, reqBase64)
-	if err != nil {
-		logger.Errorf(ctx, "GenImageBase64 OpenAI model: %s, creation error: %v", model, err)
-		return "", err
-	}
-
-	imgBase64 = respBase64.Data[0].B64JSON
-
-	return imgBase64, nil
+	return response, nil
 }
