@@ -171,10 +171,8 @@ func Image(ctx context.Context, client *openai.Client, request openai.ImageReque
 	now := gtime.Now().UnixMilli()
 
 	defer func() {
-		if err != nil {
-			res.TotalTime = gtime.Now().UnixMilli() - now
-			logger.Infof(ctx, "Image OpenAI model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
-		}
+		res.TotalTime = gtime.Now().UnixMilli() - now
+		logger.Infof(ctx, "Image OpenAI model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
 	}()
 
 	response, err := client.CreateImage(ctx, request)
