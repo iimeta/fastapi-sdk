@@ -22,6 +22,7 @@ type MidjourneyProxyImagineRes struct {
 		PromptEn   string `json:"promptEn"`
 		BannedWord string `json:"bannedWord"`
 	} `json:"properties"`
+	TotalTime int64 `json:"-"`
 }
 
 type MidjourneyProxyChangeReq struct {
@@ -37,6 +38,7 @@ type MidjourneyProxyChangeRes struct {
 		PromptEn   string `json:"promptEn"`
 		BannedWord string `json:"bannedWord"`
 	} `json:"properties"`
+	TotalTime int64 `json:"-"`
 }
 
 type MidjourneyProxyDescribeReq struct {
@@ -50,6 +52,7 @@ type MidjourneyProxyDescribeRes struct {
 		PromptEn   string `json:"promptEn"`
 		BannedWord string `json:"bannedWord"`
 	} `json:"properties"`
+	TotalTime int64 `json:"-"`
 }
 
 type MidjourneyProxyBlendReq struct {
@@ -63,6 +66,7 @@ type MidjourneyProxyBlendRes struct {
 		PromptEn   string `json:"promptEn"`
 		BannedWord string `json:"bannedWord"`
 	} `json:"properties"`
+	TotalTime int64 `json:"-"`
 }
 
 type MidjourneyProxyFetchRes struct {
@@ -79,4 +83,5 @@ type MidjourneyProxyFetchRes struct {
 	Status      string      `json:"status"`
 	Progress    string      `json:"progress"`
 	FailReason  string      `json:"failReason"`
+	TotalTime   int64       `json:"-"`
 }

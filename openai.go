@@ -66,7 +66,7 @@ func ChatCompletion(ctx context.Context, client *openai.Client, request openai.C
 	response, err := client.CreateChatCompletion(ctx, request)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion OpenAI model: %s, error: %v", request.Model, err)
-		return model.ChatCompletionResponse{}, err
+		return res, err
 	}
 
 	logger.Infof(ctx, "ChatCompletion OpenAI model: %s finished", request.Model)
@@ -178,7 +178,7 @@ func Image(ctx context.Context, client *openai.Client, request openai.ImageReque
 	response, err := client.CreateImage(ctx, request)
 	if err != nil {
 		logger.Errorf(ctx, "Image OpenAI model: %s, error: %v", request.Model, err)
-		return model.ImageResponse{}, err
+		return res, err
 	}
 
 	res = model.ImageResponse{
