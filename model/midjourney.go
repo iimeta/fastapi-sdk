@@ -10,55 +10,16 @@ type MidjourneyProxy struct {
 	FetchUrl        string `json:"fetch_url"`
 }
 
-type MidjourneyProxyImagineReq struct {
-	Prompt string `json:"prompt"`
-	Base64 string `json:"base64"`
-}
-type MidjourneyProxyImagineRes struct {
-	Code        int    `json:"code"`
-	Description string `json:"description"`
-	Result      string `json:"result"`
-	Properties  struct {
-		PromptEn   string `json:"promptEn"`
-		BannedWord string `json:"bannedWord"`
-	} `json:"properties"`
-	TotalTime int64 `json:"-"`
-}
-
-type MidjourneyProxyChangeReq struct {
-	Action string `json:"action"`
-	Index  int    `json:"index"`
-	TaskId string `json:"taskId"`
-}
-type MidjourneyProxyChangeRes struct {
-	Code        int    `json:"code"`
-	Description string `json:"description"`
-	Result      string `json:"result"`
-	Properties  struct {
-		PromptEn   string `json:"promptEn"`
-		BannedWord string `json:"bannedWord"`
-	} `json:"properties"`
-	TotalTime int64 `json:"-"`
-}
-
-type MidjourneyProxyDescribeReq struct {
-	Base64 string `json:"base64"`
-}
-type MidjourneyProxyDescribeRes struct {
-	Code        int    `json:"code"`
-	Description string `json:"description"`
-	Result      string `json:"result"`
-	Properties  struct {
-		PromptEn   string `json:"promptEn"`
-		BannedWord string `json:"bannedWord"`
-	} `json:"properties"`
-	TotalTime int64 `json:"-"`
-}
-
-type MidjourneyProxyBlendReq struct {
+type MidjourneyProxyRequest struct {
+	Prompt      string   `json:"prompt"`
+	Base64      string   `json:"base64"`
 	Base64Array []string `json:"base64Array"`
+	Action      string   `json:"action"`
+	Index       int      `json:"index"`
+	TaskId      string   `json:"taskId"`
 }
-type MidjourneyProxyBlendRes struct {
+
+type MidjourneyProxyResponse struct {
 	Code        int    `json:"code"`
 	Description string `json:"description"`
 	Result      string `json:"result"`
@@ -69,7 +30,7 @@ type MidjourneyProxyBlendRes struct {
 	TotalTime int64 `json:"-"`
 }
 
-type MidjourneyProxyFetchRes struct {
+type MidjourneyProxyFetchResponse struct {
 	Action      string      `json:"action"`
 	Id          string      `json:"id"`
 	Prompt      string      `json:"prompt"`

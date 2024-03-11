@@ -3,6 +3,7 @@ package sdk
 import (
 	"context"
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
@@ -18,11 +19,11 @@ func NewMidjourneyProxy(ctx context.Context, baseURL, apiSecret, apiSecretHeader
 		ChangeUrl:       baseURL + "/submit/change",
 		DescribeUrl:     baseURL + "/submit/describe",
 		BlendUrl:        baseURL + "/submit/blend",
-		FetchUrl:        baseURL + "/task/${task_id}/fetch",
+		FetchUrl:        baseURL + "/task/${taskId}/fetch",
 	}
 }
 
-func Imagine(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request model.MidjourneyProxyImagineReq) (res model.MidjourneyProxyImagineRes, err error) {
+func Imagine(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request model.MidjourneyProxyRequest) (res model.MidjourneyProxyResponse, err error) {
 
 	logger.Infof(ctx, "Midjourney Imagine prompt: %s start", request.Prompt)
 
@@ -33,10 +34,7 @@ func Imagine(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, reques
 		logger.Infof(ctx, "Midjourney Imagine prompt: %s totalTime: %d ms", request.Prompt, gtime.Now().UnixMilli()-now)
 	}()
 
-	header := make(map[string]string)
-	header[midjourneyProxy.ApiSecretHeader] = midjourneyProxy.ApiSecret
-
-	if err = util.HttpPostJson(ctx, midjourneyProxy.ImagineUrl, header, request, &res); err != nil {
+	if err = util.HttpPostJson(ctx, midjourneyProxy.ImagineUrl, g.MapStrStr{midjourneyProxy.ApiSecretHeader: midjourneyProxy.ApiSecret}, request, &res); err != nil {
 		logger.Error(ctx, err)
 		return res, err
 	}
@@ -44,7 +42,7 @@ func Imagine(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, reques
 	return res, nil
 }
 
-func Change(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request model.MidjourneyProxyChangeReq) (res model.MidjourneyProxyChangeRes, err error) {
+func Change(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request model.MidjourneyProxyRequest) (res model.MidjourneyProxyResponse, err error) {
 
 	logger.Infof(ctx, "Midjourney Change request: %s start", gjson.MustEncodeString(request))
 
@@ -55,10 +53,7 @@ func Change(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request
 		logger.Infof(ctx, "Midjourney Change request: %s totalTime: %d ms", gjson.MustEncodeString(request), gtime.Now().UnixMilli()-now)
 	}()
 
-	header := make(map[string]string)
-	header[midjourneyProxy.ApiSecretHeader] = midjourneyProxy.ApiSecret
-
-	if err = util.HttpPostJson(ctx, midjourneyProxy.ChangeUrl, header, request, &res); err != nil {
+	if err = util.HttpPostJson(ctx, midjourneyProxy.ChangeUrl, g.MapStrStr{midjourneyProxy.ApiSecretHeader: midjourneyProxy.ApiSecret}, request, &res); err != nil {
 		logger.Error(ctx, err)
 		return res, err
 	}
@@ -66,7 +61,7 @@ func Change(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request
 	return res, nil
 }
 
-func Describe(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request model.MidjourneyProxyDescribeReq) (res model.MidjourneyProxyDescribeRes, err error) {
+func Describe(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request model.MidjourneyProxyRequest) (res model.MidjourneyProxyResponse, err error) {
 
 	logger.Info(ctx, "Midjourney Describe start")
 
@@ -77,10 +72,7 @@ func Describe(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, reque
 		logger.Infof(ctx, "Midjourney Describe totalTime: %d ms", gtime.Now().UnixMilli()-now)
 	}()
 
-	header := make(map[string]string)
-	header[midjourneyProxy.ApiSecretHeader] = midjourneyProxy.ApiSecret
-
-	if err = util.HttpPostJson(ctx, midjourneyProxy.DescribeUrl, header, request, &res); err != nil {
+	if err = util.HttpPostJson(ctx, midjourneyProxy.DescribeUrl, g.MapStrStr{midjourneyProxy.ApiSecretHeader: midjourneyProxy.ApiSecret}, request, &res); err != nil {
 		logger.Error(ctx, err)
 		return res, err
 	}
@@ -88,7 +80,7 @@ func Describe(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, reque
 	return res, nil
 }
 
-func Blend(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request model.MidjourneyProxyBlendReq) (res model.MidjourneyProxyBlendRes, err error) {
+func Blend(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request model.MidjourneyProxyRequest) (res model.MidjourneyProxyResponse, err error) {
 
 	logger.Info(ctx, "Midjourney Blend start")
 
@@ -99,10 +91,7 @@ func Blend(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request 
 		logger.Infof(ctx, "Midjourney Blend totalTime: %d ms", gtime.Now().UnixMilli()-now)
 	}()
 
-	header := make(map[string]string)
-	header[midjourneyProxy.ApiSecretHeader] = midjourneyProxy.ApiSecret
-
-	if err = util.HttpPostJson(ctx, midjourneyProxy.BlendUrl, header, request, &res); err != nil {
+	if err = util.HttpPostJson(ctx, midjourneyProxy.BlendUrl, g.MapStrStr{midjourneyProxy.ApiSecretHeader: midjourneyProxy.ApiSecret}, request, &res); err != nil {
 		logger.Error(ctx, err)
 		return res, err
 	}
@@ -110,28 +99,25 @@ func Blend(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request 
 	return res, nil
 }
 
-func Fetch(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, taskId string) (res model.MidjourneyProxyFetchRes, err error) {
+func Fetch(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request model.MidjourneyProxyRequest) (res model.MidjourneyProxyFetchResponse, err error) {
 
-	logger.Infof(ctx, "Midjourney Fetch taskId: %s start", taskId)
+	logger.Infof(ctx, "Midjourney Fetch taskId: %s start", request.TaskId)
 
 	now := gtime.Now().UnixMilli()
 
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
-		logger.Infof(ctx, "Midjourney Fetch taskId: %s totalTime: %d ms", taskId, gtime.Now().UnixMilli()-now)
+		logger.Infof(ctx, "Midjourney Fetch taskId: %s totalTime: %d ms", request.TaskId, gtime.Now().UnixMilli()-now)
 	}()
 
-	header := make(map[string]string)
-	header[midjourneyProxy.ApiSecretHeader] = midjourneyProxy.ApiSecret
+	fetchUrl := gstr.Replace(midjourneyProxy.FetchUrl, "${taskId}", request.TaskId, -1)
 
-	fetchUrl := gstr.Replace(midjourneyProxy.FetchUrl, "${task_id}", taskId, -1)
-
-	if err = util.HttpGet(ctx, fetchUrl, header, nil, &res); err != nil {
+	if err = util.HttpGet(ctx, fetchUrl, g.MapStrStr{midjourneyProxy.ApiSecretHeader: midjourneyProxy.ApiSecret}, nil, &res); err != nil {
 		logger.Error(ctx, err)
 		return res, err
 	}
 
-	logger.Infof(ctx, "midjourneyProxyFetchRes: %s", gjson.MustEncodeString(res))
+	logger.Infof(ctx, "midjourneyProxyFetchResponse: %s", gjson.MustEncodeString(res))
 
 	return res, nil
 }
