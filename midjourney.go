@@ -13,13 +13,18 @@ import (
 
 func NewMidjourneyProxy(ctx context.Context, baseURL, apiSecret, apiSecretHeader string) *model.MidjourneyProxy {
 	return &model.MidjourneyProxy{
-		ApiSecret:       apiSecret,
-		ApiSecretHeader: apiSecretHeader,
-		ImagineUrl:      baseURL + "/submit/imagine",
-		ChangeUrl:       baseURL + "/submit/change",
-		DescribeUrl:     baseURL + "/submit/describe",
-		BlendUrl:        baseURL + "/submit/blend",
-		FetchUrl:        baseURL + "/task/${taskId}/fetch",
+		ApiSecret:              apiSecret,
+		ApiSecretHeader:        apiSecretHeader,
+		ImagineUrl:             baseURL + "/submit/imagine",
+		ChangeUrl:              baseURL + "/submit/change",
+		DescribeUrl:            baseURL + "/submit/describe",
+		BlendUrl:               baseURL + "/submit/blend",
+		SwapFaceUrl:            baseURL + "/insight-face/swap",
+		ActionUrl:              baseURL + "/submit/action",
+		ModalUrl:               baseURL + "/submit/modal",
+		ShortenUrl:             baseURL + "/submit/shorten",
+		UploadDiscordImagesUrl: baseURL + "/submit/upload-discord-images",
+		FetchUrl:               baseURL + "/task/${taskId}/fetch",
 	}
 }
 
@@ -92,6 +97,101 @@ func Blend(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request 
 	}()
 
 	if err = util.HttpPostJson(ctx, midjourneyProxy.BlendUrl, g.MapStrStr{midjourneyProxy.ApiSecretHeader: midjourneyProxy.ApiSecret}, request, &res); err != nil {
+		logger.Error(ctx, err)
+		return res, err
+	}
+
+	return res, nil
+}
+
+func SwapFace(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request model.MidjourneyProxyRequest) (res model.MidjourneyProxyResponse, err error) {
+
+	logger.Info(ctx, "Midjourney SwapFace start")
+
+	now := gtime.Now().UnixMilli()
+
+	defer func() {
+		res.TotalTime = gtime.Now().UnixMilli() - now
+		logger.Infof(ctx, "Midjourney SwapFace totalTime: %d ms", gtime.Now().UnixMilli()-now)
+	}()
+
+	if err = util.HttpPostJson(ctx, midjourneyProxy.SwapFaceUrl, g.MapStrStr{midjourneyProxy.ApiSecretHeader: midjourneyProxy.ApiSecret}, request, &res); err != nil {
+		logger.Error(ctx, err)
+		return res, err
+	}
+
+	return res, nil
+}
+
+func Action(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request model.MidjourneyProxyRequest) (res model.MidjourneyProxyResponse, err error) {
+
+	logger.Info(ctx, "Midjourney Action start")
+
+	now := gtime.Now().UnixMilli()
+
+	defer func() {
+		res.TotalTime = gtime.Now().UnixMilli() - now
+		logger.Infof(ctx, "Midjourney Action totalTime: %d ms", gtime.Now().UnixMilli()-now)
+	}()
+
+	if err = util.HttpPostJson(ctx, midjourneyProxy.ActionUrl, g.MapStrStr{midjourneyProxy.ApiSecretHeader: midjourneyProxy.ApiSecret}, request, &res); err != nil {
+		logger.Error(ctx, err)
+		return res, err
+	}
+
+	return res, nil
+}
+
+func Modal(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request model.MidjourneyProxyRequest) (res model.MidjourneyProxyResponse, err error) {
+
+	logger.Info(ctx, "Midjourney Modal start")
+
+	now := gtime.Now().UnixMilli()
+
+	defer func() {
+		res.TotalTime = gtime.Now().UnixMilli() - now
+		logger.Infof(ctx, "Midjourney Modal totalTime: %d ms", gtime.Now().UnixMilli()-now)
+	}()
+
+	if err = util.HttpPostJson(ctx, midjourneyProxy.ModalUrl, g.MapStrStr{midjourneyProxy.ApiSecretHeader: midjourneyProxy.ApiSecret}, request, &res); err != nil {
+		logger.Error(ctx, err)
+		return res, err
+	}
+
+	return res, nil
+}
+
+func Shorten(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request model.MidjourneyProxyRequest) (res model.MidjourneyProxyResponse, err error) {
+
+	logger.Info(ctx, "Midjourney Shorten start")
+
+	now := gtime.Now().UnixMilli()
+
+	defer func() {
+		res.TotalTime = gtime.Now().UnixMilli() - now
+		logger.Infof(ctx, "Midjourney Shorten totalTime: %d ms", gtime.Now().UnixMilli()-now)
+	}()
+
+	if err = util.HttpPostJson(ctx, midjourneyProxy.ShortenUrl, g.MapStrStr{midjourneyProxy.ApiSecretHeader: midjourneyProxy.ApiSecret}, request, &res); err != nil {
+		logger.Error(ctx, err)
+		return res, err
+	}
+
+	return res, nil
+}
+
+func UploadDiscordImages(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request model.MidjourneyProxyRequest) (res model.MidjourneyProxyResponse, err error) {
+
+	logger.Info(ctx, "Midjourney UploadDiscordImages start")
+
+	now := gtime.Now().UnixMilli()
+
+	defer func() {
+		res.TotalTime = gtime.Now().UnixMilli() - now
+		logger.Infof(ctx, "Midjourney UploadDiscordImages totalTime: %d ms", gtime.Now().UnixMilli()-now)
+	}()
+
+	if err = util.HttpPostJson(ctx, midjourneyProxy.UploadDiscordImagesUrl, g.MapStrStr{midjourneyProxy.ApiSecretHeader: midjourneyProxy.ApiSecret}, request, &res); err != nil {
 		logger.Error(ctx, err)
 		return res, err
 	}
