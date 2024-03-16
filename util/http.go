@@ -9,7 +9,7 @@ import (
 
 func HttpGet(ctx context.Context, url string, header map[string]string, data g.Map, result interface{}, proxyURL ...string) error {
 
-	logger.Infof(ctx, "HttpGet url: %s, header: %+v, data: %+v, proxyURL: %v", url, header, data, proxyURL)
+	logger.Infof(ctx, "HttpGet url: %s, header: %+v, data: %s, proxyURL: %v", url, header, gjson.MustEncodeString(data), proxyURL)
 
 	client := g.Client()
 
@@ -22,19 +22,22 @@ func HttpGet(ctx context.Context, url string, header map[string]string, data g.M
 	}
 
 	response, err := client.Get(ctx, url, data)
+
+	if response != nil {
+		defer func() {
+			if err = response.Close(); err != nil {
+				logger.Error(ctx, err)
+			}
+		}()
+	}
+
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	defer func() {
-		if err = response.Close(); err != nil {
-			logger.Error(ctx, err)
-		}
-	}()
-
 	bytes := response.ReadAll()
-	logger.Infof(ctx, "HttpGet url: %s, header: %+v, data: %+v, response: %s", url, header, data, string(bytes))
+	logger.Infof(ctx, "HttpGet url: %s, statusCode: %d, header: %+v, data: %s, response: %s", url, response.StatusCode, header, gjson.MustEncodeString(data), string(bytes))
 
 	if bytes != nil && len(bytes) > 0 {
 		if err = gjson.Unmarshal(bytes, result); err != nil {
@@ -48,7 +51,7 @@ func HttpGet(ctx context.Context, url string, header map[string]string, data g.M
 
 func HttpPostJson(ctx context.Context, url string, header map[string]string, data, result interface{}, proxyURL ...string) error {
 
-	logger.Infof(ctx, "HttpPostJson url: %s, header: %+v, data: %+v, proxyURL: %v", url, header, data, proxyURL)
+	logger.Infof(ctx, "HttpPostJson url: %s, header: %+v, data: %s, proxyURL: %v", url, header, gjson.MustEncodeString(data), proxyURL)
 
 	client := g.Client()
 
@@ -61,19 +64,22 @@ func HttpPostJson(ctx context.Context, url string, header map[string]string, dat
 	}
 
 	response, err := client.ContentJson().Post(ctx, url, data)
+
+	if response != nil {
+		defer func() {
+			if err = response.Close(); err != nil {
+				logger.Error(ctx, err)
+			}
+		}()
+	}
+
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	defer func() {
-		if err = response.Close(); err != nil {
-			logger.Error(ctx, err)
-		}
-	}()
-
 	bytes := response.ReadAll()
-	logger.Infof(ctx, "HttpPostJson url: %s, header: %+v, data: %+v, response: %s", url, header, data, string(bytes))
+	logger.Infof(ctx, "HttpPostJson url: %s, statusCode: %d, header: %+v, data: %s, response: %s", url, response.StatusCode, header, gjson.MustEncodeString(data), string(bytes))
 
 	if bytes != nil && len(bytes) > 0 {
 		if err = gjson.Unmarshal(bytes, result); err != nil {
