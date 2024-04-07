@@ -6,7 +6,7 @@ import "github.com/sashabaranov/go-openai"
 type ChatCompletionRequest struct {
 	Model            string                               `json:"model"`
 	Messages         []openai.ChatCompletionMessage       `json:"messages"`
-	MaxTokens        int                                  `json:"max_tokens,omitempty"`
+	MaxTokens        int                                  `json:"max_tokens,omitempty" d:"4096"`
 	Temperature      float32                              `json:"temperature,omitempty"`
 	TopP             float32                              `json:"top_p,omitempty"`
 	N                int                                  `json:"n,omitempty"`
@@ -45,7 +45,7 @@ type ChatCompletionResponse struct {
 	Created           int64                     `json:"created"`
 	Model             string                    `json:"model"`
 	Choices           []ChatCompletionChoice    `json:"choices"`
-	Usage             openai.Usage              `json:"usage"`
+	Usage             *openai.Usage             `json:"usage"`
 	SystemFingerprint string                    `json:"system_fingerprint"`
 	PromptAnnotations []openai.PromptAnnotation `json:"prompt_annotations,omitempty"`
 	ConnTime          int64                     `json:"-"`

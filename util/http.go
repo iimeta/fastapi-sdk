@@ -169,14 +169,13 @@ func WebSocketClient(ctx context.Context, wsURL string, messageType int, message
 	}
 
 	_ = grpool.AddWithRecover(ctx, func(ctx context.Context) {
-
 		for {
-			messageType, message, err := conn.ReadMessage()
-			if err != nil {
+
+			_, message, err := conn.ReadMessage()
+			if err != nil && websocket.IsUnexpectedCloseError(err) {
 				logger.Error(ctx, err)
 				return
 			}
-			logger.Infof(ctx, "messageType: %d, message: %s", messageType, string(message))
 
 			_ = grpool.AddWithRecover(ctx, func(ctx context.Context) {
 				result <- message

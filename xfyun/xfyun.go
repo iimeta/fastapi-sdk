@@ -12,7 +12,7 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
-	"github.com/google/uuid"
+	"github.com/gogf/gf/v2/util/grand"
 	"github.com/gorilla/websocket"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -30,51 +30,28 @@ type Client struct {
 	BaseURL     string `json:"base_url"`
 	Path        string `json:"path"`
 	ProxyURL    string `json:"proxy_url"`
-	MaxTokens   int    `json:"max_tokens"`
 	Domain      string `json:"domain"`
 }
 
-func NewClient(ctx context.Context, model, key string, baseURL ...string) *Client {
+func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewClient Xfyun model: %s, key: %s", model, key)
 
-	client := &Client{
-		AppId:       "",
-		Key:         "",
-		Secret:      "",
-		OriginalURL: "https://spark-api.xf-yun.com",
-		BaseURL:     "https://spark-api.xf-yun.com",
-		Path:        "/v3.5/chat",
-		MaxTokens:   8192,
-		Domain:      "generalv3.5",
-	}
-
-	//if len(baseURL) > 0 && baseURL[0] != "" {
-	//	logger.Infof(ctx, "NewClient Xfyun model: %s, baseURL: %s", model, baseURL[0])
-	//	client.BaseURL = baseURL[0]
-	//}
-
-	return client
-}
-
-func NewProxyClient(ctx context.Context, model, key string, proxyURL ...string) *Client {
-
-	logger.Infof(ctx, "NewProxyClient Xfyun model: %s, key: %s", model, key)
+	result := gstr.Split(key, "|")
 
 	client := &Client{
-		AppId:       "",
-		Key:         "",
-		Secret:      "",
+		AppId:       result[0],
+		Key:         result[1],
+		Secret:      result[2],
 		OriginalURL: "https://spark-api.xf-yun.com",
 		BaseURL:     "https://spark-api.xf-yun.com",
-		Path:        "/v3.5/chat",
-		MaxTokens:   8192,
-		Domain:      "generalv3.5",
+		Path:        path,
+		Domain:      result[3],
 	}
 
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewProxyClient Xfyun model: %s, proxyURL: %s", model, proxyURL[0])
-		client.ProxyURL = proxyURL[0]
+	if baseURL != "" {
+		logger.Infof(ctx, "NewClient Xfyun model: %s, baseURL: %s", model, baseURL)
+		client.BaseURL = baseURL
 	}
 
 	return client
@@ -92,13 +69,13 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	sparkReq := model.SparkReq{
 		Header: model.Header{
 			AppId: c.AppId,
-			Uid:   uuid.NewString(),
+			Uid:   grand.Digits(10),
 		},
 		Parameter: model.Parameter{
 			Chat: &model.Chat{
 				Domain:          c.Domain,
 				RandomThreshold: 0,
-				MaxTokens:       c.MaxTokens,
+				MaxTokens:       request.MaxTokens,
 			},
 		},
 		Payload: model.Payload{
@@ -170,7 +147,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 				Content: responseContent,
 			},
 		}},
-		Usage: openai.Usage{
+		Usage: &openai.Usage{
 			PromptTokens:     sparkRes.Payload.Usage.Text.PromptTokens,
 			CompletionTokens: sparkRes.Payload.Usage.Text.CompletionTokens,
 			TotalTokens:      sparkRes.Payload.Usage.Text.TotalTokens,
@@ -196,13 +173,13 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	sparkReq := model.SparkReq{
 		Header: model.Header{
 			AppId: c.AppId,
-			Uid:   uuid.NewString(),
+			Uid:   grand.Digits(10),
 		},
 		Parameter: model.Parameter{
 			Chat: &model.Chat{
 				Domain:          c.Domain,
 				RandomThreshold: 0,
-				MaxTokens:       c.MaxTokens,
+				MaxTokens:       request.MaxTokens,
 			},
 		},
 		Payload: model.Payload{
@@ -274,12 +251,15 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 						Content: sparkRes.Payload.Choices.Text[0].Content,
 					},
 				}},
-				//Usage: openai.Usage{
-				//	PromptTokens:     sparkRes.Payload.Usage.Text.PromptTokens,
-				//	CompletionTokens: sparkRes.Payload.Usage.Text.CompletionTokens,
-				//	TotalTokens:      sparkRes.Payload.Usage.Text.TotalTokens,
-				//},
 				ConnTime: duration - now,
+			}
+
+			if sparkRes.Payload.Usage != nil {
+				response.Usage = &openai.Usage{
+					PromptTokens:     sparkRes.Payload.Usage.Text.PromptTokens,
+					CompletionTokens: sparkRes.Payload.Usage.Text.CompletionTokens,
+					TotalTokens:      sparkRes.Payload.Usage.Text.TotalTokens,
+				}
 			}
 
 			if sparkRes.Header.Status == 2 {
