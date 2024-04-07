@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/gogf/gf/v2 v2.6.4
 	github.com/iimeta/tiktoken-go v0.0.0-20240312165419-7d75ab68a516
-	github.com/sashabaranov/go-openai v1.20.4
+	github.com/sashabaranov/go-openai v1.20.5
 )
 
 require (

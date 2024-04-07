@@ -1,4 +1,4 @@
-package sdk
+package openai
 
 import (
 	"context"
@@ -14,25 +14,31 @@ import (
 	"time"
 )
 
-func NewClient(ctx context.Context, model, apiKey string, baseURL ...string) *openai.Client {
+type Client struct {
+	client *openai.Client
+}
 
-	logger.Infof(ctx, "NewClient OpenAI model: %s, apiKey: %s", model, apiKey)
+func NewClient(ctx context.Context, model, key string, baseURL ...string) *Client {
 
-	config := openai.DefaultConfig(apiKey)
+	logger.Infof(ctx, "NewClient OpenAI model: %s, key: %s", model, key)
+
+	config := openai.DefaultConfig(key)
 
 	if len(baseURL) > 0 && baseURL[0] != "" {
 		logger.Infof(ctx, "NewClient OpenAI model: %s, baseURL: %s", model, baseURL[0])
 		config.BaseURL = baseURL[0]
 	}
 
-	return openai.NewClientWithConfig(config)
+	return &Client{
+		client: openai.NewClientWithConfig(config),
+	}
 }
 
-func NewProxyClient(ctx context.Context, model, apiKey string, proxyURL ...string) *openai.Client {
+func NewProxyClient(ctx context.Context, model, key string, proxyURL ...string) *Client {
 
-	logger.Infof(ctx, "NewProxyClient OpenAI model: %s, apiKey: %s", model, apiKey)
+	logger.Infof(ctx, "NewProxyClient OpenAI model: %s, key: %s", model, key)
 
-	config := openai.DefaultConfig(apiKey)
+	config := openai.DefaultConfig(key)
 
 	transport := &http.Transport{}
 
@@ -49,10 +55,12 @@ func NewProxyClient(ctx context.Context, model, apiKey string, proxyURL ...strin
 		Transport: transport,
 	}
 
-	return openai.NewClientWithConfig(config)
+	return &Client{
+		client: openai.NewClientWithConfig(config),
+	}
 }
 
-func ChatCompletion(ctx context.Context, client *openai.Client, request openai.ChatCompletionRequest) (res model.ChatCompletionResponse, err error) {
+func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletionRequest) (res model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletion OpenAI model: %s start", request.Model)
 
@@ -63,7 +71,26 @@ func ChatCompletion(ctx context.Context, client *openai.Client, request openai.C
 		logger.Infof(ctx, "ChatCompletion OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
-	response, err := client.CreateChatCompletion(ctx, request)
+	response, err := c.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
+		Model:            request.Model,
+		Messages:         request.Messages,
+		MaxTokens:        request.MaxTokens,
+		Temperature:      request.Temperature,
+		TopP:             request.TopP,
+		N:                request.N,
+		Stream:           request.Stream,
+		Stop:             request.Stop,
+		PresencePenalty:  request.PresencePenalty,
+		ResponseFormat:   request.ResponseFormat,
+		Seed:             request.Seed,
+		FrequencyPenalty: request.FrequencyPenalty,
+		LogitBias:        request.LogitBias,
+		LogProbs:         request.LogProbs,
+		TopLogProbs:      request.TopLogProbs,
+		User:             request.User,
+		Tools:            request.Tools,
+		ToolChoice:       request.ToolChoice,
+	})
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion OpenAI model: %s, error: %v", request.Model, err)
 		return res, err
@@ -76,15 +103,23 @@ func ChatCompletion(ctx context.Context, client *openai.Client, request openai.C
 		Object:            response.Object,
 		Created:           response.Created,
 		Model:             response.Model,
-		Choices:           response.Choices,
 		Usage:             response.Usage,
 		SystemFingerprint: response.SystemFingerprint,
+	}
+
+	for _, choice := range response.Choices {
+		res.Choices = append(res.Choices, model.ChatCompletionChoice{
+			Index:        choice.Index,
+			Message:      choice.Message,
+			FinishReason: choice.FinishReason,
+			LogProbs:     choice.LogProbs,
+		})
 	}
 
 	return res, nil
 }
 
-func ChatCompletionStream(ctx context.Context, client *openai.Client, request openai.ChatCompletionRequest) (responseChan chan *model.ChatCompletionStreamResponse, err error) {
+func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCompletionRequest) (responseChan chan *model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s start", request.Model)
 
@@ -96,7 +131,26 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 		}
 	}()
 
-	stream, err := client.CreateChatCompletionStream(ctx, request)
+	stream, err := c.client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
+		Model:            request.Model,
+		Messages:         request.Messages,
+		MaxTokens:        request.MaxTokens,
+		Temperature:      request.Temperature,
+		TopP:             request.TopP,
+		N:                request.N,
+		Stream:           request.Stream,
+		Stop:             request.Stop,
+		PresencePenalty:  request.PresencePenalty,
+		ResponseFormat:   request.ResponseFormat,
+		Seed:             request.Seed,
+		FrequencyPenalty: request.FrequencyPenalty,
+		LogitBias:        request.LogitBias,
+		LogProbs:         request.LogProbs,
+		TopLogProbs:      request.TopLogProbs,
+		User:             request.User,
+		Tools:            request.Tools,
+		ToolChoice:       request.ToolChoice,
+	})
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
 		return responseChan, err
@@ -104,7 +158,7 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 
 	duration := gtime.Now().UnixMilli()
 
-	responseChan = make(chan *model.ChatCompletionStreamResponse)
+	responseChan = make(chan *model.ChatCompletionResponse)
 
 	if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
 
@@ -126,7 +180,7 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 				return
 			}
 
-			response := &model.ChatCompletionStreamResponse{
+			response := &model.ChatCompletionResponse{
 				ID:                streamResponse.ID,
 				Object:            streamResponse.Object,
 				Created:           streamResponse.Created,
@@ -136,7 +190,7 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 			}
 
 			for _, choice := range streamResponse.Choices {
-				response.Choices = append(response.Choices, model.ChatCompletionStreamChoice{
+				response.Choices = append(response.Choices, model.ChatCompletionChoice{
 					Index:                choice.Index,
 					Delta:                choice.Delta,
 					FinishReason:         choice.FinishReason,
@@ -174,7 +228,7 @@ func ChatCompletionStream(ctx context.Context, client *openai.Client, request op
 	return responseChan, nil
 }
 
-func Image(ctx context.Context, client *openai.Client, request openai.ImageRequest) (res model.ImageResponse, err error) {
+func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res model.ImageResponse, err error) {
 
 	logger.Infof(ctx, "Image OpenAI model: %s start", request.Model)
 
@@ -185,7 +239,16 @@ func Image(ctx context.Context, client *openai.Client, request openai.ImageReque
 		logger.Infof(ctx, "Image OpenAI model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
 	}()
 
-	response, err := client.CreateImage(ctx, request)
+	response, err := c.client.CreateImage(ctx, openai.ImageRequest{
+		Prompt:         request.Prompt,
+		Model:          request.Model,
+		N:              request.N,
+		Quality:        request.Quality,
+		Size:           request.Size,
+		Style:          request.Style,
+		ResponseFormat: request.ResponseFormat,
+		User:           request.User,
+	})
 	if err != nil {
 		logger.Errorf(ctx, "Image OpenAI model: %s, error: %v", request.Model, err)
 		return res, err
