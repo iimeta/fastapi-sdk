@@ -55,3 +55,7 @@ func NumTokensFromMessages(model string, messages []openai.ChatCompletionMessage
 
 	return numTokens, nil
 }
+
+func EncodingForModel(model string) (*tiktoken.Tiktoken, error) {
+	return tiktoken.EncodingForModel(model)
+}

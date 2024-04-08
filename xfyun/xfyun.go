@@ -74,9 +74,11 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		},
 		Parameter: model.Parameter{
 			Chat: &model.Chat{
-				Domain:          c.Domain,
-				RandomThreshold: 0,
-				MaxTokens:       request.MaxTokens,
+				Domain:      c.Domain,
+				MaxTokens:   request.MaxTokens,
+				Temperature: request.Temperature,
+				TopK:        request.TopP,
+				ChatId:      request.User,
 			},
 		},
 		Payload: model.Payload{
@@ -87,6 +89,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	if request.Functions != nil && len(request.Functions) > 0 {
+		sparkReq.Payload.Functions = new(model.Functions)
 		sparkReq.Payload.Functions.Text = append(sparkReq.Payload.Functions.Text, request.Functions...)
 	}
 
@@ -184,9 +187,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		},
 		Parameter: model.Parameter{
 			Chat: &model.Chat{
-				Domain:          c.Domain,
-				RandomThreshold: 0,
-				MaxTokens:       request.MaxTokens,
+				Domain:      c.Domain,
+				MaxTokens:   request.MaxTokens,
+				Temperature: request.Temperature,
+				TopK:        request.TopP,
+				ChatId:      request.User,
 			},
 		},
 		Payload: model.Payload{
@@ -197,6 +202,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}
 
 	if request.Functions != nil && len(request.Functions) > 0 {
+		sparkReq.Payload.Functions = new(model.Functions)
 		sparkReq.Payload.Functions.Text = append(sparkReq.Payload.Functions.Text, request.Functions...)
 	}
 

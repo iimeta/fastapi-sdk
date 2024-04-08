@@ -20,15 +20,17 @@ type Parameter struct {
 
 type Chat struct {
 	// req
-	Domain          string `json:"domain"`
-	RandomThreshold int    `json:"random_threshold"`
-	MaxTokens       int    `json:"max_tokens"`
+	Domain      string  `json:"domain"`
+	MaxTokens   int     `json:"max_tokens"`
+	Temperature float32 `json:"temperature,omitempty"`
+	TopK        float32 `json:"top_k,omitempty"`
+	ChatId      string  `json:"chat_id,omitempty"`
 }
 
 type Payload struct {
 	// req
-	Message   *Message  `json:"message"`
-	Functions Functions `json:"functions,omitempty"`
+	Message   *Message   `json:"message"`
+	Functions *Functions `json:"functions,omitempty"`
 	// res
 	Choices *Choices `json:"choices,omitempty"`
 	Usage   *Usage   `json:"usage,omitempty"`
