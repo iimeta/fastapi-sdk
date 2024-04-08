@@ -27,13 +27,11 @@ type ChatCompletionRequest struct {
 	// TopLogProbs is an integer between 0 and 5 specifying the number of most likely tokens to return at each
 	// token position, each with an associated log probability.
 	// logprobs must be set to true if this parameter is used.
-	TopLogProbs int    `json:"top_logprobs,omitempty"`
-	User        string `json:"user,omitempty"`
-	// Deprecated: use Tools instead.
-	Functions []openai.FunctionDefinition `json:"functions,omitempty"`
-	// Deprecated: use ToolChoice instead.
-	FunctionCall any           `json:"function_call,omitempty"`
-	Tools        []openai.Tool `json:"tools,omitempty"`
+	TopLogProbs  int                         `json:"top_logprobs,omitempty"`
+	User         string                      `json:"user,omitempty"`
+	Functions    []openai.FunctionDefinition `json:"functions,omitempty"`
+	FunctionCall any                         `json:"function_call,omitempty"`
+	Tools        []openai.Tool               `json:"tools,omitempty"`
 	// This can be either a string or an ToolChoice object.
 	ToolChoice any `json:"tool_choice,omitempty"`
 }
@@ -46,7 +44,7 @@ type ChatCompletionResponse struct {
 	Model             string                    `json:"model"`
 	Choices           []ChatCompletionChoice    `json:"choices"`
 	Usage             *openai.Usage             `json:"usage"`
-	SystemFingerprint string                    `json:"system_fingerprint"`
+	SystemFingerprint string                    `json:"system_fingerprint,omitempty"`
 	PromptAnnotations []openai.PromptAnnotation `json:"prompt_annotations,omitempty"`
 	ConnTime          int64                     `json:"-"`
 	Duration          int64                     `json:"-"`
@@ -54,10 +52,10 @@ type ChatCompletionResponse struct {
 }
 
 type ChatCompletionChoice struct {
-	Index                int                                    `json:"index"`
-	Message              openai.ChatCompletionMessage           `json:"message"`
-	Delta                openai.ChatCompletionStreamChoiceDelta `json:"delta"`
-	LogProbs             *openai.LogProbs                       `json:"logprobs"`
-	FinishReason         openai.FinishReason                    `json:"finish_reason"`
-	ContentFilterResults openai.ContentFilterResults            `json:"content_filter_results,omitempty"`
+	Index                int                                     `json:"index"`
+	Message              *openai.ChatCompletionMessage           `json:"message,omitempty"`
+	Delta                *openai.ChatCompletionStreamChoiceDelta `json:"delta,omitempty"`
+	LogProbs             *openai.LogProbs                        `json:"logprobs,omitempty"`
+	FinishReason         openai.FinishReason                     `json:"finish_reason"`
+	ContentFilterResults *openai.ContentFilterResults            `json:"content_filter_results,omitempty"`
 }

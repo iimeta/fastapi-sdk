@@ -78,6 +78,8 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		LogProbs:         request.LogProbs,
 		TopLogProbs:      request.TopLogProbs,
 		User:             request.User,
+		Functions:        request.Functions,
+		FunctionCall:     request.FunctionCall,
 		Tools:            request.Tools,
 		ToolChoice:       request.ToolChoice,
 	})
@@ -100,7 +102,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	for _, choice := range response.Choices {
 		res.Choices = append(res.Choices, model.ChatCompletionChoice{
 			Index:        choice.Index,
-			Message:      choice.Message,
+			Message:      &choice.Message,
 			FinishReason: choice.FinishReason,
 			LogProbs:     choice.LogProbs,
 		})
@@ -138,6 +140,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		LogProbs:         request.LogProbs,
 		TopLogProbs:      request.TopLogProbs,
 		User:             request.User,
+		Functions:        request.Functions,
+		FunctionCall:     request.FunctionCall,
 		Tools:            request.Tools,
 		ToolChoice:       request.ToolChoice,
 	})
@@ -161,12 +165,15 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			streamResponse, err := stream.Recv()
 			if err != nil && !errors.Is(err, io.EOF) {
+
 				if !errors.Is(err, context.Canceled) {
 					logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
 				}
+
 				responseChan <- nil
 				time.Sleep(time.Millisecond)
 				close(responseChan)
+
 				return
 			}
 
@@ -182,9 +189,9 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			for _, choice := range streamResponse.Choices {
 				response.Choices = append(response.Choices, model.ChatCompletionChoice{
 					Index:                choice.Index,
-					Delta:                choice.Delta,
+					Delta:                &choice.Delta,
 					FinishReason:         choice.FinishReason,
-					ContentFilterResults: choice.ContentFilterResults,
+					ContentFilterResults: &choice.ContentFilterResults,
 				})
 			}
 
@@ -193,7 +200,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s finished", request.Model)
 
 				if err = stream.Close(); err != nil {
-					logger.Error(ctx, err)
+					logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, stream.Close error: %v", request.Model, err)
 				}
 
 				end := gtime.Now().UnixMilli()

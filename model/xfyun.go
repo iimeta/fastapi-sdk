@@ -27,7 +27,8 @@ type Chat struct {
 
 type Payload struct {
 	// req
-	Message *Message `json:"message"`
+	Message   *Message  `json:"message"`
+	Functions Functions `json:"functions,omitempty"`
 	// res
 	Choices *Choices `json:"choices,omitempty"`
 	Usage   *Usage   `json:"usage,omitempty"`
@@ -38,13 +39,20 @@ type Message struct {
 	Text []openai.ChatCompletionMessage `json:"text"`
 }
 
+type Functions struct {
+	// req
+	Text []openai.FunctionDefinition `json:"text"`
+}
+
 type Text struct {
 	// req res
 	Role    string `json:"role"`
 	Content string `json:"content"`
 
 	// Choices
-	Index int `json:"index,omitempty"`
+	Index        int                  `json:"index,omitempty"`
+	ContentType  string               `json:"content_type"`
+	FunctionCall *openai.FunctionCall `json:"function_call"`
 
 	// Usage
 	QuestionTokens   int `json:"question_tokens,omitempty"`

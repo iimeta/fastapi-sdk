@@ -7,3 +7,12 @@ const (
 	CORP_ALIYUN     = "Aliyun"
 	CORP_MIDJOURNEY = "Midjourney"
 )
+
+// Chat message role defined by the OpenAI API.
+const (
+	ChatMessageRoleSystem    = "system"
+	ChatMessageRoleUser      = "user"
+	ChatMessageRoleAssistant = "assistant"
+	ChatMessageRoleFunction  = "function"
+	ChatMessageRoleTool      = "tool"
+)

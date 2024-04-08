@@ -1,7 +1,7 @@
 package tiktoken
 
 import (
-	"github.com/iimeta/tiktoken-go"
+	"github.com/pkoukk/tiktoken-go"
 	"github.com/sashabaranov/go-openai"
 )
 

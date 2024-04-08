@@ -14,6 +14,7 @@ import (
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/gorilla/websocket"
+	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"
@@ -85,6 +86,10 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		},
 	}
 
+	if request.Functions != nil && len(request.Functions) > 0 {
+		sparkReq.Payload.Functions.Text = append(sparkReq.Payload.Functions.Text, request.Functions...)
+	}
+
 	data, err := gjson.Marshal(sparkReq)
 	if err != nil {
 		logger.Error(ctx, err)
@@ -93,7 +98,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 	authorizationUrl := c.getAuthorizationUrl(ctx)
 
-	logger.Infof(ctx, "ChatCompletion Xfyun model: %s, appid: %s, authorizationUrl: %s", request.Model, c.AppId, authorizationUrl)
+	logger.Debugf(ctx, "ChatCompletion Xfyun model: %s, appid: %s, authorizationUrl: %s", request.Model, c.AppId, authorizationUrl)
 
 	result := make(chan []byte)
 	var conn *websocket.Conn
@@ -106,7 +111,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}, nil)
 
 	defer func() {
-		err = conn.Close()
+		err := conn.Close()
 		if err != nil {
 			logger.Error(ctx, err)
 		}
@@ -114,18 +119,20 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 	responseContent := ""
 	sparkRes := new(model.SparkRes)
+
 	for {
 
 		message := <-result
 
 		err = gjson.Unmarshal(message, &sparkRes)
 		if err != nil {
-			logger.Error(ctx, err)
+			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
 			return
 		}
 
 		if sparkRes.Header.Code != 0 {
 			err = errors.New(gjson.MustEncodeString(sparkRes))
+			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
 			return
 		}
 
@@ -142,9 +149,10 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		Model: request.Model,
 		Choices: []model.ChatCompletionChoice{{
 			Index: sparkRes.Payload.Choices.Seq,
-			Message: openai.ChatCompletionMessage{
-				Role:    sparkRes.Payload.Choices.Text[0].Role,
-				Content: responseContent,
+			Message: &openai.ChatCompletionMessage{
+				Role:         sparkRes.Payload.Choices.Text[0].Role,
+				Content:      responseContent,
+				FunctionCall: sparkRes.Payload.Choices.Text[0].FunctionCall,
 			},
 		}},
 		Usage: &openai.Usage{
@@ -155,7 +163,6 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	return res, nil
-
 }
 
 func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCompletionRequest) (responseChan chan *model.ChatCompletionResponse, err error) {
@@ -189,6 +196,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		},
 	}
 
+	if request.Functions != nil && len(request.Functions) > 0 {
+		sparkReq.Payload.Functions.Text = append(sparkReq.Payload.Functions.Text, request.Functions...)
+	}
+
 	data, err := gjson.Marshal(sparkReq)
 	if err != nil {
 		logger.Error(ctx, err)
@@ -197,7 +208,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 	authorizationUrl := c.getAuthorizationUrl(ctx)
 
-	logger.Infof(ctx, "ChatCompletionStream Xfyun model: %s, appid: %s, getAuthorizationUrl: %s", request.Model, c.AppId, authorizationUrl)
+	logger.Debugf(ctx, "ChatCompletionStream Xfyun model: %s, appid: %s, getAuthorizationUrl: %s", request.Model, c.AppId, authorizationUrl)
 
 	result := make(chan []byte)
 	var conn *websocket.Conn
@@ -216,6 +227,12 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
 
 		defer func() {
+
+			err := conn.Close()
+			if err != nil {
+				logger.Error(ctx, err)
+			}
+
 			end := gtime.Now().UnixMilli()
 			logger.Infof(ctx, "ChatCompletionStream Xfyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 		}()
@@ -227,16 +244,37 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			sparkRes := new(model.SparkRes)
 			err := gjson.Unmarshal(message, &sparkRes)
 			if err != nil {
-				logger.Error(ctx, err)
-
-				err = conn.Close()
-				if err != nil {
-					logger.Error(ctx, err)
-				}
+				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 
 				responseChan <- nil
 				time.Sleep(time.Millisecond)
 				close(responseChan)
+
+				return
+			}
+
+			if sparkRes.Header.Code != 0 {
+
+				err = errors.New(gjson.MustEncodeString(sparkRes))
+				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
+
+				end := gtime.Now().UnixMilli()
+
+				responseChan <- &model.ChatCompletionResponse{
+					ID:    sparkRes.Header.Sid,
+					Model: request.Model,
+					Choices: []model.ChatCompletionChoice{{
+						Index: 0,
+						Delta: &openai.ChatCompletionStreamChoiceDelta{
+							Role:    consts.ChatMessageRoleAssistant,
+							Content: sparkRes.Header.Message,
+						},
+						FinishReason: "stop",
+					}},
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+				}
 
 				return
 			}
@@ -246,9 +284,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				Model: request.Model,
 				Choices: []model.ChatCompletionChoice{{
 					Index: sparkRes.Payload.Choices.Seq,
-					Delta: openai.ChatCompletionStreamChoiceDelta{
-						Role:    sparkRes.Payload.Choices.Text[0].Role,
-						Content: sparkRes.Payload.Choices.Text[0].Content,
+					Delta: &openai.ChatCompletionStreamChoiceDelta{
+						Role:         sparkRes.Payload.Choices.Text[0].Role,
+						Content:      sparkRes.Payload.Choices.Text[0].Content,
+						FunctionCall: sparkRes.Payload.Choices.Text[0].FunctionCall,
 					},
 				}},
 				ConnTime: duration - now,
@@ -267,11 +306,6 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				logger.Infof(ctx, "ChatCompletionStream Xfyun model: %s finished", request.Model)
 
 				response.Choices[0].FinishReason = "stop"
-
-				err = conn.Close()
-				if err != nil {
-					logger.Error(ctx, err)
-				}
 
 				end := gtime.Now().UnixMilli()
 				response.Duration = end - duration
