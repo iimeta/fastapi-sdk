@@ -8,11 +8,12 @@ const (
 	CORP_MIDJOURNEY = "Midjourney"
 )
 
-// Chat message role defined by the OpenAI API.
 const (
-	ChatMessageRoleSystem    = "system"
-	ChatMessageRoleUser      = "user"
-	ChatMessageRoleAssistant = "assistant"
-	ChatMessageRoleFunction  = "function"
-	ChatMessageRoleTool      = "tool"
+	ROLE_SYSTEM    = "system"
+	ROLE_USER      = "user"
+	ROLE_ASSISTANT = "assistant"
+	ROLE_FUNCTION  = "function"
+	ROLE_TOOL      = "tool"
 )
+
+const ACCESS_TOKEN_KEY = "sdk:baidu:access_token:%s"

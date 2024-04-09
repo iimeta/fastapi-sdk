@@ -24,14 +24,14 @@ import (
 )
 
 type Client struct {
-	AppId       string `json:"appid"`
-	Key         string `json:"key"`
-	Secret      string `json:"secret"`
-	OriginalURL string `json:"original_url"`
-	BaseURL     string `json:"base_url"`
-	Path        string `json:"path"`
-	ProxyURL    string `json:"proxy_url"`
-	Domain      string `json:"domain"`
+	AppId       string
+	Key         string
+	Secret      string
+	OriginalURL string
+	BaseURL     string
+	Path        string
+	ProxyURL    string
+	Domain      string
 }
 
 func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL ...string) *Client {
@@ -61,11 +61,15 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletionRequest) (res model.ChatCompletionResponse, err error) {
 
 	now := gtime.Now().UnixMilli()
-
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
 		logger.Infof(ctx, "ChatCompletion Xfyun model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
+
+	maxTokens := request.MaxTokens
+	if maxTokens == 0 {
+		maxTokens = 4096
+	}
 
 	sparkReq := model.SparkReq{
 		Header: model.Header{
@@ -75,7 +79,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		Parameter: model.Parameter{
 			Chat: &model.Chat{
 				Domain:      c.Domain,
-				MaxTokens:   request.MaxTokens,
+				MaxTokens:   maxTokens,
 				Temperature: request.Temperature,
 				TopK:        request.TopP,
 				ChatId:      request.User,
@@ -173,12 +177,16 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	logger.Infof(ctx, "ChatCompletionStream Xfyun model: %s start", request.Model)
 
 	now := gtime.Now().UnixMilli()
-
 	defer func() {
 		if err != nil {
 			logger.Infof(ctx, "ChatCompletionStream Xfyun model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
 		}
 	}()
+
+	maxTokens := request.MaxTokens
+	if maxTokens == 0 {
+		maxTokens = 4096
+	}
 
 	sparkReq := model.SparkReq{
 		Header: model.Header{
@@ -188,7 +196,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		Parameter: model.Parameter{
 			Chat: &model.Chat{
 				Domain:      c.Domain,
-				MaxTokens:   request.MaxTokens,
+				MaxTokens:   maxTokens,
 				Temperature: request.Temperature,
 				TopK:        request.TopP,
 				ChatId:      request.User,
@@ -272,7 +280,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					Choices: []model.ChatCompletionChoice{{
 						Index: 0,
 						Delta: &openai.ChatCompletionStreamChoiceDelta{
-							Role:    consts.ChatMessageRoleAssistant,
+							Role:    consts.ROLE_ASSISTANT,
 							Content: sparkRes.Header.Message,
 						},
 						FinishReason: "stop",

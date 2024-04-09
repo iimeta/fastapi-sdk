@@ -1,6 +1,7 @@
 package util
 
 import (
+	"bufio"
 	"context"
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
@@ -8,6 +9,7 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gorilla/websocket"
 	"github.com/iimeta/fastapi-sdk/logger"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -184,4 +186,59 @@ func WebSocketClient(ctx context.Context, wsURL string, messageType int, message
 	}, nil)
 
 	return conn, nil
+}
+
+func SSEClient(ctx context.Context, method, url string, header map[string]string, data interface{}, result chan []byte) error {
+
+	logger.Infof(ctx, "SSEClient method: %s, url: %s, header: %+v, data: %+v", method, url, header, data)
+
+	client := g.Client().Timeout(600 * time.Second)
+	if header != nil {
+		client.SetHeaderMap(header)
+	}
+
+	client.SetHeader("Accept", "text/event-stream")
+
+	response, err := client.DoRequest(ctx, method, url, data)
+	if err != nil {
+		logger.Error(ctx, err)
+		return err
+	}
+
+	defer func() {
+		err = response.Close()
+		if err != nil {
+			logger.Error(ctx, err)
+		}
+	}()
+
+	// 使用bufio.NewReader读取响应正文
+	reader := bufio.NewReader(response.Body)
+
+	isClose := false
+	for {
+
+		message, err := reader.ReadString('\n')
+		if err != nil {
+			if err == io.EOF {
+				logger.Infof(ctx, "SSEClient method: %s, url: %s, header: %+v, data: %+v done", method, url, header, data)
+				return nil
+			}
+			logger.Error(ctx, err)
+			return err
+		}
+
+		logger.Infof(ctx, "SSEClient method: %s, url: %s, header: %+v, data: %+v, message: %s", method, url, header, data, message)
+
+		_ = grpool.AddWithRecover(ctx, func(ctx context.Context) {
+			result <- []byte(message)
+		}, nil)
+
+		if isClose {
+			logger.Infof(ctx, "SSEClient method: %s, url: %s, header: %+v, data: %+v done", method, url, header, data)
+			return nil
+		}
+
+		isClose = message == "event: close"
+	}
 }

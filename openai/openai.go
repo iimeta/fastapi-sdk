@@ -55,7 +55,6 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	logger.Infof(ctx, "ChatCompletion OpenAI model: %s start", request.Model)
 
 	now := gtime.Now().UnixMilli()
-
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
 		logger.Infof(ctx, "ChatCompletion OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
@@ -116,7 +115,6 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s start", request.Model)
 
 	now := gtime.Now().UnixMilli()
-
 	defer func() {
 		if err != nil {
 			logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
@@ -230,7 +228,6 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	logger.Infof(ctx, "Image OpenAI model: %s start", request.Model)
 
 	now := gtime.Now().UnixMilli()
-
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
 		logger.Infof(ctx, "Image OpenAI model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
