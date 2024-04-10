@@ -9,21 +9,21 @@ type ErnieBotMessage struct {
 
 type ErnieBotReq struct {
 	Messages []openai.ChatCompletionMessage `json:"messages"`
+	Stream   bool                           `json:"stream,omitempty"`
 }
 type ErnieBotRes struct {
-	Id               string `json:"id"`
-	Object           string `json:"object"`
-	Created          int64  `json:"created"`
-	Result           string `json:"result"`
-	IsTruncated      bool   `json:"is_truncated"`
-	NeedClearHistory bool   `json:"need_clear_history"`
-	Usage            struct {
-		PromptTokens     int `json:"prompt_tokens"`
-		CompletionTokens int `json:"completion_tokens"`
-		TotalTokens      int `json:"total_tokens"`
-	} `json:"usage"`
-	ErrorCode int    `json:"error_code"`
-	ErrorMsg  string `json:"error_msg"`
+	Id               string        `json:"id"`
+	Object           string        `json:"object"`
+	Created          int64         `json:"created"`
+	Result           string        `json:"result"`
+	IsTruncated      bool          `json:"is_truncated"`
+	NeedClearHistory bool          `json:"need_clear_history"`
+	Usage            *openai.Usage `json:"usage,omitempty"`
+	ErrorCode        int           `json:"error_code"`
+	ErrorMsg         string        `json:"error_msg"`
+	SentenceId       int           `json:"sentence_id"`
+	IsEnd            bool          `json:"is_end"`
+	FinishReason     string        `json:"finish_reason"`
 }
 
 type GetAccessTokenRes struct {

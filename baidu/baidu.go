@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/consts"
@@ -13,6 +14,9 @@ import (
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"
 	"github.com/sashabaranov/go-openai"
+	"io"
+	"net/http"
+	"time"
 )
 
 type Client struct {
@@ -96,7 +100,142 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCompletionRequest) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	return
+	logger.Infof(ctx, "ChatCompletionStream Baidu model: %s start", request.Model)
+
+	now := gtime.Now().UnixMilli()
+	defer func() {
+		if err != nil {
+			logger.Infof(ctx, "ChatCompletionStream Baidu model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
+		}
+	}()
+
+	req := model.ErnieBotReq{
+		Messages: request.Messages,
+		Stream:   request.Stream,
+	}
+
+	stream, err := util.SSEClient(ctx, http.MethodPost, fmt.Sprintf("%s?access_token=%s", c.BaseURL+c.Path, c.GetAccessToken(ctx)), nil, req)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
+		return responseChan, err
+	}
+
+	duration := gtime.Now().UnixMilli()
+
+	responseChan = make(chan *model.ChatCompletionResponse)
+
+	if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
+
+		defer func() {
+			end := gtime.Now().UnixMilli()
+			logger.Infof(ctx, "ChatCompletionStream Baidu model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+		}()
+
+		for {
+
+			streamResponse, err := stream.Recv()
+			if err != nil && !errors.Is(err, io.EOF) {
+
+				if !errors.Is(err, context.Canceled) {
+					logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
+				}
+
+				responseChan <- nil
+				time.Sleep(time.Millisecond)
+				close(responseChan)
+
+				return
+			}
+
+			ernieBotRes := new(model.ErnieBotRes)
+			if err = gjson.Unmarshal(streamResponse, &ernieBotRes); err != nil {
+				logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
+
+				responseChan <- nil
+				time.Sleep(time.Millisecond)
+				close(responseChan)
+
+				return
+			}
+
+			if ernieBotRes.ErrorCode != 0 {
+
+				err = errors.New(gjson.MustEncodeString(ernieBotRes))
+				logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
+
+				if err = stream.Close(); err != nil {
+					logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, stream.Close error: %v", request.Model, err)
+				}
+
+				end := gtime.Now().UnixMilli()
+
+				responseChan <- &model.ChatCompletionResponse{
+					ID:      ernieBotRes.Id,
+					Object:  ernieBotRes.Object,
+					Created: ernieBotRes.Created,
+					Model:   request.Model,
+					Choices: []model.ChatCompletionChoice{{
+						Index: 0,
+						Delta: &openai.ChatCompletionStreamChoiceDelta{
+							Role:    consts.ROLE_ASSISTANT,
+							Content: ernieBotRes.ErrorMsg,
+						},
+						FinishReason: "stop",
+					}},
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+				}
+
+				return
+			}
+
+			response := &model.ChatCompletionResponse{
+				ID:      ernieBotRes.Id,
+				Object:  ernieBotRes.Object,
+				Created: ernieBotRes.Created,
+				Model:   request.Model,
+				Choices: []model.ChatCompletionChoice{{
+					Index: ernieBotRes.SentenceId,
+					Delta: &openai.ChatCompletionStreamChoiceDelta{
+						Role:    consts.ROLE_ASSISTANT,
+						Content: ernieBotRes.Result,
+					},
+				}},
+				Usage:    ernieBotRes.Usage,
+				ConnTime: duration - now,
+			}
+
+			if ernieBotRes.IsEnd {
+
+				logger.Infof(ctx, "ChatCompletionStream Baidu model: %s finished", request.Model)
+
+				if err = stream.Close(); err != nil {
+					logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, stream.Close error: %v", request.Model, err)
+				}
+
+				response.Choices[0].FinishReason = "stop"
+
+				end := gtime.Now().UnixMilli()
+				response.Duration = end - duration
+				response.TotalTime = end - now
+				responseChan <- response
+
+				return
+			}
+
+			end := gtime.Now().UnixMilli()
+			response.Duration = end - duration
+			response.TotalTime = end - now
+
+			responseChan <- response
+		}
+	}, nil); err != nil {
+		logger.Error(ctx, err)
+		return responseChan, err
+	}
+
+	return responseChan, nil
 }
 
 func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res model.ImageResponse, err error) {
