@@ -5,16 +5,18 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"io"
+	"net/http"
 	"time"
 )
 
 var (
 	headerData  = []byte("data: ")
-	errorPrefix = []byte(`data: {"error":`)
+	errorPrefix = []byte(`data: {"errors":`)
 )
 
 var (
@@ -43,7 +45,20 @@ func SSEClient(ctx context.Context, method, url string, header map[string]string
 	response, err := client.ContentJson().DoRequest(ctx, method, url, data)
 	if err != nil {
 		logger.Error(ctx, err)
+		if response != nil {
+			if err := response.Close(); err != nil {
+				logger.Error(ctx, err)
+			}
+		}
 		return nil, err
+	}
+
+	if isFailureStatusCode(response) {
+		message := response.ReadAllString()
+		if err := response.Close(); err != nil {
+			logger.Error(ctx, err)
+		}
+		return nil, errors.New(fmt.Sprintf("error, status code: %d, message: %s", response.StatusCode, message))
 	}
 
 	stream = &StreamReader{
@@ -75,7 +90,7 @@ func (stream *StreamReader) processLines() ([]byte, error) {
 
 		rawLine, readErr := stream.reader.ReadBytes('\n')
 		if readErr != nil || hasErrorPrefix {
-			return nil, readErr
+			return rawLine, readErr
 		}
 
 		noSpaceLine := bytes.TrimSpace(rawLine)
@@ -109,4 +124,8 @@ func (stream *StreamReader) processLines() ([]byte, error) {
 
 func (stream *StreamReader) Close() error {
 	return stream.response.Body.Close()
+}
+
+func isFailureStatusCode(resp *gclient.Response) bool {
+	return resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusBadRequest
 }

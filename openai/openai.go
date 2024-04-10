@@ -83,7 +83,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		ToolChoice:       request.ToolChoice,
 	})
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletion OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletion OpenAI model: %s, errors: %v", request.Model, err)
 		return res, err
 	}
 
@@ -144,7 +144,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		ToolChoice:       request.ToolChoice,
 	})
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, errors: %v", request.Model, err)
 		return responseChan, err
 	}
 
@@ -165,7 +165,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if err != nil && !errors.Is(err, io.EOF) {
 
 				if !errors.Is(err, context.Canceled) {
-					logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
+					logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, errors: %v", request.Model, err)
 				}
 
 				responseChan <- nil
@@ -198,7 +198,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s finished", request.Model)
 
 				if err = stream.Close(); err != nil {
-					logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, stream.Close error: %v", request.Model, err)
+					logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, stream.Close errors: %v", request.Model, err)
 				}
 
 				end := gtime.Now().UnixMilli()
@@ -244,7 +244,7 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 		User:           request.User,
 	})
 	if err != nil {
-		logger.Errorf(ctx, "Image OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "Image OpenAI model: %s, errors: %v", request.Model, err)
 		return res, err
 	}
 

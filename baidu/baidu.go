@@ -9,6 +9,7 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -61,7 +62,23 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}()
 
 	req := model.ErnieBotReq{
-		Messages: request.Messages,
+		Messages:        request.Messages,
+		MaxOutputTokens: request.MaxTokens,
+		Temperature:     request.Temperature,
+		TopP:            request.TopP,
+		Stream:          request.Stream,
+		Stop:            request.Stop,
+		PenaltyScore:    request.FrequencyPenalty,
+		UserId:          request.User,
+	}
+
+	if req.Messages[0].Role == consts.ROLE_SYSTEM {
+		req.System = req.Messages[0].Content
+		req.Messages = req.Messages[1:]
+	}
+
+	if request.ResponseFormat != nil {
+		req.ResponseFormat = gconv.String(request.ResponseFormat.Type)
 	}
 
 	ernieBotRes := new(model.ErnieBotRes)
@@ -110,13 +127,28 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}()
 
 	req := model.ErnieBotReq{
-		Messages: request.Messages,
-		Stream:   request.Stream,
+		Messages:        request.Messages,
+		MaxOutputTokens: request.MaxTokens,
+		Temperature:     request.Temperature,
+		TopP:            request.TopP,
+		Stream:          request.Stream,
+		Stop:            request.Stop,
+		PenaltyScore:    request.FrequencyPenalty,
+		UserId:          request.User,
+	}
+
+	if req.Messages[0].Role == consts.ROLE_SYSTEM {
+		req.System = req.Messages[0].Content
+		req.Messages = req.Messages[1:]
+	}
+
+	if request.ResponseFormat != nil {
+		req.ResponseFormat = gconv.String(request.ResponseFormat.Type)
 	}
 
 	stream, err := util.SSEClient(ctx, http.MethodPost, fmt.Sprintf("%s?access_token=%s", c.BaseURL+c.Path, c.GetAccessToken(ctx)), nil, req)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, errors: %v", request.Model, err)
 		return responseChan, err
 	}
 
@@ -137,7 +169,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if err != nil && !errors.Is(err, io.EOF) {
 
 				if !errors.Is(err, context.Canceled) {
-					logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
+					logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, errors: %v", request.Model, err)
 				}
 
 				responseChan <- nil
@@ -149,7 +181,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			ernieBotRes := new(model.ErnieBotRes)
 			if err = gjson.Unmarshal(streamResponse, &ernieBotRes); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, errors: %v", request.Model, err)
 
 				responseChan <- nil
 				time.Sleep(time.Millisecond)
@@ -161,10 +193,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if ernieBotRes.ErrorCode != 0 {
 
 				err = errors.New(gjson.MustEncodeString(ernieBotRes))
-				logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, errors: %v", request.Model, err)
 
 				if err = stream.Close(); err != nil {
-					logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, stream.Close error: %v", request.Model, err)
+					logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, stream.Close errors: %v", request.Model, err)
 				}
 
 				end := gtime.Now().UnixMilli()
@@ -211,7 +243,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				logger.Infof(ctx, "ChatCompletionStream Baidu model: %s finished", request.Model)
 
 				if err = stream.Close(); err != nil {
-					logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, stream.Close error: %v", request.Model, err)
+					logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, stream.Close errors: %v", request.Model, err)
 				}
 
 				response.Choices[0].FinishReason = "stop"

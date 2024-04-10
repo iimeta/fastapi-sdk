@@ -133,13 +133,13 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 		err = gjson.Unmarshal(message, &sparkRes)
 		if err != nil {
-			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
+			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, errors: %v", request.Model, err)
 			return
 		}
 
 		if sparkRes.Header.Code != 0 {
 			err = errors.New(gjson.MustEncodeString(sparkRes))
-			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
+			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, errors: %v", request.Model, err)
 			return
 		}
 
@@ -258,7 +258,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			sparkRes := new(model.SparkRes)
 			err := gjson.Unmarshal(message, &sparkRes)
 			if err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, errors: %v", request.Model, err)
 
 				responseChan <- nil
 				time.Sleep(time.Millisecond)
@@ -270,7 +270,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if sparkRes.Header.Code != 0 {
 
 				err = errors.New(gjson.MustEncodeString(sparkRes))
-				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, errors: %v", request.Model, err)
 
 				end := gtime.Now().UnixMilli()
 

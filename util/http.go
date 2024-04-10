@@ -25,7 +25,7 @@ func HttpGet(ctx context.Context, url string, header map[string]string, data g.M
 
 	if response != nil {
 		defer func() {
-			if err = response.Close(); err != nil {
+			if err := response.Close(); err != nil {
 				logger.Error(ctx, err)
 			}
 		}()
@@ -67,7 +67,7 @@ func HttpPostJson(ctx context.Context, url string, header map[string]string, dat
 
 	if response != nil {
 		defer func() {
-			if err = response.Close(); err != nil {
+			if err := response.Close(); err != nil {
 				logger.Error(ctx, err)
 			}
 		}()
@@ -106,24 +106,23 @@ func HttpPost(ctx context.Context, url string, header map[string]string, data, r
 	}
 
 	response, err := client.Post(ctx, url, data)
+
+	defer func() {
+		if err := response.Close(); err != nil {
+			logger.Error(ctx, err)
+		}
+	}()
+
 	if err != nil {
 		logger.Error(ctx, err)
 		return err
 	}
 
-	defer func() {
-		err = response.Close()
-		if err != nil {
-			logger.Error(ctx, err)
-		}
-	}()
-
 	bytes := response.ReadAll()
 	logger.Infof(ctx, "HttpPost url: %s, header: %+v, data: %+v, response: %s", url, header, data, string(bytes))
 
 	if bytes != nil && len(bytes) > 0 {
-		err = gjson.Unmarshal(bytes, result)
-		if err != nil {
+		if err = gjson.Unmarshal(bytes, result); err != nil {
 			logger.Error(ctx, err)
 			return err
 		}
