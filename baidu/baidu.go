@@ -5,10 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gogf/gf/v2/encoding/gjson"
-	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
-	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
@@ -21,26 +19,20 @@ import (
 )
 
 type Client struct {
-	AppId    string
-	Key      string
-	Secret   string
-	BaseURL  string
-	Path     string
-	ProxyURL string
+	AccessToken string
+	BaseURL     string
+	Path        string
+	ProxyURL    string
 }
 
 func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewClient Baidu model: %s, key: %s", model, key)
 
-	result := gstr.Split(key, "|")
-
 	client := &Client{
-		AppId:   result[0],
-		Key:     result[1],
-		Secret:  result[2],
-		BaseURL: "https://aip.baidubce.com",
-		Path:    path,
+		AccessToken: key,
+		BaseURL:     "https://aip.baidubce.com",
+		Path:        path,
 	}
 
 	if baseURL != "" {
@@ -82,15 +74,15 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	ernieBotRes := new(model.ErnieBotRes)
-	err = util.HttpPostJson(ctx, fmt.Sprintf("%s?access_token=%s", c.BaseURL+c.Path, c.GetAccessToken(ctx)), nil, req, &ernieBotRes, c.ProxyURL)
+	err = util.HttpPostJson(ctx, fmt.Sprintf("%s?access_token=%s", c.BaseURL+c.Path, c.AccessToken), nil, req, &ernieBotRes, c.ProxyURL)
 	if err != nil {
-		logger.Error(ctx, err)
+		logger.Errorf(ctx, "ChatCompletion Baidu model: %s, error: %v", request.Model, err)
 		return
 	}
 
 	if ernieBotRes.ErrorCode != 0 {
 		err = errors.New(gjson.MustEncodeString(ernieBotRes))
-		logger.Error(ctx, err)
+		logger.Errorf(ctx, "ChatCompletion Baidu model: %s, error: %v", request.Model, err)
 		return
 	}
 
@@ -146,9 +138,9 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		req.ResponseFormat = gconv.String(request.ResponseFormat.Type)
 	}
 
-	stream, err := util.SSEClient(ctx, http.MethodPost, fmt.Sprintf("%s?access_token=%s", c.BaseURL+c.Path, c.GetAccessToken(ctx)), nil, req)
+	stream, err := util.SSEClient(ctx, http.MethodPost, fmt.Sprintf("%s?access_token=%s", c.BaseURL+c.Path, c.AccessToken), nil, req)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, errors: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 
@@ -169,7 +161,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if err != nil && !errors.Is(err, io.EOF) {
 
 				if !errors.Is(err, context.Canceled) {
-					logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, errors: %v", request.Model, err)
+					logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
 				}
 
 				responseChan <- nil
@@ -181,7 +173,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			ernieBotRes := new(model.ErnieBotRes)
 			if err = gjson.Unmarshal(streamResponse, &ernieBotRes); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, errors: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
 
 				responseChan <- nil
 				time.Sleep(time.Millisecond)
@@ -193,10 +185,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if ernieBotRes.ErrorCode != 0 {
 
 				err = errors.New(gjson.MustEncodeString(ernieBotRes))
-				logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, errors: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
 
 				if err = stream.Close(); err != nil {
-					logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, stream.Close errors: %v", request.Model, err)
+					logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, stream.Close error: %v", request.Model, err)
 				}
 
 				end := gtime.Now().UnixMilli()
@@ -212,7 +204,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 							Role:    consts.ROLE_ASSISTANT,
 							Content: ernieBotRes.ErrorMsg,
 						},
-						FinishReason: "stop",
+						FinishReason: openai.FinishReasonStop,
 					}},
 					ConnTime:  duration - now,
 					Duration:  end - duration,
@@ -243,10 +235,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				logger.Infof(ctx, "ChatCompletionStream Baidu model: %s finished", request.Model)
 
 				if err = stream.Close(); err != nil {
-					logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, stream.Close errors: %v", request.Model, err)
+					logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, stream.Close error: %v", request.Model, err)
 				}
 
-				response.Choices[0].FinishReason = "stop"
+				response.Choices[0].FinishReason = openai.FinishReasonStop
 
 				end := gtime.Now().UnixMilli()
 				response.Duration = end - duration
@@ -263,7 +255,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			responseChan <- response
 		}
 	}, nil); err != nil {
-		logger.Error(ctx, err)
+		logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 
@@ -273,34 +265,4 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res model.ImageResponse, err error) {
 
 	return
-}
-
-func (c *Client) GetAccessToken(ctx context.Context) string {
-
-	reply, err := g.Redis().Get(ctx, fmt.Sprintf(consts.ACCESS_TOKEN_KEY, c.AppId))
-	if err == nil && reply.String() != "" {
-		return reply.String()
-	}
-
-	data := g.Map{
-		"grant_type":    "client_credentials",
-		"client_id":     c.Key,
-		"client_secret": c.Secret,
-	}
-
-	getAccessTokenRes := new(model.GetAccessTokenRes)
-	err = util.HttpPost(ctx, c.BaseURL+"/oauth/2.0/token", nil, data, &getAccessTokenRes, c.ProxyURL)
-	if err != nil {
-		logger.Error(ctx, err)
-		return ""
-	}
-
-	if getAccessTokenRes.Error != "" {
-		logger.Error(ctx, getAccessTokenRes.Error)
-		return ""
-	}
-
-	_ = g.Redis().SetEX(ctx, fmt.Sprintf(consts.ACCESS_TOKEN_KEY, c.AppId), getAccessTokenRes.AccessToken, getAccessTokenRes.ExpiresIn)
-
-	return getAccessTokenRes.AccessToken
 }

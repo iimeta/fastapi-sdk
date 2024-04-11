@@ -4,12 +4,17 @@ import (
 	"context"
 	"errors"
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"
 	"github.com/sashabaranov/go-openai"
+	"io"
+	"net/http"
+	"time"
 )
 
 type Client struct {
@@ -47,26 +52,40 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion Aliyun model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
-	qwenChatCompletionReq := model.QwenChatCompletionReq{
+	req := model.QwenChatCompletionReq{
 		Model: request.Model,
 		Input: model.Input{
 			Messages: request.Messages,
 		},
+		Parameters: model.Parameters{
+			MaxTokens:         request.MaxTokens,
+			Temperature:       request.Temperature,
+			TopP:              request.TopP,
+			TopK:              request.N,
+			Stop:              request.Stop,
+			RepetitionPenalty: request.FrequencyPenalty,
+			Seed:              request.Seed,
+			Tools:             request.Tools,
+		},
+	}
+
+	if request.ResponseFormat != nil {
+		req.Parameters.ResultFormat = gconv.String(request.ResponseFormat.Type)
 	}
 
 	header := make(map[string]string)
 	header["Authorization"] = "Bearer " + c.Key
 
 	qwenChatCompletionRes := new(model.QwenChatCompletionRes)
-	err = util.HttpPostJson(ctx, c.BaseURL+c.Path, header, qwenChatCompletionReq, &qwenChatCompletionRes, c.ProxyURL)
+	err = util.HttpPostJson(ctx, c.BaseURL+c.Path, header, req, &qwenChatCompletionRes, c.ProxyURL)
 	if err != nil {
-		logger.Error(ctx, err)
+		logger.Errorf(ctx, "ChatCompletion Aliyun model: %s, error: %v", request.Model, err)
 		return
 	}
 
 	if qwenChatCompletionRes.Code != "" {
 		err = errors.New(gjson.MustEncodeString(qwenChatCompletionRes))
-		logger.Error(ctx)
+		logger.Errorf(ctx, "ChatCompletion Aliyun model: %s, error: %v", request.Model, err)
 		return
 	}
 
@@ -92,7 +111,161 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCompletionRequest) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	return
+	logger.Infof(ctx, "ChatCompletionStream Aliyun model: %s start", request.Model)
+
+	now := gtime.Now().UnixMilli()
+	defer func() {
+		if err != nil {
+			logger.Infof(ctx, "ChatCompletionStream Aliyun model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
+		}
+	}()
+
+	req := model.QwenChatCompletionReq{
+		Model: request.Model,
+		Input: model.Input{
+			Messages: request.Messages,
+		},
+		Parameters: model.Parameters{
+			ResultFormat:      "message",
+			MaxTokens:         request.MaxTokens,
+			Temperature:       request.Temperature,
+			TopP:              request.TopP,
+			TopK:              request.N,
+			Stop:              request.Stop,
+			RepetitionPenalty: request.FrequencyPenalty,
+			Seed:              request.Seed,
+			Tools:             request.Tools,
+			IncrementalOutput: true,
+		},
+	}
+
+	if request.ResponseFormat != nil {
+		req.Parameters.ResultFormat = gconv.String(request.ResponseFormat.Type)
+	}
+
+	header := make(map[string]string)
+	header["Authorization"] = "Bearer " + c.Key
+
+	stream, err := util.SSEClient(ctx, http.MethodPost, c.BaseURL+c.Path, header, req)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
+		return responseChan, err
+	}
+
+	duration := gtime.Now().UnixMilli()
+
+	responseChan = make(chan *model.ChatCompletionResponse)
+
+	if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
+
+		defer func() {
+			end := gtime.Now().UnixMilli()
+			logger.Infof(ctx, "ChatCompletionStream Aliyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+		}()
+
+		for {
+
+			streamResponse, err := stream.Recv()
+			if err != nil && !errors.Is(err, io.EOF) {
+
+				if !errors.Is(err, context.Canceled) {
+					logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
+				}
+
+				responseChan <- nil
+				time.Sleep(time.Millisecond)
+				close(responseChan)
+
+				return
+			}
+
+			qwenChatCompletionRes := new(model.QwenChatCompletionRes)
+			if err := gjson.Unmarshal(streamResponse, &qwenChatCompletionRes); err != nil {
+				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
+
+				responseChan <- nil
+				time.Sleep(time.Millisecond)
+				close(responseChan)
+
+				return
+			}
+
+			if qwenChatCompletionRes.Code != "" {
+
+				err = errors.New(gjson.MustEncodeString(qwenChatCompletionRes))
+				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
+
+				if err = stream.Close(); err != nil {
+					logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, stream.Close error: %v", request.Model, err)
+				}
+
+				end := gtime.Now().UnixMilli()
+
+				responseChan <- &model.ChatCompletionResponse{
+					ID:    qwenChatCompletionRes.RequestId,
+					Model: request.Model,
+					Choices: []model.ChatCompletionChoice{{
+						Index: 0,
+						Delta: &openai.ChatCompletionStreamChoiceDelta{
+							Role:    consts.ROLE_ASSISTANT,
+							Content: qwenChatCompletionRes.Message,
+						},
+						FinishReason: openai.FinishReasonStop,
+					}},
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+				}
+
+				return
+			}
+
+			response := &model.ChatCompletionResponse{
+				ID:    qwenChatCompletionRes.RequestId,
+				Model: request.Model,
+				Choices: []model.ChatCompletionChoice{{
+					Delta: &openai.ChatCompletionStreamChoiceDelta{
+						Role:    consts.ROLE_ASSISTANT,
+						Content: qwenChatCompletionRes.Output.Text,
+					},
+					FinishReason: qwenChatCompletionRes.Output.FinishReason,
+				}},
+				Usage: &openai.Usage{
+					PromptTokens:     qwenChatCompletionRes.Usage.InputTokens,
+					CompletionTokens: qwenChatCompletionRes.Usage.OutputTokens,
+					TotalTokens:      qwenChatCompletionRes.Usage.InputTokens + qwenChatCompletionRes.Usage.OutputTokens,
+				},
+				ConnTime: duration - now,
+			}
+
+			if response.Choices[0].FinishReason == openai.FinishReasonStop {
+
+				logger.Infof(ctx, "ChatCompletionStream Aliyun model: %s finished", request.Model)
+
+				if err = stream.Close(); err != nil {
+					logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, stream.Close error: %v", request.Model, err)
+				}
+
+				end := gtime.Now().UnixMilli()
+				response.Duration = end - duration
+				response.TotalTime = end - now
+				responseChan <- response
+
+				return
+			}
+
+			end := gtime.Now().UnixMilli()
+			response.Duration = end - duration
+			response.TotalTime = end - now
+
+			responseChan <- response
+		}
+	}, nil); err != nil {
+		logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
+		return responseChan, err
+	}
+
+	return responseChan, nil
 }
 
 func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res model.ImageResponse, err error) {

@@ -15,5 +15,3 @@ const (
 	ROLE_FUNCTION  = "function"
 	ROLE_TOOL      = "tool"
 )
-
-const ACCESS_TOKEN_KEY = "sdk:baidu:access_token:%s"

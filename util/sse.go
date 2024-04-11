@@ -15,8 +15,9 @@ import (
 )
 
 var (
-	headerData  = []byte("data: ")
-	errorPrefix = []byte(`data: {"errors":`)
+	headerData        = []byte("data: ")
+	headerDataNoSpace = []byte("data:")
+	errorPrefix       = []byte(`data: {"errors":`)
 )
 
 var (
@@ -98,11 +99,7 @@ func (stream *StreamReader) processLines() ([]byte, error) {
 			hasErrorPrefix = true
 		}
 
-		if !bytes.HasPrefix(noSpaceLine, headerData) || hasErrorPrefix {
-
-			if hasErrorPrefix {
-				noSpaceLine = bytes.TrimPrefix(noSpaceLine, headerData)
-			}
+		if (!bytes.HasPrefix(noSpaceLine, headerData) && !bytes.HasPrefix(noSpaceLine, headerDataNoSpace)) || hasErrorPrefix {
 
 			emptyMessagesCount++
 			if emptyMessagesCount > stream.emptyMessagesLimit {
@@ -112,7 +109,7 @@ func (stream *StreamReader) processLines() ([]byte, error) {
 			continue
 		}
 
-		noPrefixLine := bytes.TrimPrefix(noSpaceLine, headerData)
+		noPrefixLine := bytes.TrimPrefix(bytes.TrimPrefix(noSpaceLine, headerData), headerDataNoSpace)
 		if string(noPrefixLine) == "[DONE]" {
 			stream.isFinished = true
 			return nil, io.EOF

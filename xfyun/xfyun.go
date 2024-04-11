@@ -19,6 +19,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"
 	"github.com/sashabaranov/go-openai"
+	"io"
 	"net/url"
 	"time"
 )
@@ -63,7 +64,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	now := gtime.Now().UnixMilli()
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
-		logger.Infof(ctx, "ChatCompletion Xfyun model: %s totalTime: %d ms", request.Model, res.TotalTime)
+		logger.Infof(ctx, "ChatCompletion Xfyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, res.ConnTime, res.Duration, res.TotalTime)
 	}()
 
 	maxTokens := request.MaxTokens
@@ -81,7 +82,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 				Domain:      c.Domain,
 				MaxTokens:   maxTokens,
 				Temperature: request.Temperature,
-				TopK:        request.TopP,
+				TopK:        request.N,
 				ChatId:      request.User,
 			},
 		},
@@ -99,54 +100,49 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 	data, err := gjson.Marshal(sparkReq)
 	if err != nil {
-		logger.Error(ctx, err)
-		return
+		logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
+		return res, err
 	}
 
-	authorizationUrl := c.getAuthorizationUrl(ctx)
-
-	logger.Debugf(ctx, "ChatCompletion Xfyun model: %s, appid: %s, authorizationUrl: %s", request.Model, c.AppId, authorizationUrl)
-
-	result := make(chan []byte)
-	var conn *websocket.Conn
-
-	_ = grpool.AddWithRecover(ctx, func(ctx context.Context) {
-		conn, err = util.WebSocketClient(ctx, authorizationUrl, websocket.TextMessage, data, result, c.ProxyURL)
-		if err != nil {
-			logger.Error(ctx, err)
-		}
-	}, nil)
+	conn, err := util.WebSocketClient(ctx, c.getAuthorizationUrl(ctx), websocket.TextMessage, data, c.ProxyURL)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
+		return res, err
+	}
 
 	defer func() {
-		err := conn.Close()
-		if err != nil {
-			logger.Error(ctx, err)
+		if err := conn.Close(); err != nil {
+			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, conn.Close error: %v", request.Model, err)
 		}
 	}()
+
+	duration := gtime.Now().UnixMilli()
 
 	responseContent := ""
 	sparkRes := new(model.SparkRes)
 
 	for {
 
-		message := <-result
+		message, err := conn.ReadMessage(ctx)
+		if err != nil && !errors.Is(err, io.EOF) {
+			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
+			return res, err
+		}
 
-		err = gjson.Unmarshal(message, &sparkRes)
-		if err != nil {
-			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, errors: %v", request.Model, err)
-			return
+		if err = gjson.Unmarshal(message, &sparkRes); err != nil {
+			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
+			return res, err
 		}
 
 		if sparkRes.Header.Code != 0 {
 			err = errors.New(gjson.MustEncodeString(sparkRes))
-			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, errors: %v", request.Model, err)
-			return
+			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
+			return res, err
 		}
 
 		responseContent += sparkRes.Payload.Choices.Text[0].Content
 
 		if sparkRes.Header.Status == 2 {
-			sparkRes.Content = responseContent
 			break
 		}
 	}
@@ -167,6 +163,8 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 			CompletionTokens: sparkRes.Payload.Usage.Text.CompletionTokens,
 			TotalTokens:      sparkRes.Payload.Usage.Text.TotalTokens,
 		},
+		ConnTime: duration - now,
+		Duration: gtime.Now().UnixMilli() - duration,
 	}
 
 	return res, nil
@@ -198,7 +196,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				Domain:      c.Domain,
 				MaxTokens:   maxTokens,
 				Temperature: request.Temperature,
-				TopK:        request.TopP,
+				TopK:        request.N,
 				ChatId:      request.User,
 			},
 		},
@@ -216,23 +214,15 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 	data, err := gjson.Marshal(sparkReq)
 	if err != nil {
-		logger.Error(ctx, err)
-		return
+		logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
+		return responseChan, err
 	}
 
-	authorizationUrl := c.getAuthorizationUrl(ctx)
-
-	logger.Debugf(ctx, "ChatCompletionStream Xfyun model: %s, appid: %s, getAuthorizationUrl: %s", request.Model, c.AppId, authorizationUrl)
-
-	result := make(chan []byte)
-	var conn *websocket.Conn
-
-	_ = grpool.AddWithRecover(ctx, func(ctx context.Context) {
-		conn, err = util.WebSocketClient(ctx, authorizationUrl, websocket.TextMessage, data, result, c.ProxyURL)
-		if err != nil {
-			logger.Error(ctx, err)
-		}
-	}, nil)
+	conn, err := util.WebSocketClient(ctx, c.getAuthorizationUrl(ctx), websocket.TextMessage, data, c.ProxyURL)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
+		return responseChan, err
+	}
 
 	duration := gtime.Now().UnixMilli()
 
@@ -242,9 +232,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 		defer func() {
 
-			err := conn.Close()
-			if err != nil {
-				logger.Error(ctx, err)
+			if err := conn.Close(); err != nil {
+				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, conn.Close error: %v", request.Model, err)
 			}
 
 			end := gtime.Now().UnixMilli()
@@ -253,12 +242,23 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 		for {
 
-			message := <-result
+			message, err := conn.ReadMessage(ctx)
+			if err != nil && !errors.Is(err, io.EOF) {
+
+				if !errors.Is(err, context.Canceled) {
+					logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
+				}
+
+				responseChan <- nil
+				time.Sleep(time.Millisecond)
+				close(responseChan)
+
+				return
+			}
 
 			sparkRes := new(model.SparkRes)
-			err := gjson.Unmarshal(message, &sparkRes)
-			if err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, errors: %v", request.Model, err)
+			if err := gjson.Unmarshal(message, &sparkRes); err != nil {
+				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 
 				responseChan <- nil
 				time.Sleep(time.Millisecond)
@@ -270,7 +270,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if sparkRes.Header.Code != 0 {
 
 				err = errors.New(gjson.MustEncodeString(sparkRes))
-				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, errors: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 
 				end := gtime.Now().UnixMilli()
 
@@ -283,7 +283,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 							Role:    consts.ROLE_ASSISTANT,
 							Content: sparkRes.Header.Message,
 						},
-						FinishReason: "stop",
+						FinishReason: openai.FinishReasonStop,
 					}},
 					ConnTime:  duration - now,
 					Duration:  end - duration,
@@ -319,7 +319,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 				logger.Infof(ctx, "ChatCompletionStream Xfyun model: %s finished", request.Model)
 
-				response.Choices[0].FinishReason = "stop"
+				response.Choices[0].FinishReason = openai.FinishReasonStop
 
 				end := gtime.Now().UnixMilli()
 				response.Duration = end - duration
@@ -336,7 +336,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			responseChan <- response
 		}
 	}, nil); err != nil {
-		logger.Error(ctx, err)
+		logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 
@@ -352,7 +352,7 @@ func (c *Client) getAuthorizationUrl(ctx context.Context) string {
 
 	parse, err := url.Parse(c.OriginalURL + c.Path)
 	if err != nil {
-		logger.Error(ctx, err)
+		logger.Errorf(ctx, "getAuthorizationUrl Xfyun client: %+v, error: %s", c, err)
 		return ""
 	}
 
@@ -369,7 +369,7 @@ func (c *Client) getAuthorizationUrl(ctx context.Context) string {
 
 	_, err = hash.Write([]byte(tmp))
 	if err != nil {
-		logger.Error(ctx, err)
+		logger.Errorf(ctx, "getAuthorizationUrl Xfyun client: %+v, error: %s", c, err)
 		return ""
 	}
 
