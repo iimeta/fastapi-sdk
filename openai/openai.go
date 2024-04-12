@@ -201,6 +201,13 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, stream.Close error: %v", request.Model, err)
 				}
 
+				if len(response.Choices) == 0 {
+					response.Choices = append(response.Choices, model.ChatCompletionChoice{
+						Delta:        new(openai.ChatCompletionStreamChoiceDelta),
+						FinishReason: openai.FinishReasonStop,
+					})
+				}
+
 				end := gtime.Now().UnixMilli()
 				response.Duration = end - duration
 				response.TotalTime = end - now
