@@ -53,7 +53,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion Baidu model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
-	req := model.BaiduChatCompletionReq{
+	chatCompletionReq := model.BaiduChatCompletionReq{
 		Messages:        request.Messages,
 		MaxOutputTokens: request.MaxTokens,
 		Temperature:     request.Temperature,
@@ -64,43 +64,43 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		UserId:          request.User,
 	}
 
-	if req.Messages[0].Role == consts.ROLE_SYSTEM {
-		req.System = req.Messages[0].Content
-		req.Messages = req.Messages[1:]
+	if chatCompletionReq.Messages[0].Role == consts.ROLE_SYSTEM {
+		chatCompletionReq.System = chatCompletionReq.Messages[0].Content
+		chatCompletionReq.Messages = chatCompletionReq.Messages[1:]
 	}
 
 	if request.ResponseFormat != nil {
-		req.ResponseFormat = gconv.String(request.ResponseFormat.Type)
+		chatCompletionReq.ResponseFormat = gconv.String(request.ResponseFormat.Type)
 	}
 
-	ernieBotRes := new(model.BaiduChatCompletionRes)
-	err = util.HttpPostJson(ctx, fmt.Sprintf("%s?access_token=%s", c.BaseURL+c.Path, c.AccessToken), nil, req, &ernieBotRes, c.ProxyURL)
+	chatCompletionRes := new(model.BaiduChatCompletionRes)
+	err = util.HttpPostJson(ctx, fmt.Sprintf("%s?access_token=%s", c.BaseURL+c.Path, c.AccessToken), nil, chatCompletionReq, &chatCompletionRes, c.ProxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion Baidu model: %s, error: %v", request.Model, err)
 		return
 	}
 
-	if ernieBotRes.ErrorCode != 0 {
-		err = errors.New(gjson.MustEncodeString(ernieBotRes))
+	if chatCompletionRes.ErrorCode != 0 {
+		err = errors.New(gjson.MustEncodeString(chatCompletionRes))
 		logger.Errorf(ctx, "ChatCompletion Baidu model: %s, error: %v", request.Model, err)
 		return
 	}
 
 	res = model.ChatCompletionResponse{
-		ID:      ernieBotRes.Id,
-		Object:  ernieBotRes.Object,
-		Created: ernieBotRes.Created,
+		ID:      chatCompletionRes.Id,
+		Object:  chatCompletionRes.Object,
+		Created: chatCompletionRes.Created,
 		Model:   request.Model,
 		Choices: []model.ChatCompletionChoice{{
 			Message: &openai.ChatCompletionMessage{
 				Role:    consts.ROLE_ASSISTANT,
-				Content: ernieBotRes.Result,
+				Content: chatCompletionRes.Result,
 			},
 		}},
 		Usage: &openai.Usage{
-			PromptTokens:     ernieBotRes.Usage.PromptTokens,
-			CompletionTokens: ernieBotRes.Usage.CompletionTokens,
-			TotalTokens:      ernieBotRes.Usage.TotalTokens,
+			PromptTokens:     chatCompletionRes.Usage.PromptTokens,
+			CompletionTokens: chatCompletionRes.Usage.CompletionTokens,
+			TotalTokens:      chatCompletionRes.Usage.TotalTokens,
 		},
 	}
 
@@ -118,7 +118,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
-	req := model.BaiduChatCompletionReq{
+	chatCompletionReq := model.BaiduChatCompletionReq{
 		Messages:        request.Messages,
 		MaxOutputTokens: request.MaxTokens,
 		Temperature:     request.Temperature,
@@ -129,16 +129,16 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		UserId:          request.User,
 	}
 
-	if req.Messages[0].Role == consts.ROLE_SYSTEM {
-		req.System = req.Messages[0].Content
-		req.Messages = req.Messages[1:]
+	if chatCompletionReq.Messages[0].Role == consts.ROLE_SYSTEM {
+		chatCompletionReq.System = chatCompletionReq.Messages[0].Content
+		chatCompletionReq.Messages = chatCompletionReq.Messages[1:]
 	}
 
 	if request.ResponseFormat != nil {
-		req.ResponseFormat = gconv.String(request.ResponseFormat.Type)
+		chatCompletionReq.ResponseFormat = gconv.String(request.ResponseFormat.Type)
 	}
 
-	stream, err := util.SSEClient(ctx, http.MethodPost, fmt.Sprintf("%s?access_token=%s", c.BaseURL+c.Path, c.AccessToken), nil, req)
+	stream, err := util.SSEClient(ctx, http.MethodPost, fmt.Sprintf("%s?access_token=%s", c.BaseURL+c.Path, c.AccessToken), nil, chatCompletionReq)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
 		return responseChan, err
@@ -171,8 +171,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				return
 			}
 
-			ernieBotRes := new(model.BaiduChatCompletionRes)
-			if err = gjson.Unmarshal(streamResponse, &ernieBotRes); err != nil {
+			chatCompletionRes := new(model.BaiduChatCompletionRes)
+			if err = gjson.Unmarshal(streamResponse, &chatCompletionRes); err != nil {
 				logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
 
 				responseChan <- nil
@@ -182,9 +182,9 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				return
 			}
 
-			if ernieBotRes.ErrorCode != 0 {
+			if chatCompletionRes.ErrorCode != 0 {
 
-				err = errors.New(gjson.MustEncodeString(ernieBotRes))
+				err = errors.New(gjson.MustEncodeString(chatCompletionRes))
 				logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
 
 				if err = stream.Close(); err != nil {
@@ -194,15 +194,15 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				end := gtime.Now().UnixMilli()
 
 				responseChan <- &model.ChatCompletionResponse{
-					ID:      ernieBotRes.Id,
-					Object:  ernieBotRes.Object,
-					Created: ernieBotRes.Created,
+					ID:      chatCompletionRes.Id,
+					Object:  chatCompletionRes.Object,
+					Created: chatCompletionRes.Created,
 					Model:   request.Model,
 					Choices: []model.ChatCompletionChoice{{
 						Index: 0,
 						Delta: &openai.ChatCompletionStreamChoiceDelta{
 							Role:    consts.ROLE_ASSISTANT,
-							Content: ernieBotRes.ErrorMsg,
+							Content: chatCompletionRes.ErrorMsg,
 						},
 						FinishReason: openai.FinishReasonStop,
 					}},
@@ -215,22 +215,22 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			response := &model.ChatCompletionResponse{
-				ID:      ernieBotRes.Id,
-				Object:  ernieBotRes.Object,
-				Created: ernieBotRes.Created,
+				ID:      chatCompletionRes.Id,
+				Object:  chatCompletionRes.Object,
+				Created: chatCompletionRes.Created,
 				Model:   request.Model,
 				Choices: []model.ChatCompletionChoice{{
-					Index: ernieBotRes.SentenceId,
+					Index: chatCompletionRes.SentenceId,
 					Delta: &openai.ChatCompletionStreamChoiceDelta{
 						Role:    consts.ROLE_ASSISTANT,
-						Content: ernieBotRes.Result,
+						Content: chatCompletionRes.Result,
 					},
 				}},
-				Usage:    ernieBotRes.Usage,
+				Usage:    chatCompletionRes.Usage,
 				ConnTime: duration - now,
 			}
 
-			if ernieBotRes.IsEnd {
+			if errors.Is(err, io.EOF) || chatCompletionRes.IsEnd {
 
 				logger.Infof(ctx, "ChatCompletionStream Baidu model: %s finished", request.Model)
 

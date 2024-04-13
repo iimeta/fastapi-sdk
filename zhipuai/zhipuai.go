@@ -31,12 +31,17 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 	client := &Client{
 		Key:     key,
 		BaseURL: "https://open.bigmodel.cn/api/paas/v4",
-		Path:    path,
+		Path:    "/chat/completions",
 	}
 
 	if baseURL != "" {
 		logger.Infof(ctx, "NewClient ZhipuAI model: %s, baseURL: %s", model, baseURL)
 		client.BaseURL = baseURL
+	}
+
+	if path != "" {
+		logger.Infof(ctx, "NewClient ZhipuAI model: %s, path: %s", model, path)
+		client.Path = path
 	}
 
 	return client
@@ -52,7 +57,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion ZhipuAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
-	req := model.ZhipuAIChatCompletionReq{
+	chatCompletionReq := model.ZhipuAIChatCompletionReq{
 		Model:       request.Model,
 		Messages:    request.Messages,
 		MaxTokens:   request.MaxTokens,
@@ -65,11 +70,31 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		UserId:      request.User,
 	}
 
+	if chatCompletionReq.TopP == 1 {
+		chatCompletionReq.TopP -= 0.01
+	} else if chatCompletionReq.TopP == 0 {
+		chatCompletionReq.TopP += 0.01
+	}
+
+	if chatCompletionReq.Temperature == 1 {
+		chatCompletionReq.Temperature -= 0.01
+	} else if chatCompletionReq.Temperature == 0 {
+		chatCompletionReq.Temperature += 0.01
+	}
+
+	if chatCompletionReq.MaxTokens == 1 {
+		chatCompletionReq.MaxTokens = 2
+	}
+
+	if chatCompletionReq.Messages[0].Role == openai.ChatMessageRoleSystem && chatCompletionReq.Messages[0].Content == "" && len(chatCompletionReq.Messages[0].ToolCalls) == 0 {
+		chatCompletionReq.Messages = chatCompletionReq.Messages[1:]
+	}
+
 	header := make(map[string]string)
 	header["Authorization"] = "Bearer " + c.generateToken(ctx)
 
 	chatCompletionRes := new(model.ZhipuAIChatCompletionRes)
-	err = util.HttpPostJson(ctx, c.BaseURL+c.Path, header, req, &chatCompletionRes, c.ProxyURL)
+	err = util.HttpPostJson(ctx, c.BaseURL+c.Path, header, chatCompletionReq, &chatCompletionRes, c.ProxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion ZhipuAI model: %s, error: %v", request.Model, err)
 		return
@@ -104,7 +129,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
-	req := model.ZhipuAIChatCompletionReq{
+	chatCompletionReq := model.ZhipuAIChatCompletionReq{
 		Model:       request.Model,
 		Messages:    request.Messages,
 		MaxTokens:   request.MaxTokens,
@@ -117,10 +142,30 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		UserId:      request.User,
 	}
 
+	if chatCompletionReq.TopP == 1 {
+		chatCompletionReq.TopP -= 0.01
+	} else if chatCompletionReq.TopP == 0 {
+		chatCompletionReq.TopP += 0.01
+	}
+
+	if chatCompletionReq.Temperature == 1 {
+		chatCompletionReq.Temperature -= 0.01
+	} else if chatCompletionReq.Temperature == 0 {
+		chatCompletionReq.Temperature += 0.01
+	}
+
+	if chatCompletionReq.MaxTokens == 1 {
+		chatCompletionReq.MaxTokens = 2
+	}
+
+	if chatCompletionReq.Messages[0].Role == openai.ChatMessageRoleSystem && chatCompletionReq.Messages[0].Content == "" && len(chatCompletionReq.Messages[0].ToolCalls) == 0 {
+		chatCompletionReq.Messages = chatCompletionReq.Messages[1:]
+	}
+
 	header := make(map[string]string)
 	header["Authorization"] = "Bearer " + c.generateToken(ctx)
 
-	stream, err := util.SSEClient(ctx, http.MethodPost, c.BaseURL+c.Path, header, req)
+	stream, err := util.SSEClient(ctx, http.MethodPost, c.BaseURL+c.Path, header, chatCompletionReq)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, error: %v", request.Model, err)
 		return responseChan, err
@@ -175,12 +220,12 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			for _, choice := range chatCompletionRes.Choices {
 				response.Choices = append(response.Choices, model.ChatCompletionChoice{
 					Index:        choice.Index,
-					Message:      choice.Message,
+					Delta:        choice.Delta,
 					FinishReason: choice.FinishReason,
 				})
 			}
 
-			if errors.Is(err, io.EOF) || response.Choices[0].FinishReason == openai.FinishReasonStop {
+			if errors.Is(err, io.EOF) || response.Choices[0].FinishReason != "" {
 
 				logger.Infof(ctx, "ChatCompletionStream ZhipuAI model: %s finished", request.Model)
 

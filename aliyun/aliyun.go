@@ -52,7 +52,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion Aliyun model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
-	req := model.AliyunChatCompletionReq{
+	chatCompletionReq := model.AliyunChatCompletionReq{
 		Model: request.Model,
 		Input: model.Input{
 			Messages: request.Messages,
@@ -70,39 +70,39 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	if request.ResponseFormat != nil {
-		req.Parameters.ResultFormat = gconv.String(request.ResponseFormat.Type)
+		chatCompletionReq.Parameters.ResultFormat = gconv.String(request.ResponseFormat.Type)
 	}
 
 	header := make(map[string]string)
 	header["Authorization"] = "Bearer " + c.Key
 
-	qwenChatCompletionRes := new(model.AliyunChatCompletionRes)
-	err = util.HttpPostJson(ctx, c.BaseURL+c.Path, header, req, &qwenChatCompletionRes, c.ProxyURL)
+	chatCompletionRes := new(model.AliyunChatCompletionRes)
+	err = util.HttpPostJson(ctx, c.BaseURL+c.Path, header, chatCompletionReq, &chatCompletionRes, c.ProxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion Aliyun model: %s, error: %v", request.Model, err)
 		return
 	}
 
-	if qwenChatCompletionRes.Code != "" {
-		err = errors.New(gjson.MustEncodeString(qwenChatCompletionRes))
+	if chatCompletionRes.Code != "" {
+		err = errors.New(gjson.MustEncodeString(chatCompletionRes))
 		logger.Errorf(ctx, "ChatCompletion Aliyun model: %s, error: %v", request.Model, err)
 		return
 	}
 
 	res = model.ChatCompletionResponse{
-		ID:     qwenChatCompletionRes.RequestId,
-		Object: qwenChatCompletionRes.Message,
+		ID:     chatCompletionRes.RequestId,
+		Object: chatCompletionRes.Message,
 		Model:  request.Model,
 		Choices: []model.ChatCompletionChoice{{
 			Message: &openai.ChatCompletionMessage{
 				Role:    consts.ROLE_ASSISTANT,
-				Content: qwenChatCompletionRes.Output.Text,
+				Content: chatCompletionRes.Output.Text,
 			},
 		}},
 		Usage: &openai.Usage{
-			PromptTokens:     qwenChatCompletionRes.Usage.InputTokens,
-			CompletionTokens: qwenChatCompletionRes.Usage.OutputTokens,
-			TotalTokens:      qwenChatCompletionRes.Usage.InputTokens + qwenChatCompletionRes.Usage.OutputTokens,
+			PromptTokens:     chatCompletionRes.Usage.InputTokens,
+			CompletionTokens: chatCompletionRes.Usage.OutputTokens,
+			TotalTokens:      chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
 		},
 	}
 
@@ -120,7 +120,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
-	req := model.AliyunChatCompletionReq{
+	chatCompletionReq := model.AliyunChatCompletionReq{
 		Model: request.Model,
 		Input: model.Input{
 			Messages: request.Messages,
@@ -140,13 +140,13 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}
 
 	if request.ResponseFormat != nil {
-		req.Parameters.ResultFormat = gconv.String(request.ResponseFormat.Type)
+		chatCompletionReq.Parameters.ResultFormat = gconv.String(request.ResponseFormat.Type)
 	}
 
 	header := make(map[string]string)
 	header["Authorization"] = "Bearer " + c.Key
 
-	stream, err := util.SSEClient(ctx, http.MethodPost, c.BaseURL+c.Path, header, req)
+	stream, err := util.SSEClient(ctx, http.MethodPost, c.BaseURL+c.Path, header, chatCompletionReq)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
 		return responseChan, err
@@ -179,8 +179,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				return
 			}
 
-			qwenChatCompletionRes := new(model.AliyunChatCompletionRes)
-			if err := gjson.Unmarshal(streamResponse, &qwenChatCompletionRes); err != nil {
+			chatCompletionRes := new(model.AliyunChatCompletionRes)
+			if err := gjson.Unmarshal(streamResponse, &chatCompletionRes); err != nil {
 				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
 
 				responseChan <- nil
@@ -190,9 +190,9 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				return
 			}
 
-			if qwenChatCompletionRes.Code != "" {
+			if chatCompletionRes.Code != "" {
 
-				err = errors.New(gjson.MustEncodeString(qwenChatCompletionRes))
+				err = errors.New(gjson.MustEncodeString(chatCompletionRes))
 				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
 
 				if err = stream.Close(); err != nil {
@@ -202,13 +202,13 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				end := gtime.Now().UnixMilli()
 
 				responseChan <- &model.ChatCompletionResponse{
-					ID:    qwenChatCompletionRes.RequestId,
+					ID:    chatCompletionRes.RequestId,
 					Model: request.Model,
 					Choices: []model.ChatCompletionChoice{{
 						Index: 0,
 						Delta: &openai.ChatCompletionStreamChoiceDelta{
 							Role:    consts.ROLE_ASSISTANT,
-							Content: qwenChatCompletionRes.Message,
+							Content: chatCompletionRes.Message,
 						},
 						FinishReason: openai.FinishReasonStop,
 					}},
@@ -221,24 +221,24 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			response := &model.ChatCompletionResponse{
-				ID:    qwenChatCompletionRes.RequestId,
+				ID:    chatCompletionRes.RequestId,
 				Model: request.Model,
 				Choices: []model.ChatCompletionChoice{{
 					Delta: &openai.ChatCompletionStreamChoiceDelta{
 						Role:    consts.ROLE_ASSISTANT,
-						Content: qwenChatCompletionRes.Output.Text,
+						Content: chatCompletionRes.Output.Text,
 					},
-					FinishReason: qwenChatCompletionRes.Output.FinishReason,
+					FinishReason: chatCompletionRes.Output.FinishReason,
 				}},
 				Usage: &openai.Usage{
-					PromptTokens:     qwenChatCompletionRes.Usage.InputTokens,
-					CompletionTokens: qwenChatCompletionRes.Usage.OutputTokens,
-					TotalTokens:      qwenChatCompletionRes.Usage.InputTokens + qwenChatCompletionRes.Usage.OutputTokens,
+					PromptTokens:     chatCompletionRes.Usage.InputTokens,
+					CompletionTokens: chatCompletionRes.Usage.OutputTokens,
+					TotalTokens:      chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
 				},
 				ConnTime: duration - now,
 			}
 
-			if response.Choices[0].FinishReason == openai.FinishReasonStop {
+			if errors.Is(err, io.EOF) || response.Choices[0].FinishReason != "" {
 
 				logger.Infof(ctx, "ChatCompletionStream Aliyun model: %s finished", request.Model)
 

@@ -72,7 +72,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		maxTokens = 4096
 	}
 
-	sparkReq := model.XfyunCompletionReq{
+	chatCompletionReq := model.XfyunChatCompletionReq{
 		Header: model.Header{
 			AppId: c.AppId,
 			Uid:   grand.Digits(10),
@@ -94,11 +94,11 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	if request.Functions != nil && len(request.Functions) > 0 {
-		sparkReq.Payload.Functions = new(model.Functions)
-		sparkReq.Payload.Functions.Text = append(sparkReq.Payload.Functions.Text, request.Functions...)
+		chatCompletionReq.Payload.Functions = new(model.Functions)
+		chatCompletionReq.Payload.Functions.Text = append(chatCompletionReq.Payload.Functions.Text, request.Functions...)
 	}
 
-	data, err := gjson.Marshal(sparkReq)
+	data, err := gjson.Marshal(chatCompletionReq)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
 		return res, err
@@ -119,7 +119,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	duration := gtime.Now().UnixMilli()
 
 	responseContent := ""
-	sparkRes := new(model.XfyunChatCompletionRes)
+	chatCompletionRes := new(model.XfyunChatCompletionRes)
 
 	for {
 
@@ -129,39 +129,39 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 			return res, err
 		}
 
-		if err = gjson.Unmarshal(message, &sparkRes); err != nil {
+		if err = gjson.Unmarshal(message, &chatCompletionRes); err != nil {
 			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
 			return res, err
 		}
 
-		if sparkRes.Header.Code != 0 {
-			err = errors.New(gjson.MustEncodeString(sparkRes))
+		if chatCompletionRes.Header.Code != 0 {
+			err = errors.New(gjson.MustEncodeString(chatCompletionRes))
 			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
 			return res, err
 		}
 
-		responseContent += sparkRes.Payload.Choices.Text[0].Content
+		responseContent += chatCompletionRes.Payload.Choices.Text[0].Content
 
-		if sparkRes.Header.Status == 2 {
+		if chatCompletionRes.Header.Status == 2 {
 			break
 		}
 	}
 
 	res = model.ChatCompletionResponse{
-		ID:    sparkRes.Header.Sid,
+		ID:    chatCompletionRes.Header.Sid,
 		Model: request.Model,
 		Choices: []model.ChatCompletionChoice{{
-			Index: sparkRes.Payload.Choices.Seq,
+			Index: chatCompletionRes.Payload.Choices.Seq,
 			Message: &openai.ChatCompletionMessage{
-				Role:         sparkRes.Payload.Choices.Text[0].Role,
+				Role:         chatCompletionRes.Payload.Choices.Text[0].Role,
 				Content:      responseContent,
-				FunctionCall: sparkRes.Payload.Choices.Text[0].FunctionCall,
+				FunctionCall: chatCompletionRes.Payload.Choices.Text[0].FunctionCall,
 			},
 		}},
 		Usage: &openai.Usage{
-			PromptTokens:     sparkRes.Payload.Usage.Text.PromptTokens,
-			CompletionTokens: sparkRes.Payload.Usage.Text.CompletionTokens,
-			TotalTokens:      sparkRes.Payload.Usage.Text.TotalTokens,
+			PromptTokens:     chatCompletionRes.Payload.Usage.Text.PromptTokens,
+			CompletionTokens: chatCompletionRes.Payload.Usage.Text.CompletionTokens,
+			TotalTokens:      chatCompletionRes.Payload.Usage.Text.TotalTokens,
 		},
 		ConnTime: duration - now,
 		Duration: gtime.Now().UnixMilli() - duration,
@@ -186,7 +186,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		maxTokens = 4096
 	}
 
-	sparkReq := model.XfyunCompletionReq{
+	chatCompletionReq := model.XfyunChatCompletionReq{
 		Header: model.Header{
 			AppId: c.AppId,
 			Uid:   grand.Digits(10),
@@ -208,11 +208,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}
 
 	if request.Functions != nil && len(request.Functions) > 0 {
-		sparkReq.Payload.Functions = new(model.Functions)
-		sparkReq.Payload.Functions.Text = append(sparkReq.Payload.Functions.Text, request.Functions...)
+		chatCompletionReq.Payload.Functions = new(model.Functions)
+		chatCompletionReq.Payload.Functions.Text = append(chatCompletionReq.Payload.Functions.Text, request.Functions...)
 	}
 
-	data, err := gjson.Marshal(sparkReq)
+	data, err := gjson.Marshal(chatCompletionReq)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 		return responseChan, err
@@ -256,8 +256,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				return
 			}
 
-			sparkRes := new(model.XfyunChatCompletionRes)
-			if err := gjson.Unmarshal(message, &sparkRes); err != nil {
+			chatCompletionRes := new(model.XfyunChatCompletionRes)
+			if err := gjson.Unmarshal(message, &chatCompletionRes); err != nil {
 				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 
 				responseChan <- nil
@@ -267,21 +267,21 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				return
 			}
 
-			if sparkRes.Header.Code != 0 {
+			if chatCompletionRes.Header.Code != 0 {
 
-				err = errors.New(gjson.MustEncodeString(sparkRes))
+				err = errors.New(gjson.MustEncodeString(chatCompletionRes))
 				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 
 				end := gtime.Now().UnixMilli()
 
 				responseChan <- &model.ChatCompletionResponse{
-					ID:    sparkRes.Header.Sid,
+					ID:    chatCompletionRes.Header.Sid,
 					Model: request.Model,
 					Choices: []model.ChatCompletionChoice{{
 						Index: 0,
 						Delta: &openai.ChatCompletionStreamChoiceDelta{
 							Role:    consts.ROLE_ASSISTANT,
-							Content: sparkRes.Header.Message,
+							Content: chatCompletionRes.Header.Message,
 						},
 						FinishReason: openai.FinishReasonStop,
 					}},
@@ -294,28 +294,28 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			response := &model.ChatCompletionResponse{
-				ID:    sparkRes.Header.Sid,
+				ID:    chatCompletionRes.Header.Sid,
 				Model: request.Model,
 				Choices: []model.ChatCompletionChoice{{
-					Index: sparkRes.Payload.Choices.Seq,
+					Index: chatCompletionRes.Payload.Choices.Seq,
 					Delta: &openai.ChatCompletionStreamChoiceDelta{
-						Role:         sparkRes.Payload.Choices.Text[0].Role,
-						Content:      sparkRes.Payload.Choices.Text[0].Content,
-						FunctionCall: sparkRes.Payload.Choices.Text[0].FunctionCall,
+						Role:         chatCompletionRes.Payload.Choices.Text[0].Role,
+						Content:      chatCompletionRes.Payload.Choices.Text[0].Content,
+						FunctionCall: chatCompletionRes.Payload.Choices.Text[0].FunctionCall,
 					},
 				}},
 				ConnTime: duration - now,
 			}
 
-			if sparkRes.Payload.Usage != nil {
+			if chatCompletionRes.Payload.Usage != nil {
 				response.Usage = &openai.Usage{
-					PromptTokens:     sparkRes.Payload.Usage.Text.PromptTokens,
-					CompletionTokens: sparkRes.Payload.Usage.Text.CompletionTokens,
-					TotalTokens:      sparkRes.Payload.Usage.Text.TotalTokens,
+					PromptTokens:     chatCompletionRes.Payload.Usage.Text.PromptTokens,
+					CompletionTokens: chatCompletionRes.Payload.Usage.Text.CompletionTokens,
+					TotalTokens:      chatCompletionRes.Payload.Usage.Text.TotalTokens,
 				}
 			}
 
-			if sparkRes.Header.Status == 2 {
+			if chatCompletionRes.Header.Status == 2 {
 
 				logger.Infof(ctx, "ChatCompletionStream Xfyun model: %s finished", request.Model)
 

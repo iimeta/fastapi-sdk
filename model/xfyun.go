@@ -2,7 +2,7 @@ package model
 
 import "github.com/sashabaranov/go-openai"
 
-type XfyunCompletionReq struct {
+type XfyunChatCompletionReq struct {
 	Header    Header    `json:"header"`
 	Parameter Parameter `json:"parameter"`
 	Payload   Payload   `json:"payload"`

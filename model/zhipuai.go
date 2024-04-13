@@ -65,4 +65,6 @@ type Choice struct {
 	FinishReason openai.FinishReason `json:"finish_reason"`
 	// 模型返回的文本信息
 	Message *openai.ChatCompletionMessage `json:"message,omitempty"`
+	// 模型返回的文本信息-流式
+	Delta *openai.ChatCompletionStreamChoiceDelta `json:"delta,omitempty"`
 }
