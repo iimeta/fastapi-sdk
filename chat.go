@@ -9,6 +9,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/openai"
 	"github.com/iimeta/fastapi-sdk/xfyun"
+	"github.com/iimeta/fastapi-sdk/zhipuai"
 )
 
 type Chat interface {
@@ -30,6 +31,8 @@ func NewClient(ctx context.Context, corp, model, key, baseURL, path string, prox
 		return xfyun.NewClient(ctx, model, key, baseURL, path, proxyURL...)
 	case consts.CORP_ALIYUN:
 		return aliyun.NewClient(ctx, model, key, baseURL, path, proxyURL...)
+	case consts.CORP_ZHIPUAI:
+		return zhipuai.NewClient(ctx, model, key, baseURL, path, proxyURL...)
 	}
 
 	return openai.NewClient(ctx, model, key, baseURL, path, proxyURL...)

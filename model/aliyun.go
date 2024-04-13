@@ -2,7 +2,7 @@ package model
 
 import "github.com/sashabaranov/go-openai"
 
-type QwenChatCompletionReq struct {
+type AliyunChatCompletionReq struct {
 	// 指定用于对话的通义千问模型名
 	// 目前可选择qwen-turbo、qwen-plus、qwen-max、qwen-max-0403、qwen-max-0107、qwen-max-1201和qwen-max-longcontext。
 	Model      string     `json:"model"`
@@ -74,7 +74,7 @@ type Parameters struct {
 	Tools []openai.Tool `json:"tools,omitempty"`
 }
 
-type QwenChatCompletionRes struct {
+type AliyunChatCompletionRes struct {
 	// 入参result_format=text时候的返回值
 	Output Output `json:"output"`
 	Usage  struct {

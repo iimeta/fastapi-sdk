@@ -52,7 +52,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion Aliyun model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
-	req := model.QwenChatCompletionReq{
+	req := model.AliyunChatCompletionReq{
 		Model: request.Model,
 		Input: model.Input{
 			Messages: request.Messages,
@@ -76,7 +76,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	header := make(map[string]string)
 	header["Authorization"] = "Bearer " + c.Key
 
-	qwenChatCompletionRes := new(model.QwenChatCompletionRes)
+	qwenChatCompletionRes := new(model.AliyunChatCompletionRes)
 	err = util.HttpPostJson(ctx, c.BaseURL+c.Path, header, req, &qwenChatCompletionRes, c.ProxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion Aliyun model: %s, error: %v", request.Model, err)
@@ -120,7 +120,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
-	req := model.QwenChatCompletionReq{
+	req := model.AliyunChatCompletionReq{
 		Model: request.Model,
 		Input: model.Input{
 			Messages: request.Messages,
@@ -179,7 +179,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				return
 			}
 
-			qwenChatCompletionRes := new(model.QwenChatCompletionRes)
+			qwenChatCompletionRes := new(model.AliyunChatCompletionRes)
 			if err := gjson.Unmarshal(streamResponse, &qwenChatCompletionRes); err != nil {
 				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
 

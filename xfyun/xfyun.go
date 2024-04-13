@@ -72,7 +72,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		maxTokens = 4096
 	}
 
-	sparkReq := model.SparkReq{
+	sparkReq := model.XfyunCompletionReq{
 		Header: model.Header{
 			AppId: c.AppId,
 			Uid:   grand.Digits(10),
@@ -119,7 +119,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	duration := gtime.Now().UnixMilli()
 
 	responseContent := ""
-	sparkRes := new(model.SparkRes)
+	sparkRes := new(model.XfyunChatCompletionRes)
 
 	for {
 
@@ -186,7 +186,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		maxTokens = 4096
 	}
 
-	sparkReq := model.SparkReq{
+	sparkReq := model.XfyunCompletionReq{
 		Header: model.Header{
 			AppId: c.AppId,
 			Uid:   grand.Digits(10),
@@ -256,7 +256,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				return
 			}
 
-			sparkRes := new(model.SparkRes)
+			sparkRes := new(model.XfyunChatCompletionRes)
 			if err := gjson.Unmarshal(message, &sparkRes); err != nil {
 				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 

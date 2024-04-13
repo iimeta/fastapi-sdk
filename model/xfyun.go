@@ -2,13 +2,13 @@ package model
 
 import "github.com/sashabaranov/go-openai"
 
-type SparkReq struct {
+type XfyunCompletionReq struct {
 	Header    Header    `json:"header"`
 	Parameter Parameter `json:"parameter"`
 	Payload   Payload   `json:"payload"`
 }
 
-type SparkRes struct {
+type XfyunChatCompletionRes struct {
 	Header  Header  `json:"header"`
 	Payload Payload `json:"payload"`
 }

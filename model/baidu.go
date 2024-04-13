@@ -2,12 +2,7 @@ package model
 
 import "github.com/sashabaranov/go-openai"
 
-type ErnieBotMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
-type ErnieBotReq struct {
+type BaiduChatCompletionReq struct {
 	// 聊天上下文信息。说明：
 	//（1）messages成员不能为空，1个成员表示单轮对话，多个成员表示多轮对话，例如：
 	//  1个成员示例，"messages": [ {"role": "user","content": "你好"}]
@@ -54,7 +49,8 @@ type ErnieBotReq struct {
 	// 表示最终用户的唯一标识符
 	UserId string `json:"user_id,omitempty"`
 }
-type ErnieBotRes struct {
+
+type BaiduChatCompletionRes struct {
 	// 本轮对话的id
 	Id string `json:"id"`
 	// 回包类型

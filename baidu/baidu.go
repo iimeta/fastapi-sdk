@@ -53,7 +53,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion Baidu model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
-	req := model.ErnieBotReq{
+	req := model.BaiduChatCompletionReq{
 		Messages:        request.Messages,
 		MaxOutputTokens: request.MaxTokens,
 		Temperature:     request.Temperature,
@@ -73,7 +73,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		req.ResponseFormat = gconv.String(request.ResponseFormat.Type)
 	}
 
-	ernieBotRes := new(model.ErnieBotRes)
+	ernieBotRes := new(model.BaiduChatCompletionRes)
 	err = util.HttpPostJson(ctx, fmt.Sprintf("%s?access_token=%s", c.BaseURL+c.Path, c.AccessToken), nil, req, &ernieBotRes, c.ProxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion Baidu model: %s, error: %v", request.Model, err)
@@ -118,7 +118,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
-	req := model.ErnieBotReq{
+	req := model.BaiduChatCompletionReq{
 		Messages:        request.Messages,
 		MaxOutputTokens: request.MaxTokens,
 		Temperature:     request.Temperature,
@@ -171,7 +171,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				return
 			}
 
-			ernieBotRes := new(model.ErnieBotRes)
+			ernieBotRes := new(model.BaiduChatCompletionRes)
 			if err = gjson.Unmarshal(streamResponse, &ernieBotRes); err != nil {
 				logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
 

@@ -4,9 +4,10 @@ go 1.22
 
 require (
 	github.com/gogf/gf/v2 v2.7.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/gorilla/websocket v1.5.1
 	github.com/pkoukk/tiktoken-go v0.1.6
-	github.com/sashabaranov/go-openai v1.20.5
+	github.com/sashabaranov/go-openai v1.21.0
 )
 
 require (
