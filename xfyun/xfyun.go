@@ -12,6 +12,7 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/gorilla/websocket"
 	"github.com/iimeta/fastapi-sdk/consts"
@@ -20,7 +21,9 @@ import (
 	"github.com/iimeta/fastapi-sdk/util"
 	"github.com/sashabaranov/go-openai"
 	"io"
+	"math"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -46,14 +49,45 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 		Key:         result[1],
 		Secret:      result[2],
 		OriginalURL: "https://spark-api.xf-yun.com",
-		BaseURL:     "https://spark-api.xf-yun.com",
-		Path:        path,
-		Domain:      result[3],
+		BaseURL:     "https://spark-api.xf-yun.com/v3.5",
+		Path:        "/chat",
+		Domain:      "generalv3.5",
 	}
 
 	if baseURL != "" {
+
 		logger.Infof(ctx, "NewClient Xfyun model: %s, baseURL: %s", model, baseURL)
 		client.BaseURL = baseURL
+
+		version := baseURL[strings.LastIndex(baseURL, "/")+1:]
+
+		switch version {
+		case "v3.5":
+			client.Domain = "generalv3.5"
+		case "v3.1":
+			client.Domain = "generalv3"
+		case "v2.1":
+			client.Domain = "generalv2"
+		case "v1.1":
+			client.Domain = "general"
+		default:
+			v := gconv.Float64(version[1:])
+			if math.Round(v) > v {
+				client.Domain = fmt.Sprintf("general%s", version)
+			} else {
+				client.Domain = fmt.Sprintf("generalv%0.f", math.Round(v))
+			}
+		}
+	}
+
+	if path != "" {
+		logger.Infof(ctx, "NewClient Xfyun model: %s, path: %s", model, path)
+		client.Path = path
+	}
+
+	if len(proxyURL) > 0 && proxyURL[0] != "" {
+		logger.Infof(ctx, "NewClient Xfyun model: %s, proxyURL: %s", model, proxyURL[0])
+		client.ProxyURL = proxyURL[0]
 	}
 
 	return client

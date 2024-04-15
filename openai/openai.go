@@ -31,7 +31,7 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
 
-		logger.Infof(ctx, "NewProxyClient OpenAI model: %s, proxyURL: %s", model, proxyURL[0])
+		logger.Infof(ctx, "NewClient OpenAI model: %s, proxyURL: %s", model, proxyURL[0])
 
 		proxyUrl, err := url.Parse(proxyURL[0])
 		if err != nil {

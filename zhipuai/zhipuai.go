@@ -44,6 +44,11 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 		client.Path = path
 	}
 
+	if len(proxyURL) > 0 && proxyURL[0] != "" {
+		logger.Infof(ctx, "NewClient ZhipuAI model: %s, proxyURL: %s", model, proxyURL[0])
+		client.ProxyURL = proxyURL[0]
+	}
+
 	return client
 }
 

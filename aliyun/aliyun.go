@@ -30,13 +30,23 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 
 	client := &Client{
 		Key:     key,
-		BaseURL: "https://aip.baidubce.com",
-		Path:    path,
+		BaseURL: "https://dashscope.aliyuncs.com/api/v1",
+		Path:    "/services/aigc/text-generation/generation",
 	}
 
 	if baseURL != "" {
 		logger.Infof(ctx, "NewClient Aliyun model: %s, baseURL: %s", model, baseURL)
 		client.BaseURL = baseURL
+	}
+
+	if path != "" {
+		logger.Infof(ctx, "NewClient Aliyun model: %s, path: %s", model, path)
+		client.Path = path
+	}
+
+	if len(proxyURL) > 0 && proxyURL[0] != "" {
+		logger.Infof(ctx, "NewClient Aliyun model: %s, proxyURL: %s", model, proxyURL[0])
+		client.ProxyURL = proxyURL[0]
 	}
 
 	return client
