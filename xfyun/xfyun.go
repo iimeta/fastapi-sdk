@@ -29,8 +29,8 @@ import (
 
 type Client struct {
 	AppId       string
-	Key         string
 	Secret      string
+	Key         string
 	OriginalURL string
 	BaseURL     string
 	Path        string
@@ -46,8 +46,8 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 
 	client := &Client{
 		AppId:       result[0],
-		Key:         result[1],
-		Secret:      result[2],
+		Secret:      result[1],
+		Key:         result[2],
 		OriginalURL: "https://spark-api.xf-yun.com",
 		BaseURL:     "https://spark-api.xf-yun.com/v3.5",
 		Path:        "/chat",
@@ -384,7 +384,7 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 
 func (c *Client) getAuthorizationUrl(ctx context.Context) string {
 
-	parse, err := url.Parse(c.OriginalURL + c.Path)
+	parse, err := url.Parse(c.OriginalURL + c.BaseURL[strings.LastIndex(c.BaseURL, "/"):] + c.Path)
 	if err != nil {
 		logger.Errorf(ctx, "getAuthorizationUrl Xfyun client: %+v, error: %s", c, err)
 		return ""
