@@ -7,6 +7,7 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/sashabaranov/go-openai"
 	"io"
 	"net/http"
@@ -84,7 +85,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	})
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion OpenAI model: %s, error: %v", request.Model, err)
-		return res, err
+		return res, c.handleError(err)
 	}
 
 	logger.Infof(ctx, "ChatCompletion OpenAI model: %s finished", request.Model)
@@ -145,7 +146,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	})
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
-		return responseChan, err
+		return responseChan, c.handleError(err)
 	}
 
 	duration := gtime.Now().UnixMilli()
@@ -261,4 +262,28 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	}
 
 	return res, nil
+}
+
+func (c *Client) handleError(e error) error {
+
+	apiError := &openai.APIError{}
+	if errors.As(e, &apiError) {
+		return &sdkerr.APIError{
+			Code:           apiError.Code,
+			Message:        apiError.Message,
+			Param:          apiError.Param,
+			Type:           apiError.Type,
+			HTTPStatusCode: apiError.HTTPStatusCode,
+		}
+	}
+
+	reqError := &openai.RequestError{}
+	if errors.As(e, &reqError) {
+		return &sdkerr.RequestError{
+			HTTPStatusCode: reqError.HTTPStatusCode,
+			Err:            reqError.Err,
+		}
+	}
+
+	return e
 }
