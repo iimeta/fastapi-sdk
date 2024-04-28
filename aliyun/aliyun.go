@@ -182,7 +182,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
 				}
 
-				responseChan <- nil
+				responseChan <- &model.ChatCompletionResponse{Error: err}
 				time.Sleep(time.Millisecond)
 				close(responseChan)
 

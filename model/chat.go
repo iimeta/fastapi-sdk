@@ -49,6 +49,7 @@ type ChatCompletionResponse struct {
 	ConnTime          int64                     `json:"-"`
 	Duration          int64                     `json:"-"`
 	TotalTime         int64                     `json:"-"`
+	Error             error                     `json:"-"`
 }
 
 type ChatCompletionChoice struct {
