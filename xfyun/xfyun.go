@@ -294,7 +294,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if err := gjson.Unmarshal(message, &chatCompletionRes); err != nil {
 				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 
-				responseChan <- nil
+				responseChan <- &model.ChatCompletionResponse{Error: err}
 				time.Sleep(time.Millisecond)
 				close(responseChan)
 
@@ -322,6 +322,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					ConnTime:  duration - now,
 					Duration:  end - duration,
 					TotalTime: end - now,
+					Error:     err,
 				}
 
 				return

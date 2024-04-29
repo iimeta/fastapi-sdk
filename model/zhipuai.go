@@ -51,6 +51,11 @@ type ZhipuAIChatCompletionRes struct {
 	Choices []Choice `json:"choices"`
 	// 结束时返回本次模型调用的 tokens 数量统计。
 	Usage *openai.Usage `json:"usage"`
+	// 当failed时会有错误信息
+	Error struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+	} `json:"error"`
 }
 
 type Choice struct {

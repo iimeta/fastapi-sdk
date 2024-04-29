@@ -7,6 +7,7 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"
@@ -207,9 +208,41 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if err := gjson.Unmarshal(streamResponse, &chatCompletionRes); err != nil {
 				logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, error: %v", request.Model, err)
 
-				responseChan <- nil
+				responseChan <- &model.ChatCompletionResponse{Error: err}
 				time.Sleep(time.Millisecond)
 				close(responseChan)
+
+				return
+			}
+
+			if chatCompletionRes.Error.Code != "200" {
+
+				err = errors.New(gjson.MustEncodeString(chatCompletionRes))
+				logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, error: %v", request.Model, err)
+
+				if err = stream.Close(); err != nil {
+					logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, stream.Close error: %v", request.Model, err)
+				}
+
+				end := gtime.Now().UnixMilli()
+
+				responseChan <- &model.ChatCompletionResponse{
+					ID:      chatCompletionRes.Id,
+					Created: chatCompletionRes.Created,
+					Model:   request.Model,
+					Choices: []model.ChatCompletionChoice{{
+						Index: 0,
+						Delta: &openai.ChatCompletionStreamChoiceDelta{
+							Role:    consts.ROLE_ASSISTANT,
+							Content: chatCompletionRes.Error.Message,
+						},
+						FinishReason: openai.FinishReasonStop,
+					}},
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+					Error:     err,
+				}
 
 				return
 			}
