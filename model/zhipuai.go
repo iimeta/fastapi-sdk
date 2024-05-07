@@ -8,7 +8,7 @@ type ZhipuAIChatCompletionReq struct {
 	// 调用语言模型时，将当前对话信息列表作为提示输入给模型
 	// 按照 {"role": "user", "content": "你好"} 的json 数组形式进行传参
 	// 可能的消息类型包括 System message、User message、Assistant message 和 Tool message。
-	Messages []openai.ChatCompletionMessage `json:"messages"`
+	Messages []ChatCompletionMessage `json:"messages"`
 	// 由用户端传参，需保证唯一性；用于区分每次请求的唯一标识，用户端不传时平台会默认生成。
 	RequestId string `json:"request_id,omitempty"`
 	// do_sample 为 true 时启用采样策略，do_sample 为 false 时采样策略 temperature、top_p 将不生效。默认值为 true。
@@ -50,7 +50,7 @@ type ZhipuAIChatCompletionRes struct {
 	// 当前对话的模型输出内容
 	Choices []Choice `json:"choices"`
 	// 结束时返回本次模型调用的 tokens 数量统计。
-	Usage *openai.Usage `json:"usage"`
+	Usage *Usage `json:"usage"`
 	// 当failed时会有错误信息
 	Error struct {
 		Code    string `json:"code"`

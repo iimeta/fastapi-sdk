@@ -1,8 +1,8 @@
 package tiktoken
 
 import (
+	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/pkoukk/tiktoken-go"
-	"github.com/sashabaranov/go-openai"
 )
 
 func NumTokensFromString(model, text string) (int, error) {
@@ -19,7 +19,7 @@ func NumTokensFromString(model, text string) (int, error) {
 	return len(tkm.Encode(text, nil, nil)), nil
 }
 
-func NumTokensFromMessages(model string, messages []openai.ChatCompletionMessage) (numTokens int, err error) {
+func NumTokensFromMessages(model string, messages []model.ChatCompletionMessage) (numTokens int, err error) {
 
 	if len(messages) == 0 {
 		return 0, nil

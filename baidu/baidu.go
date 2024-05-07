@@ -107,11 +107,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 				Content: chatCompletionRes.Result,
 			},
 		}},
-		Usage: &openai.Usage{
-			PromptTokens:     chatCompletionRes.Usage.PromptTokens,
-			CompletionTokens: chatCompletionRes.Usage.CompletionTokens,
-			TotalTokens:      chatCompletionRes.Usage.TotalTokens,
-		},
+		Usage: chatCompletionRes.Usage,
 	}
 
 	return res, nil

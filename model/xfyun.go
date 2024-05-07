@@ -57,13 +57,13 @@ type Payload struct {
 	Message   *Message   `json:"message,omitempty"`
 	Functions *Functions `json:"functions,omitempty"`
 	// res
-	Choices *Choices `json:"choices,omitempty"`
-	Usage   *Usage   `json:"usage,omitempty"`
+	Choices *Choices    `json:"choices,omitempty"`
+	Usage   *XfyunUsage `json:"usage,omitempty"`
 }
 
 type Message struct {
 	// req
-	Text []openai.ChatCompletionMessage `json:"text"`
+	Text []ChatCompletionMessage `json:"text"`
 }
 
 type Functions struct {
@@ -100,7 +100,7 @@ type Choices struct {
 	Text []Text `json:"text,omitempty"`
 }
 
-type Usage struct {
+type XfyunUsage struct {
 	// res
 	Text *Text `json:"text,omitempty"`
 }

@@ -13,7 +13,7 @@ type AliyunChatCompletionReq struct {
 type Input struct {
 	// 用户与模型的对话历史，list中的每个元素形式为{"role":角色, "content": 内容}。
 	// 角色当前可选值：system、user、assistant和tool。未来可以扩展到更多role。
-	Messages []openai.ChatCompletionMessage `json:"messages"`
+	Messages []ChatCompletionMessage `json:"messages"`
 }
 
 type Parameters struct {

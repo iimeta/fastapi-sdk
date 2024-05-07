@@ -192,7 +192,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 				FunctionCall: chatCompletionRes.Payload.Choices.Text[0].FunctionCall,
 			},
 		}},
-		Usage: &openai.Usage{
+		Usage: &model.Usage{
 			PromptTokens:     chatCompletionRes.Payload.Usage.Text.PromptTokens,
 			CompletionTokens: chatCompletionRes.Payload.Usage.Text.CompletionTokens,
 			TotalTokens:      chatCompletionRes.Payload.Usage.Text.TotalTokens,
@@ -343,7 +343,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			if chatCompletionRes.Payload.Usage != nil {
-				response.Usage = &openai.Usage{
+				response.Usage = &model.Usage{
 					PromptTokens:     chatCompletionRes.Payload.Usage.Text.PromptTokens,
 					CompletionTokens: chatCompletionRes.Payload.Usage.Text.CompletionTokens,
 					TotalTokens:      chatCompletionRes.Payload.Usage.Text.TotalTokens,

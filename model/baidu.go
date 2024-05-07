@@ -1,7 +1,5 @@
 package model
 
-import "github.com/sashabaranov/go-openai"
-
 type BaiduChatCompletionReq struct {
 	// 聊天上下文信息。说明：
 	//（1）messages成员不能为空，1个成员表示单轮对话，多个成员表示多轮对话，例如：
@@ -10,7 +8,7 @@ type BaiduChatCompletionReq struct {
 	//（2）最后一个message为当前请求的信息，前面的message为历史对话信息
 	//（3）成员数目必须为奇数，成员中message的role值说明如下：奇数位message的role值必须为user，偶数位message的role值为assistant。例如：
 	// 示例中message中的role值分别为user、assistant、user、assistant、user；奇数位（红框）message中的role值为user，即第1、3、5个message中的role值为user；偶数位（蓝框）值为assistant，即第2、4个message中的role值为assistant
-	Messages []openai.ChatCompletionMessage `json:"messages"`
+	Messages []ChatCompletionMessage `json:"messages"`
 	//（1）较高的数值会使输出更加随机，而较低的数值会使其更加集中和确定
 	//（2）默认0.8，范围 (0, 1.0]，不能为0
 	Temperature float32 `json:"temperature,omitempty"`
@@ -84,9 +82,9 @@ type BaiduChatCompletionRes struct {
 	// 当need_clear_history为true时，此字段会告知第几轮对话有敏感信息，如果是当前问题，ban_round=-1
 	BanRound int `json:"ban_round"`
 	// token统计信息
-	Usage     *openai.Usage `json:"usage,omitempty"`
-	ErrorCode int           `json:"error_code"`
-	ErrorMsg  string        `json:"error_msg"`
+	Usage     *Usage `json:"usage,omitempty"`
+	ErrorCode int    `json:"error_code"`
+	ErrorMsg  string `json:"error_msg"`
 }
 
 type SearchInfo struct {

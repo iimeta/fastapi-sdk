@@ -61,9 +61,22 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
+	messages := make([]openai.ChatCompletionMessage, 0)
+	for _, message := range request.Messages {
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role:         message.Role,
+			Content:      message.Content,
+			MultiContent: message.MultiContent,
+			Name:         message.Name,
+			FunctionCall: message.FunctionCall,
+			ToolCalls:    message.ToolCalls,
+			ToolCallID:   message.ToolCallID,
+		})
+	}
+
 	response, err := c.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
 		Model:            request.Model,
-		Messages:         request.Messages,
+		Messages:         messages,
 		MaxTokens:        request.MaxTokens,
 		Temperature:      request.Temperature,
 		TopP:             request.TopP,
@@ -91,11 +104,15 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	logger.Infof(ctx, "ChatCompletion OpenAI model: %s finished", request.Model)
 
 	res = model.ChatCompletionResponse{
-		ID:                response.ID,
-		Object:            response.Object,
-		Created:           response.Created,
-		Model:             response.Model,
-		Usage:             &response.Usage,
+		ID:      response.ID,
+		Object:  response.Object,
+		Created: response.Created,
+		Model:   response.Model,
+		Usage: &model.Usage{
+			PromptTokens:     response.Usage.PromptTokens,
+			CompletionTokens: response.Usage.CompletionTokens,
+			TotalTokens:      response.Usage.TotalTokens,
+		},
 		SystemFingerprint: response.SystemFingerprint,
 	}
 
@@ -122,9 +139,22 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
+	messages := make([]openai.ChatCompletionMessage, 0)
+	for _, message := range request.Messages {
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role:         message.Role,
+			Content:      message.Content,
+			MultiContent: message.MultiContent,
+			Name:         message.Name,
+			FunctionCall: message.FunctionCall,
+			ToolCalls:    message.ToolCalls,
+			ToolCallID:   message.ToolCallID,
+		})
+	}
+
 	stream, err := c.client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
 		Model:            request.Model,
-		Messages:         request.Messages,
+		Messages:         messages,
 		MaxTokens:        request.MaxTokens,
 		Temperature:      request.Temperature,
 		TopP:             request.TopP,
@@ -256,9 +286,18 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 		return res, err
 	}
 
+	data := make([]model.ImageResponseDataInner, 0)
+	for _, d := range response.Data {
+		data = append(data, model.ImageResponseDataInner{
+			URL:           d.URL,
+			B64JSON:       d.B64JSON,
+			RevisedPrompt: d.RevisedPrompt,
+		})
+	}
+
 	res = model.ImageResponse{
 		Created: response.Created,
-		Data:    response.Data,
+		Data:    data,
 	}
 
 	return res, nil
