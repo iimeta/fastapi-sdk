@@ -15,4 +15,5 @@ const (
 	ROLE_ASSISTANT = "assistant"
 	ROLE_FUNCTION  = "function"
 	ROLE_TOOL      = "tool"
+	ROLE_MODEL     = "model"
 )

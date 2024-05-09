@@ -13,7 +13,6 @@ import (
 	"github.com/iimeta/fastapi-sdk/util"
 	"github.com/sashabaranov/go-openai"
 	"io"
-	"net/http"
 	"strings"
 	"time"
 )
@@ -106,6 +105,12 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		return
 	}
 
+	if chatCompletionRes.Error.Code != "200" {
+		err = errors.New(gjson.MustEncodeString(chatCompletionRes))
+		logger.Errorf(ctx, "ChatCompletion ZhipuAI model: %s, error: %v", request.Model, err)
+		return
+	}
+
 	res = model.ChatCompletionResponse{
 		ID:      chatCompletionRes.Id,
 		Created: chatCompletionRes.Created,
@@ -171,7 +176,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	header := make(map[string]string)
 	header["Authorization"] = "Bearer " + c.generateToken(ctx)
 
-	stream, err := util.SSEClient(ctx, http.MethodPost, c.BaseURL+c.Path, header, chatCompletionReq)
+	stream, err := util.SSEClient(ctx, c.BaseURL+c.Path, header, chatCompletionReq, c.ProxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, error: %v", request.Model, err)
 		return responseChan, err

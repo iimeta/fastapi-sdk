@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/iimeta/fastapi-sdk/logger"
@@ -31,19 +32,26 @@ type StreamReader struct {
 	isFinished         bool
 }
 
-func SSEClient(ctx context.Context, method, url string, header map[string]string, data interface{}) (stream *StreamReader, err error) {
+func SSEClient(ctx context.Context, url string, header map[string]string, data interface{}, proxyURL ...string) (stream *StreamReader, err error) {
+
+	logger.Debugf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %v", url, header, gjson.MustEncodeString(data), proxyURL)
 
 	client := g.Client().Timeout(600 * time.Second)
+
 	if header != nil {
 		client.SetHeaderMap(header)
 	}
 
-	client.SetHeader("Content-Type", "application/json")
+	if len(proxyURL) > 0 && proxyURL[0] != "" {
+		client.SetProxy(proxyURL[0])
+	}
+
 	client.SetHeader("Accept", "text/event-stream")
 	client.SetHeader("Cache-Control", "no-cache")
 	client.SetHeader("Connection", "keep-alive")
+	client.SetHeader("Content-Type", "application/json")
 
-	response, err := client.ContentJson().DoRequest(ctx, method, url, data)
+	response, err := client.Post(ctx, url, data)
 	if err != nil {
 		logger.Error(ctx, err)
 		if response != nil {
