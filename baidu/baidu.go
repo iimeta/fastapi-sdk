@@ -204,7 +204,6 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					Created: chatCompletionRes.Created,
 					Model:   request.Model,
 					Choices: []model.ChatCompletionChoice{{
-						Index: 0,
 						Delta: &openai.ChatCompletionStreamChoiceDelta{
 							Role:    consts.ROLE_ASSISTANT,
 							Content: chatCompletionRes.ErrorMsg,

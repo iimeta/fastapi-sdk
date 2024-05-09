@@ -99,9 +99,10 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	res = model.ChatCompletionResponse{
-		ID:     chatCompletionRes.RequestId,
-		Object: chatCompletionRes.Message,
-		Model:  request.Model,
+		ID:      chatCompletionRes.RequestId,
+		Object:  chatCompletionRes.Message,
+		Created: gtime.Now().Unix(),
+		Model:   request.Model,
 		Choices: []model.ChatCompletionChoice{{
 			Message: &openai.ChatCompletionMessage{
 				Role:    consts.ROLE_ASSISTANT,
@@ -172,6 +173,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			logger.Infof(ctx, "ChatCompletionStream Aliyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 		}()
 
+		var created = gtime.Now().Unix()
+
 		for {
 
 			streamResponse, err := stream.Recv()
@@ -211,10 +214,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				end := gtime.Now().UnixMilli()
 
 				responseChan <- &model.ChatCompletionResponse{
-					ID:    chatCompletionRes.RequestId,
-					Model: request.Model,
+					ID:      chatCompletionRes.RequestId,
+					Object:  chatCompletionRes.Message,
+					Created: created,
+					Model:   request.Model,
 					Choices: []model.ChatCompletionChoice{{
-						Index: 0,
 						Delta: &openai.ChatCompletionStreamChoiceDelta{
 							Role:    consts.ROLE_ASSISTANT,
 							Content: chatCompletionRes.Message,
@@ -231,8 +235,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			response := &model.ChatCompletionResponse{
-				ID:    chatCompletionRes.RequestId,
-				Model: request.Model,
+				ID:      chatCompletionRes.RequestId,
+				Object:  chatCompletionRes.Message,
+				Created: created,
+				Model:   request.Model,
 				Choices: []model.ChatCompletionChoice{{
 					Delta: &openai.ChatCompletionStreamChoiceDelta{
 						Role:    consts.ROLE_ASSISTANT,

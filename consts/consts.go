@@ -6,6 +6,7 @@ const (
 	CORP_XFYUN      = "Xfyun"
 	CORP_ALIYUN     = "Aliyun"
 	CORP_ZHIPUAI    = "ZhipuAI"
+	CORP_GOOGLE     = "Google"
 	CORP_MIDJOURNEY = "Midjourney"
 )
 

@@ -113,6 +113,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 	res = model.ChatCompletionResponse{
 		ID:      chatCompletionRes.Id,
+		Object:  "chat.completion",
 		Created: chatCompletionRes.Created,
 		Model:   request.Model,
 		Usage:   chatCompletionRes.Usage,
@@ -233,10 +234,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 				responseChan <- &model.ChatCompletionResponse{
 					ID:      chatCompletionRes.Id,
+					Object:  "chat.completion.chunk",
 					Created: chatCompletionRes.Created,
 					Model:   request.Model,
 					Choices: []model.ChatCompletionChoice{{
-						Index: 0,
 						Delta: &openai.ChatCompletionStreamChoiceDelta{
 							Role:    consts.ROLE_ASSISTANT,
 							Content: chatCompletionRes.Error.Message,
@@ -254,6 +255,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			response := &model.ChatCompletionResponse{
 				ID:       chatCompletionRes.Id,
+				Object:   "chat.completion.chunk",
 				Created:  chatCompletionRes.Created,
 				Model:    request.Model,
 				Usage:    chatCompletionRes.Usage,

@@ -37,7 +37,7 @@ type Candidate struct {
 	Content       Content             `json:"content"`
 	FinishReason  openai.FinishReason `json:"finishReason"`
 	Index         int                 `json:"index"`
-	SafetyRatings SafetyRating        `json:"safetyRatings"`
+	SafetyRatings []SafetyRating      `json:"safetyRatings"`
 }
 
 type SafetyRating struct {

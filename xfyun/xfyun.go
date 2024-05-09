@@ -182,8 +182,10 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	res = model.ChatCompletionResponse{
-		ID:    chatCompletionRes.Header.Sid,
-		Model: request.Model,
+		ID:      chatCompletionRes.Header.Sid,
+		Object:  "chat.completion",
+		Created: gtime.Now().Unix(),
+		Model:   request.Model,
 		Choices: []model.ChatCompletionChoice{{
 			Index: chatCompletionRes.Payload.Choices.Seq,
 			Message: &openai.ChatCompletionMessage{
@@ -274,6 +276,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			logger.Infof(ctx, "ChatCompletionStream Xfyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 		}()
 
+		var created = gtime.Now().Unix()
+
 		for {
 
 			message, err := conn.ReadMessage(ctx)
@@ -309,10 +313,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				end := gtime.Now().UnixMilli()
 
 				responseChan <- &model.ChatCompletionResponse{
-					ID:    chatCompletionRes.Header.Sid,
-					Model: request.Model,
+					ID:      chatCompletionRes.Header.Sid,
+					Object:  "chat.completion.chunk",
+					Created: created,
+					Model:   request.Model,
 					Choices: []model.ChatCompletionChoice{{
-						Index: 0,
 						Delta: &openai.ChatCompletionStreamChoiceDelta{
 							Role:    consts.ROLE_ASSISTANT,
 							Content: chatCompletionRes.Header.Message,
@@ -329,8 +334,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			response := &model.ChatCompletionResponse{
-				ID:    chatCompletionRes.Header.Sid,
-				Model: request.Model,
+				ID:      chatCompletionRes.Header.Sid,
+				Object:  "chat.completion.chunk",
+				Created: created,
+				Model:   request.Model,
 				Choices: []model.ChatCompletionChoice{{
 					Index: chatCompletionRes.Payload.Choices.Seq,
 					Delta: &openai.ChatCompletionStreamChoiceDelta{

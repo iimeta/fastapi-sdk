@@ -7,6 +7,7 @@ import (
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -66,6 +67,11 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	for _, message := range request.Messages {
 
 		role := message.Role
+
+		if role == consts.ROLE_SYSTEM {
+			continue
+		}
+
 		if role == consts.ROLE_ASSISTANT {
 			role = consts.ROLE_MODEL
 		}
@@ -96,12 +102,16 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	res = model.ChatCompletionResponse{
-		Model: request.Model,
+		ID:      "chatcmpl-" + grand.S(29),
+		Object:  "chat.completion",
+		Created: gtime.Now().Unix(),
+		Model:   request.Model,
 		Choices: []model.ChatCompletionChoice{{
 			Message: &openai.ChatCompletionMessage{
 				Role:    consts.ROLE_ASSISTANT,
 				Content: chatCompletionRes.Candidates[0].Content.Parts[0].Text,
 			},
+			FinishReason: openai.FinishReasonStop,
 		}},
 		Usage: &model.Usage{
 			PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
@@ -129,6 +139,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	for _, message := range request.Messages {
 
 		role := message.Role
+
+		if role == consts.ROLE_SYSTEM {
+			continue
+		}
+
 		if role == consts.ROLE_ASSISTANT {
 			role = consts.ROLE_MODEL
 		}
@@ -162,6 +177,12 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			logger.Infof(ctx, "ChatCompletionStream Google model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 		}()
 
+		var (
+			usage   *model.Usage
+			created = gtime.Now().Unix()
+			id      = "chatcmpl-" + grand.S(29)
+		)
+
 		for {
 
 			streamResponse, err := stream.Recv()
@@ -174,6 +195,34 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				responseChan <- &model.ChatCompletionResponse{Error: err}
 				time.Sleep(time.Millisecond)
 				close(responseChan)
+
+				return
+			}
+
+			if errors.Is(err, io.EOF) {
+
+				logger.Infof(ctx, "ChatCompletionStream Google model: %s finished", request.Model)
+
+				if err = stream.Close(); err != nil {
+					logger.Errorf(ctx, "ChatCompletionStream Google model: %s, stream.Close error: %v", request.Model, err)
+				}
+
+				end := gtime.Now().UnixMilli()
+
+				responseChan <- &model.ChatCompletionResponse{
+					ID:      id,
+					Object:  "chat.completion.chunk",
+					Created: created,
+					Model:   request.Model,
+					Choices: []model.ChatCompletionChoice{{
+						Delta:        &openai.ChatCompletionStreamChoiceDelta{},
+						FinishReason: openai.FinishReasonStop,
+					}},
+					Usage:     usage,
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+				}
 
 				return
 			}
@@ -201,9 +250,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				end := gtime.Now().UnixMilli()
 
 				responseChan <- &model.ChatCompletionResponse{
-					Model: request.Model,
+					ID:      id,
+					Object:  "chat.completion.chunk",
+					Created: created,
+					Model:   request.Model,
 					Choices: []model.ChatCompletionChoice{{
-						Index: 0,
 						Delta: &openai.ChatCompletionStreamChoiceDelta{
 							Role:    consts.ROLE_ASSISTANT,
 							Content: chatCompletionRes.Error.Message,
@@ -219,37 +270,26 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				return
 			}
 
+			usage = &model.Usage{
+				PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
+				CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
+				TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
+			}
+
 			response := &model.ChatCompletionResponse{
-				Model: request.Model,
+				ID:      id,
+				Object:  "chat.completion.chunk",
+				Created: created,
+				Model:   request.Model,
 				Choices: []model.ChatCompletionChoice{{
+					Index: chatCompletionRes.Candidates[0].Index,
 					Delta: &openai.ChatCompletionStreamChoiceDelta{
 						Role:    consts.ROLE_ASSISTANT,
 						Content: chatCompletionRes.Candidates[0].Content.Parts[0].Text,
 					},
-					FinishReason: chatCompletionRes.Candidates[0].FinishReason,
 				}},
-				Usage: &model.Usage{
-					PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
-					CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
-					TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
-				},
+				Usage:    usage,
 				ConnTime: duration - now,
-			}
-
-			if errors.Is(err, io.EOF) || response.Choices[0].FinishReason != "" {
-
-				logger.Infof(ctx, "ChatCompletionStream Google model: %s finished", request.Model)
-
-				if err = stream.Close(); err != nil {
-					logger.Errorf(ctx, "ChatCompletionStream Google model: %s, stream.Close error: %v", request.Model, err)
-				}
-
-				end := gtime.Now().UnixMilli()
-				response.Duration = end - duration
-				response.TotalTime = end - now
-				responseChan <- response
-
-				return
 			}
 
 			end := gtime.Now().UnixMilli()
