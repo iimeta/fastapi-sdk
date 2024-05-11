@@ -5,6 +5,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/aliyun"
 	"github.com/iimeta/fastapi-sdk/baidu"
 	"github.com/iimeta/fastapi-sdk/consts"
+	"github.com/iimeta/fastapi-sdk/deepseek"
 	"github.com/iimeta/fastapi-sdk/google"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -36,6 +37,8 @@ func NewClient(ctx context.Context, corp, model, key, baseURL, path string, prox
 		return zhipuai.NewClient(ctx, model, key, baseURL, path, proxyURL...)
 	case consts.CORP_GOOGLE:
 		return google.NewClient(ctx, model, key, baseURL, path, proxyURL...)
+	case consts.CORP_DEEPSEEK:
+		return deepseek.NewClient(ctx, model, key, baseURL, path, proxyURL...)
 	}
 
 	return openai.NewClient(ctx, model, key, baseURL, path, proxyURL...)
