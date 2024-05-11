@@ -182,8 +182,8 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	res = model.ChatCompletionResponse{
-		ID:      chatCompletionRes.Header.Sid,
-		Object:  "chat.completion",
+		ID:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Header.Sid,
+		Object:  consts.COMPLETION_OBJECT,
 		Created: gtime.Now().Unix(),
 		Model:   request.Model,
 		Choices: []model.ChatCompletionChoice{{
@@ -313,8 +313,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				end := gtime.Now().UnixMilli()
 
 				responseChan <- &model.ChatCompletionResponse{
-					ID:      chatCompletionRes.Header.Sid,
-					Object:  "chat.completion.chunk",
+					ID:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Header.Sid,
+					Object:  consts.COMPLETION_STREAM_OBJECT,
 					Created: created,
 					Model:   request.Model,
 					Choices: []model.ChatCompletionChoice{{
@@ -334,8 +334,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			response := &model.ChatCompletionResponse{
-				ID:      chatCompletionRes.Header.Sid,
-				Object:  "chat.completion.chunk",
+				ID:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Header.Sid,
+				Object:  consts.COMPLETION_STREAM_OBJECT,
 				Created: created,
 				Model:   request.Model,
 				Choices: []model.ChatCompletionChoice{{

@@ -7,6 +7,7 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -99,8 +100,8 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	res = model.ChatCompletionResponse{
-		ID:      chatCompletionRes.RequestId,
-		Object:  chatCompletionRes.Message,
+		ID:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.RequestId,
+		Object:  consts.COMPLETION_OBJECT,
 		Created: gtime.Now().Unix(),
 		Model:   request.Model,
 		Choices: []model.ChatCompletionChoice{{
@@ -173,7 +174,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			logger.Infof(ctx, "ChatCompletionStream Aliyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 		}()
 
-		var created = gtime.Now().Unix()
+		var (
+			usage   *model.Usage
+			created = gtime.Now().Unix()
+			id      = consts.COMPLETION_ID_PREFIX + grand.S(29)
+		)
 
 		for {
 
@@ -187,6 +192,34 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				responseChan <- &model.ChatCompletionResponse{Error: err}
 				time.Sleep(time.Millisecond)
 				close(responseChan)
+
+				return
+			}
+
+			if errors.Is(err, io.EOF) {
+
+				logger.Infof(ctx, "ChatCompletionStream Aliyun model: %s finished", request.Model)
+
+				if err = stream.Close(); err != nil {
+					logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, stream.Close error: %v", request.Model, err)
+				}
+
+				end := gtime.Now().UnixMilli()
+
+				responseChan <- &model.ChatCompletionResponse{
+					ID:      id,
+					Object:  consts.COMPLETION_STREAM_OBJECT,
+					Created: created,
+					Model:   request.Model,
+					Choices: []model.ChatCompletionChoice{{
+						Delta:        &openai.ChatCompletionStreamChoiceDelta{},
+						FinishReason: openai.FinishReasonStop,
+					}},
+					Usage:     usage,
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+				}
 
 				return
 			}
@@ -214,8 +247,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				end := gtime.Now().UnixMilli()
 
 				responseChan <- &model.ChatCompletionResponse{
-					ID:      chatCompletionRes.RequestId,
-					Object:  chatCompletionRes.Message,
+					ID:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.RequestId,
+					Object:  consts.COMPLETION_STREAM_OBJECT,
 					Created: created,
 					Model:   request.Model,
 					Choices: []model.ChatCompletionChoice{{
@@ -234,9 +267,16 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				return
 			}
 
+			id = consts.COMPLETION_ID_PREFIX + chatCompletionRes.RequestId
+			usage = &model.Usage{
+				PromptTokens:     chatCompletionRes.Usage.InputTokens,
+				CompletionTokens: chatCompletionRes.Usage.OutputTokens,
+				TotalTokens:      chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
+			}
+
 			response := &model.ChatCompletionResponse{
-				ID:      chatCompletionRes.RequestId,
-				Object:  chatCompletionRes.Message,
+				ID:      id,
+				Object:  consts.COMPLETION_STREAM_OBJECT,
 				Created: created,
 				Model:   request.Model,
 				Choices: []model.ChatCompletionChoice{{
@@ -244,30 +284,9 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 						Role:    consts.ROLE_ASSISTANT,
 						Content: chatCompletionRes.Output.Text,
 					},
-					FinishReason: chatCompletionRes.Output.FinishReason,
 				}},
-				Usage: &model.Usage{
-					PromptTokens:     chatCompletionRes.Usage.InputTokens,
-					CompletionTokens: chatCompletionRes.Usage.OutputTokens,
-					TotalTokens:      chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
-				},
+				Usage:    usage,
 				ConnTime: duration - now,
-			}
-
-			if errors.Is(err, io.EOF) || response.Choices[0].FinishReason != "" {
-
-				logger.Infof(ctx, "ChatCompletionStream Aliyun model: %s finished", request.Model)
-
-				if err = stream.Close(); err != nil {
-					logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, stream.Close error: %v", request.Model, err)
-				}
-
-				end := gtime.Now().UnixMilli()
-				response.Duration = end - duration
-				response.TotalTime = end - now
-				responseChan <- response
-
-				return
 			}
 
 			end := gtime.Now().UnixMilli()

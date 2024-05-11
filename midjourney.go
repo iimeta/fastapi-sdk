@@ -33,7 +33,6 @@ func Imagine(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, reques
 	logger.Infof(ctx, "Midjourney Imagine prompt: %s start", request.Prompt)
 
 	now := gtime.Now().UnixMilli()
-
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
 		logger.Infof(ctx, "Midjourney Imagine prompt: %s totalTime: %d ms", request.Prompt, gtime.Now().UnixMilli()-now)
@@ -52,7 +51,6 @@ func Change(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request
 	logger.Infof(ctx, "Midjourney Change request: %s start", gjson.MustEncodeString(request))
 
 	now := gtime.Now().UnixMilli()
-
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
 		logger.Infof(ctx, "Midjourney Change request: %s totalTime: %d ms", gjson.MustEncodeString(request), gtime.Now().UnixMilli()-now)
@@ -71,7 +69,6 @@ func Describe(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, reque
 	logger.Info(ctx, "Midjourney Describe start")
 
 	now := gtime.Now().UnixMilli()
-
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
 		logger.Infof(ctx, "Midjourney Describe totalTime: %d ms", gtime.Now().UnixMilli()-now)
@@ -90,7 +87,6 @@ func Blend(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request 
 	logger.Info(ctx, "Midjourney Blend start")
 
 	now := gtime.Now().UnixMilli()
-
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
 		logger.Infof(ctx, "Midjourney Blend totalTime: %d ms", gtime.Now().UnixMilli()-now)
@@ -109,7 +105,6 @@ func SwapFace(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, reque
 	logger.Info(ctx, "Midjourney SwapFace start")
 
 	now := gtime.Now().UnixMilli()
-
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
 		logger.Infof(ctx, "Midjourney SwapFace totalTime: %d ms", gtime.Now().UnixMilli()-now)
@@ -128,7 +123,6 @@ func Action(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request
 	logger.Info(ctx, "Midjourney Action start")
 
 	now := gtime.Now().UnixMilli()
-
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
 		logger.Infof(ctx, "Midjourney Action totalTime: %d ms", gtime.Now().UnixMilli()-now)
@@ -147,7 +141,6 @@ func Modal(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request 
 	logger.Info(ctx, "Midjourney Modal start")
 
 	now := gtime.Now().UnixMilli()
-
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
 		logger.Infof(ctx, "Midjourney Modal totalTime: %d ms", gtime.Now().UnixMilli()-now)
@@ -166,7 +159,6 @@ func Shorten(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, reques
 	logger.Info(ctx, "Midjourney Shorten start")
 
 	now := gtime.Now().UnixMilli()
-
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
 		logger.Infof(ctx, "Midjourney Shorten totalTime: %d ms", gtime.Now().UnixMilli()-now)
@@ -185,7 +177,6 @@ func UploadDiscordImages(ctx context.Context, midjourneyProxy *model.MidjourneyP
 	logger.Info(ctx, "Midjourney UploadDiscordImages start")
 
 	now := gtime.Now().UnixMilli()
-
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
 		logger.Infof(ctx, "Midjourney UploadDiscordImages totalTime: %d ms", gtime.Now().UnixMilli()-now)
@@ -204,7 +195,6 @@ func Fetch(ctx context.Context, midjourneyProxy *model.MidjourneyProxy, request 
 	logger.Infof(ctx, "Midjourney Fetch taskId: %s start", request.TaskId)
 
 	now := gtime.Now().UnixMilli()
-
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
 		logger.Infof(ctx, "Midjourney Fetch taskId: %s totalTime: %d ms", request.TaskId, gtime.Now().UnixMilli()-now)

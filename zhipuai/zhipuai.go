@@ -99,21 +99,20 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	header["Authorization"] = "Bearer " + c.generateToken(ctx)
 
 	chatCompletionRes := new(model.ZhipuAIChatCompletionRes)
-	err = util.HttpPostJson(ctx, c.BaseURL+c.Path, header, chatCompletionReq, &chatCompletionRes, c.ProxyURL)
-	if err != nil {
+	if err = util.HttpPostJson(ctx, c.BaseURL+c.Path, header, chatCompletionReq, &chatCompletionRes, c.ProxyURL); err != nil {
 		logger.Errorf(ctx, "ChatCompletion ZhipuAI model: %s, error: %v", request.Model, err)
 		return
 	}
 
-	if chatCompletionRes.Error.Code != "200" {
+	if chatCompletionRes.Error.Code != "" && chatCompletionRes.Error.Code != "200" {
 		err = errors.New(gjson.MustEncodeString(chatCompletionRes))
 		logger.Errorf(ctx, "ChatCompletion ZhipuAI model: %s, error: %v", request.Model, err)
 		return
 	}
 
 	res = model.ChatCompletionResponse{
-		ID:      chatCompletionRes.Id,
-		Object:  "chat.completion",
+		ID:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
+		Object:  consts.COMPLETION_OBJECT,
 		Created: chatCompletionRes.Created,
 		Model:   request.Model,
 		Usage:   chatCompletionRes.Usage,
@@ -221,7 +220,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				return
 			}
 
-			if chatCompletionRes.Error.Code != "200" {
+			if chatCompletionRes.Error.Code != "" && chatCompletionRes.Error.Code != "200" {
 
 				err = errors.New(gjson.MustEncodeString(chatCompletionRes))
 				logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, error: %v", request.Model, err)
@@ -233,8 +232,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				end := gtime.Now().UnixMilli()
 
 				responseChan <- &model.ChatCompletionResponse{
-					ID:      chatCompletionRes.Id,
-					Object:  "chat.completion.chunk",
+					ID:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
+					Object:  consts.COMPLETION_STREAM_OBJECT,
 					Created: chatCompletionRes.Created,
 					Model:   request.Model,
 					Choices: []model.ChatCompletionChoice{{
@@ -254,8 +253,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			response := &model.ChatCompletionResponse{
-				ID:       chatCompletionRes.Id,
-				Object:   "chat.completion.chunk",
+				ID:       consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
+				Object:   consts.COMPLETION_STREAM_OBJECT,
 				Created:  chatCompletionRes.Created,
 				Model:    request.Model,
 				Usage:    chatCompletionRes.Usage,

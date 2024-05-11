@@ -18,3 +18,9 @@ const (
 	ROLE_TOOL      = "tool"
 	ROLE_MODEL     = "model"
 )
+
+const (
+	COMPLETION_ID_PREFIX     = "chatcmpl-"
+	COMPLETION_OBJECT        = "chat.completion"
+	COMPLETION_STREAM_OBJECT = "chat.completion.chunk"
+)
