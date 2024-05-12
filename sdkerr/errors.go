@@ -6,35 +6,42 @@ import (
 	"strings"
 )
 
-// APIError provides error information returned by the OpenAI API.
+var (
+	ERR_CONTEXT_LENGTH_EXCEEDED = NewApiError(400, "context_length_exceeded", "Please reduce the length of the messages.", "invalid_request_error", "messages")
+	ERR_INVALID_API_KEY         = NewApiError(401, "invalid_api_key", "Incorrect API key provided or has been disabled.", "invalid_request_error", "")
+	ERR_MODEL_NOT_FOUND         = NewApiError(404, "model_not_found", "The model does not exist or you do not have access to it.", "invalid_request_error", "")
+	ERR_INSUFFICIENT_QUOTA      = NewApiError(429, "insufficient_quota", "You exceeded your current quota.", "insufficient_quota", "")
+)
+
+// ApiError provides error information returned by the OpenAI API.
 // InnerError struct is only valid for Azure OpenAI Service.
-type APIError struct {
+type ApiError struct {
+	HttpStatusCode int     `json:"-"`
 	Code           any     `json:"code,omitempty"`
 	Message        string  `json:"message"`
-	Param          *string `json:"param,omitempty"`
 	Type           string  `json:"type"`
-	HTTPStatusCode int     `json:"-"`
+	Param          *string `json:"param,omitempty"`
 }
 
 // RequestError provides information about generic request sdkerr.
 type RequestError struct {
-	HTTPStatusCode int
+	HttpStatusCode int
 	Err            error
 }
 
 type ErrorResponse struct {
-	Error *APIError `json:"error,omitempty"`
+	Error *ApiError `json:"error,omitempty"`
 }
 
-func (e *APIError) Error() string {
-	if e.HTTPStatusCode > 0 {
-		return fmt.Sprintf("error, status code: %d, message: %s", e.HTTPStatusCode, e.Message)
+func (e *ApiError) Error() string {
+	if e.HttpStatusCode > 0 {
+		return fmt.Sprintf("error, status code: %d, message: %s", e.HttpStatusCode, e.Message)
 	}
 
 	return e.Message
 }
 
-func (e *APIError) UnmarshalJSON(data []byte) (err error) {
+func (e *ApiError) UnmarshalJSON(data []byte) (err error) {
 	var rawMap map[string]json.RawMessage
 	err = json.Unmarshal(data, &rawMap)
 	if err != nil {
@@ -87,9 +94,26 @@ func (e *APIError) UnmarshalJSON(data []byte) (err error) {
 }
 
 func (e *RequestError) Error() string {
-	return fmt.Sprintf("error, status code: %d, message: %s", e.HTTPStatusCode, e.Err)
+	return fmt.Sprintf("error, status code: %d, message: %s", e.HttpStatusCode, e.Err)
 }
 
 func (e *RequestError) Unwrap() error {
 	return e.Err
+}
+
+func NewApiError(httpStatusCode int, code any, message, typ, param string) error {
+	return &ApiError{
+		HttpStatusCode: httpStatusCode,
+		Code:           code,
+		Message:        message,
+		Type:           typ,
+		Param:          &param,
+	}
+}
+
+func NewRequestError(httpStatusCode int, err error) error {
+	return &RequestError{
+		HttpStatusCode: httpStatusCode,
+		Err:            err,
+	}
 }

@@ -303,26 +303,35 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	return res, nil
 }
 
-func (c *Client) handleError(e error) error {
+func (c *Client) handleError(err error) error {
 
 	apiError := &openai.APIError{}
-	if errors.As(e, &apiError) {
-		return &sdkerr.APIError{
-			Code:           apiError.Code,
-			Message:        apiError.Message,
-			Param:          apiError.Param,
-			Type:           apiError.Type,
-			HTTPStatusCode: apiError.HTTPStatusCode,
+	if errors.As(err, &apiError) {
+
+		switch apiError.HTTPStatusCode {
+		case 400:
+			if apiError.Code == "context_length_exceeded" {
+				return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
+			}
+		case 401:
+			if apiError.Code == "invalid_api_key" {
+				return sdkerr.ERR_INVALID_API_KEY
+			}
+		case 404:
+			return sdkerr.ERR_MODEL_NOT_FOUND
+		case 429:
+			if apiError.Code == "insufficient_quota" {
+				return sdkerr.ERR_INSUFFICIENT_QUOTA
+			}
 		}
+
+		return err
 	}
 
 	reqError := &openai.RequestError{}
-	if errors.As(e, &reqError) {
-		return &sdkerr.RequestError{
-			HTTPStatusCode: reqError.HTTPStatusCode,
-			Err:            reqError.Err,
-		}
+	if errors.As(err, &reqError) {
+		return sdkerr.NewRequestError(apiError.HTTPStatusCode, reqError.Err)
 	}
 
-	return e
+	return err
 }

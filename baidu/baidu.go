@@ -11,6 +11,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/iimeta/fastapi-sdk/util"
 	"github.com/sashabaranov/go-openai"
 	"io"
@@ -90,7 +91,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	if chatCompletionRes.ErrorCode != 0 {
-		err = errors.New(gjson.MustEncodeString(chatCompletionRes))
+		err = c.handleErrorResp(chatCompletionRes)
 		logger.Errorf(ctx, "ChatCompletion Baidu model: %s, error: %v", request.Model, err)
 		return
 	}
@@ -189,7 +190,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			if chatCompletionRes.ErrorCode != 0 {
 
-				err = errors.New(gjson.MustEncodeString(chatCompletionRes))
+				err = c.handleErrorResp(chatCompletionRes)
 				logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
 
 				if err = stream.Close(); err != nil {
@@ -270,4 +271,14 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res model.ImageResponse, err error) {
 
 	return
+}
+
+func (c *Client) handleErrorResp(response *model.BaiduChatCompletionRes) error {
+
+	switch response.ErrorCode {
+	case 336103:
+		return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
+	}
+
+	return errors.New(gjson.MustEncodeString(response))
 }

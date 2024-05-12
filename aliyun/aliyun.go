@@ -11,6 +11,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/iimeta/fastapi-sdk/util"
 	"github.com/sashabaranov/go-openai"
 	"io"
@@ -94,7 +95,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	if chatCompletionRes.Code != "" {
-		err = errors.New(gjson.MustEncodeString(chatCompletionRes))
+		err = c.handleErrorResp(chatCompletionRes)
 		logger.Errorf(ctx, "ChatCompletion Aliyun model: %s, error: %v", request.Model, err)
 		return
 	}
@@ -237,7 +238,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			if chatCompletionRes.Code != "" {
 
-				err = errors.New(gjson.MustEncodeString(chatCompletionRes))
+				err = c.handleErrorResp(chatCompletionRes)
 				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
 
 				if err = stream.Close(); err != nil {
@@ -306,4 +307,18 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res model.ImageResponse, err error) {
 
 	return
+}
+
+func (c *Client) handleErrorResp(response *model.AliyunChatCompletionRes) error {
+
+	switch response.Code {
+	case "BadRequest.TooLarge":
+		return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
+	case "InvalidApiKey":
+		return sdkerr.ERR_INVALID_API_KEY
+	case "Throttling.AllocationQuota":
+		return sdkerr.ERR_INSUFFICIENT_QUOTA
+	}
+
+	return errors.New(gjson.MustEncodeString(response))
 }

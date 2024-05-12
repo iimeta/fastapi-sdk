@@ -18,6 +18,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/iimeta/fastapi-sdk/util"
 	"github.com/sashabaranov/go-openai"
 	"io"
@@ -169,7 +170,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		}
 
 		if chatCompletionRes.Header.Code != 0 {
-			err = errors.New(gjson.MustEncodeString(chatCompletionRes))
+			err = c.handleErrorResp(chatCompletionRes)
 			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
 			return res, err
 		}
@@ -307,7 +308,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			if chatCompletionRes.Header.Code != 0 {
 
-				err = errors.New(gjson.MustEncodeString(chatCompletionRes))
+				err = c.handleErrorResp(chatCompletionRes)
 				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 
 				end := gtime.Now().UnixMilli()
@@ -422,4 +423,14 @@ func (c *Client) getAuthorizationUrl(ctx context.Context) string {
 	wsURL := gstr.Replace(gstr.Replace(c.BaseURL+c.Path, "https://", "wss://"), "http://", "ws://")
 
 	return fmt.Sprintf("%s?authorization=%s&date=%s&host=%s", wsURL, authorizationOrigin, gurl.RawEncode(date), parse.Host)
+}
+
+func (c *Client) handleErrorResp(response *model.XfyunChatCompletionRes) error {
+
+	switch response.Header.Code {
+	case 10163, 10907:
+		return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
+	}
+
+	return errors.New(gjson.MustEncodeString(response))
 }

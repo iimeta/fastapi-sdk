@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
@@ -28,6 +29,8 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 	if baseURL != "" {
 		logger.Infof(ctx, "NewClient DeepSeek model: %s, baseURL: %s", model, baseURL)
 		config.BaseURL = baseURL
+	} else {
+		config.BaseURL = "https://api.deepseek.com/v1"
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
@@ -104,7 +107,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	logger.Infof(ctx, "ChatCompletion DeepSeek model: %s finished", request.Model)
 
 	res = model.ChatCompletionResponse{
-		ID:      response.ID,
+		ID:      consts.COMPLETION_ID_PREFIX + response.ID,
 		Object:  response.Object,
 		Created: response.Created,
 		Model:   response.Model,
@@ -207,7 +210,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			response := &model.ChatCompletionResponse{
-				ID:                streamResponse.ID,
+				ID:                consts.COMPLETION_ID_PREFIX + streamResponse.ID,
 				Object:            streamResponse.Object,
 				Created:           streamResponse.Created,
 				Model:             streamResponse.Model,
@@ -303,26 +306,35 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	return res, nil
 }
 
-func (c *Client) handleError(e error) error {
+func (c *Client) handleError(err error) error {
 
 	apiError := &openai.APIError{}
-	if errors.As(e, &apiError) {
-		return &sdkerr.APIError{
-			Code:           apiError.Code,
-			Message:        apiError.Message,
-			Param:          apiError.Param,
-			Type:           apiError.Type,
-			HTTPStatusCode: apiError.HTTPStatusCode,
+	if errors.As(err, &apiError) {
+
+		switch apiError.HTTPStatusCode {
+		case 400:
+			if apiError.Code == "context_length_exceeded" {
+				return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
+			}
+		case 401:
+			if apiError.Code == "invalid_api_key" {
+				return sdkerr.ERR_INVALID_API_KEY
+			}
+		case 404:
+			return sdkerr.ERR_MODEL_NOT_FOUND
+		case 429:
+			if apiError.Code == "insufficient_quota" {
+				return sdkerr.ERR_INSUFFICIENT_QUOTA
+			}
 		}
+
+		return err
 	}
 
 	reqError := &openai.RequestError{}
-	if errors.As(e, &reqError) {
-		return &sdkerr.RequestError{
-			HTTPStatusCode: reqError.HTTPStatusCode,
-			Err:            reqError.Err,
-		}
+	if errors.As(err, &reqError) {
+		return sdkerr.NewRequestError(apiError.HTTPStatusCode, reqError.Err)
 	}
 
-	return e
+	return err
 }

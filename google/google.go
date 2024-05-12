@@ -96,7 +96,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	if chatCompletionRes.Error.Code != 0 {
-		err = errors.New(gjson.MustEncodeString(chatCompletionRes))
+		err = c.handleErrorResp(chatCompletionRes)
 		logger.Errorf(ctx, "ChatCompletion Google model: %s, error: %v", request.Model, err)
 		return
 	}
@@ -240,7 +240,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			if chatCompletionRes.Error.Code != 0 {
 
-				err = errors.New(gjson.MustEncodeString(chatCompletionRes))
+				err = c.handleErrorResp(chatCompletionRes)
 				logger.Errorf(ctx, "ChatCompletionStream Google model: %s, error: %v", request.Model, err)
 
 				if err = stream.Close(); err != nil {
@@ -309,4 +309,9 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res model.ImageResponse, err error) {
 
 	return
+}
+
+func (c *Client) handleErrorResp(response *model.GoogleChatCompletionRes) error {
+
+	return errors.New(gjson.MustEncodeString(response))
 }

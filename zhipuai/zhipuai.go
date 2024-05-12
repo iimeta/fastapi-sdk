@@ -10,6 +10,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/iimeta/fastapi-sdk/util"
 	"github.com/sashabaranov/go-openai"
 	"io"
@@ -105,7 +106,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	if chatCompletionRes.Error.Code != "" && chatCompletionRes.Error.Code != "200" {
-		err = errors.New(gjson.MustEncodeString(chatCompletionRes))
+		err = c.handleErrorResp(chatCompletionRes)
 		logger.Errorf(ctx, "ChatCompletion ZhipuAI model: %s, error: %v", request.Model, err)
 		return
 	}
@@ -222,7 +223,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			if chatCompletionRes.Error.Code != "" && chatCompletionRes.Error.Code != "200" {
 
-				err = errors.New(gjson.MustEncodeString(chatCompletionRes))
+				err = c.handleErrorResp(chatCompletionRes)
 				logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, error: %v", request.Model, err)
 
 				if err = stream.Close(); err != nil {
@@ -337,4 +338,16 @@ func (c *Client) generateToken(ctx context.Context) string {
 	}
 
 	return sign
+}
+
+func (c *Client) handleErrorResp(response *model.ZhipuAIChatCompletionRes) error {
+
+	switch response.Error.Code {
+	case "1261":
+		return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
+	case "1113":
+		return sdkerr.ERR_INSUFFICIENT_QUOTA
+	}
+
+	return errors.New(gjson.MustEncodeString(response))
 }
