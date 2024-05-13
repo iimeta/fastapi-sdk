@@ -100,7 +100,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	header["Authorization"] = "Bearer " + c.generateToken(ctx)
 
 	chatCompletionRes := new(model.ZhipuAIChatCompletionRes)
-	if err = util.HttpPostJson(ctx, c.BaseURL+c.Path, header, chatCompletionReq, &chatCompletionRes, c.ProxyURL); err != nil {
+	if err = util.HttpPost(ctx, c.BaseURL+c.Path, header, chatCompletionReq, &chatCompletionRes, c.ProxyURL); err != nil {
 		logger.Errorf(ctx, "ChatCompletion ZhipuAI model: %s, error: %v", request.Model, err)
 		return
 	}

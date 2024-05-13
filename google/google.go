@@ -87,13 +87,13 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	chatCompletionRes := new(model.GoogleChatCompletionRes)
-	err = util.HttpPostJson(ctx, fmt.Sprintf("%s:generateContent?key=%s", c.BaseURL+c.Path, c.Key), nil, chatCompletionReq, &chatCompletionRes, c.ProxyURL)
+	err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", c.BaseURL+c.Path, c.Key), nil, chatCompletionReq, &chatCompletionRes, c.ProxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion Google model: %s, error: %v", request.Model, err)
 		return
 	}
 
-	if chatCompletionRes.Error.Code != 0 {
+	if chatCompletionRes.Error.Code != 0 || chatCompletionRes.Candidates[0].FinishReason != "STOP" {
 		err = c.handleErrorResp(chatCompletionRes)
 		logger.Errorf(ctx, "ChatCompletion Google model: %s, error: %v", request.Model, err)
 		return
