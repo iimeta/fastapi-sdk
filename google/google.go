@@ -8,6 +8,7 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/grand"
+	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -63,14 +64,11 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}()
 
 	contents := make([]model.Content, 0)
+	messages := common.HandleMessages(request.Messages, false)
 
-	for _, message := range request.Messages {
+	for _, message := range messages {
 
 		role := message.Role
-
-		if role == consts.ROLE_SYSTEM {
-			continue
-		}
 
 		if role == consts.ROLE_ASSISTANT {
 			role = consts.ROLE_MODEL
@@ -135,14 +133,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}()
 
 	contents := make([]model.Content, 0)
+	messages := common.HandleMessages(request.Messages, false)
 
-	for _, message := range request.Messages {
+	for _, message := range messages {
 
 		role := message.Role
-
-		if role == consts.ROLE_SYSTEM {
-			continue
-		}
 
 		if role == consts.ROLE_ASSISTANT {
 			role = consts.ROLE_MODEL

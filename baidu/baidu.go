@@ -8,6 +8,7 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -63,8 +64,10 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion Baidu model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
+	messages := common.HandleMessages(request.Messages, true)
+
 	chatCompletionReq := model.BaiduChatCompletionReq{
-		Messages:        request.Messages,
+		Messages:        messages,
 		MaxOutputTokens: request.MaxTokens,
 		Temperature:     request.Temperature,
 		TopP:            request.TopP,
@@ -124,8 +127,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
+	messages := common.HandleMessages(request.Messages, true)
+
 	chatCompletionReq := model.BaiduChatCompletionReq{
-		Messages:        request.Messages,
+		Messages:        messages,
 		MaxOutputTokens: request.MaxTokens,
 		Temperature:     request.Temperature,
 		TopP:            request.TopP,
