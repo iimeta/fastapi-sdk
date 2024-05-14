@@ -6,6 +6,7 @@ import (
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-sdk/consts"
@@ -95,8 +96,11 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	if chatCompletionRes.Code != "" {
+		logger.Errorf(ctx, "ChatCompletion Aliyun model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
+
 		err = c.handleErrorResp(chatCompletionRes)
 		logger.Errorf(ctx, "ChatCompletion Aliyun model: %s, error: %v", request.Model, err)
+
 		return
 	}
 
@@ -171,6 +175,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
 
 		defer func() {
+			if err := stream.Close(); err != nil {
+				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, stream.Close error: %v", request.Model, err)
+			}
+
 			end := gtime.Now().UnixMilli()
 			logger.Infof(ctx, "ChatCompletionStream Aliyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 		}()
@@ -190,7 +198,14 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
 				}
 
-				responseChan <- &model.ChatCompletionResponse{Error: err}
+				end := gtime.Now().UnixMilli()
+				responseChan <- &model.ChatCompletionResponse{
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+					Error:     err,
+				}
+
 				time.Sleep(time.Millisecond)
 				close(responseChan)
 
@@ -198,15 +213,9 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			if errors.Is(err, io.EOF) {
-
 				logger.Infof(ctx, "ChatCompletionStream Aliyun model: %s finished", request.Model)
 
-				if err = stream.Close(); err != nil {
-					logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, stream.Close error: %v", request.Model, err)
-				}
-
 				end := gtime.Now().UnixMilli()
-
 				responseChan <- &model.ChatCompletionResponse{
 					ID:      id,
 					Object:  consts.COMPLETION_STREAM_OBJECT,
@@ -229,7 +238,14 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if err := gjson.Unmarshal(streamResponse, &chatCompletionRes); err != nil {
 				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
 
-				responseChan <- &model.ChatCompletionResponse{Error: err}
+				end := gtime.Now().UnixMilli()
+				responseChan <- &model.ChatCompletionResponse{
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+					Error:     err,
+				}
+
 				time.Sleep(time.Millisecond)
 				close(responseChan)
 
@@ -237,33 +253,21 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			if chatCompletionRes.Code != "" {
+				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
 				err = c.handleErrorResp(chatCompletionRes)
 				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
 
-				if err = stream.Close(); err != nil {
-					logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, stream.Close error: %v", request.Model, err)
-				}
-
 				end := gtime.Now().UnixMilli()
-
 				responseChan <- &model.ChatCompletionResponse{
-					ID:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.RequestId,
-					Object:  consts.COMPLETION_STREAM_OBJECT,
-					Created: created,
-					Model:   request.Model,
-					Choices: []model.ChatCompletionChoice{{
-						Delta: &openai.ChatCompletionStreamChoiceDelta{
-							Role:    consts.ROLE_ASSISTANT,
-							Content: chatCompletionRes.Message,
-						},
-						FinishReason: openai.FinishReasonStop,
-					}},
 					ConnTime:  duration - now,
 					Duration:  end - duration,
 					TotalTime: end - now,
 					Error:     err,
 				}
+
+				time.Sleep(time.Millisecond)
+				close(responseChan)
 
 				return
 			}
@@ -312,6 +316,10 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 func (c *Client) handleErrorResp(response *model.AliyunChatCompletionRes) error {
 
 	switch response.Code {
+	case "InvalidParameter":
+		if gstr.Contains(response.Message, "Range of input length") {
+			return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
+		}
 	case "BadRequest.TooLarge":
 		return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
 	case "InvalidApiKey":

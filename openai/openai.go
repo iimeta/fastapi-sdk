@@ -186,6 +186,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
 
 		defer func() {
+			if err := stream.Close(); err != nil {
+				logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, stream.Close error: %v", request.Model, err)
+			}
+
 			end := gtime.Now().UnixMilli()
 			logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 		}()
@@ -199,7 +203,14 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
 				}
 
-				responseChan <- &model.ChatCompletionResponse{Error: err}
+				end := gtime.Now().UnixMilli()
+				responseChan <- &model.ChatCompletionResponse{
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+					Error:     err,
+				}
+
 				time.Sleep(time.Millisecond)
 				close(responseChan)
 
@@ -225,12 +236,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			if errors.Is(err, io.EOF) || response.Choices[0].FinishReason == openai.FinishReasonStop {
-
 				logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s finished", request.Model)
-
-				if err = stream.Close(); err != nil {
-					logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, stream.Close error: %v", request.Model, err)
-				}
 
 				if len(response.Choices) == 0 {
 					response.Choices = append(response.Choices, model.ChatCompletionChoice{

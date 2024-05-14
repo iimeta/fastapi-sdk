@@ -94,8 +94,11 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	if chatCompletionRes.Error.Code != 0 || chatCompletionRes.Candidates[0].FinishReason != "STOP" {
+		logger.Errorf(ctx, "ChatCompletion Google model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
+
 		err = c.handleErrorResp(chatCompletionRes)
 		logger.Errorf(ctx, "ChatCompletion Google model: %s, error: %v", request.Model, err)
+
 		return
 	}
 
@@ -170,6 +173,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		defer func() {
 			end := gtime.Now().UnixMilli()
 			logger.Infof(ctx, "ChatCompletionStream Google model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+
+			if err := stream.Close(); err != nil {
+				logger.Errorf(ctx, "ChatCompletionStream Google model: %s, stream.Close error: %v", request.Model, err)
+			}
 		}()
 
 		var (
@@ -187,7 +194,14 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					logger.Errorf(ctx, "ChatCompletionStream Google model: %s, error: %v", request.Model, err)
 				}
 
-				responseChan <- &model.ChatCompletionResponse{Error: err}
+				end := gtime.Now().UnixMilli()
+				responseChan <- &model.ChatCompletionResponse{
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+					Error:     err,
+				}
+
 				time.Sleep(time.Millisecond)
 				close(responseChan)
 
@@ -195,15 +209,9 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			if errors.Is(err, io.EOF) {
-
 				logger.Infof(ctx, "ChatCompletionStream Google model: %s finished", request.Model)
 
-				if err = stream.Close(); err != nil {
-					logger.Errorf(ctx, "ChatCompletionStream Google model: %s, stream.Close error: %v", request.Model, err)
-				}
-
 				end := gtime.Now().UnixMilli()
-
 				responseChan <- &model.ChatCompletionResponse{
 					ID:      id,
 					Object:  consts.COMPLETION_STREAM_OBJECT,
@@ -226,7 +234,14 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if err := gjson.Unmarshal(streamResponse, &chatCompletionRes); err != nil {
 				logger.Errorf(ctx, "ChatCompletionStream Google model: %s, error: %v", request.Model, err)
 
-				responseChan <- &model.ChatCompletionResponse{Error: err}
+				end := gtime.Now().UnixMilli()
+				responseChan <- &model.ChatCompletionResponse{
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+					Error:     err,
+				}
+
 				time.Sleep(time.Millisecond)
 				close(responseChan)
 
@@ -234,33 +249,21 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			if chatCompletionRes.Error.Code != 0 {
+				logger.Errorf(ctx, "ChatCompletionStream Google model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
 				err = c.handleErrorResp(chatCompletionRes)
 				logger.Errorf(ctx, "ChatCompletionStream Google model: %s, error: %v", request.Model, err)
 
-				if err = stream.Close(); err != nil {
-					logger.Errorf(ctx, "ChatCompletionStream Google model: %s, stream.Close error: %v", request.Model, err)
-				}
-
 				end := gtime.Now().UnixMilli()
-
 				responseChan <- &model.ChatCompletionResponse{
-					ID:      id,
-					Object:  consts.COMPLETION_STREAM_OBJECT,
-					Created: created,
-					Model:   request.Model,
-					Choices: []model.ChatCompletionChoice{{
-						Delta: &openai.ChatCompletionStreamChoiceDelta{
-							Role:    consts.ROLE_ASSISTANT,
-							Content: chatCompletionRes.Error.Message,
-						},
-						FinishReason: openai.FinishReasonStop,
-					}},
 					ConnTime:  duration - now,
 					Duration:  end - duration,
 					TotalTime: end - now,
 					Error:     err,
 				}
+
+				time.Sleep(time.Millisecond)
+				close(responseChan)
 
 				return
 			}

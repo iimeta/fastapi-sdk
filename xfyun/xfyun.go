@@ -170,8 +170,11 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		}
 
 		if chatCompletionRes.Header.Code != 0 {
+			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
+
 			err = c.handleErrorResp(chatCompletionRes)
 			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
+
 			return res, err
 		}
 
@@ -268,7 +271,6 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
 
 		defer func() {
-
 			if err := conn.Close(); err != nil {
 				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, conn.Close error: %v", request.Model, err)
 			}
@@ -288,7 +290,14 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 				}
 
-				responseChan <- &model.ChatCompletionResponse{Error: err}
+				end := gtime.Now().UnixMilli()
+				responseChan <- &model.ChatCompletionResponse{
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+					Error:     err,
+				}
+
 				time.Sleep(time.Millisecond)
 				close(responseChan)
 
@@ -299,7 +308,14 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if err := gjson.Unmarshal(message, &chatCompletionRes); err != nil {
 				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 
-				responseChan <- &model.ChatCompletionResponse{Error: err}
+				end := gtime.Now().UnixMilli()
+				responseChan <- &model.ChatCompletionResponse{
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+					Error:     err,
+				}
+
 				time.Sleep(time.Millisecond)
 				close(responseChan)
 
@@ -307,29 +323,21 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			if chatCompletionRes.Header.Code != 0 {
+				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
 				err = c.handleErrorResp(chatCompletionRes)
 				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 
 				end := gtime.Now().UnixMilli()
-
 				responseChan <- &model.ChatCompletionResponse{
-					ID:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Header.Sid,
-					Object:  consts.COMPLETION_STREAM_OBJECT,
-					Created: created,
-					Model:   request.Model,
-					Choices: []model.ChatCompletionChoice{{
-						Delta: &openai.ChatCompletionStreamChoiceDelta{
-							Role:    consts.ROLE_ASSISTANT,
-							Content: chatCompletionRes.Header.Message,
-						},
-						FinishReason: openai.FinishReasonStop,
-					}},
 					ConnTime:  duration - now,
 					Duration:  end - duration,
 					TotalTime: end - now,
 					Error:     err,
 				}
+
+				time.Sleep(time.Millisecond)
+				close(responseChan)
 
 				return
 			}
