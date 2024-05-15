@@ -172,7 +172,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		if chatCompletionRes.Header.Code != 0 {
 			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
-			err = c.handleErrorResp(chatCompletionRes)
+			err = c.apiErrorHandler(chatCompletionRes)
 			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
 
 			return res, err
@@ -325,7 +325,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if chatCompletionRes.Header.Code != 0 {
 				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
-				err = c.handleErrorResp(chatCompletionRes)
+				err = c.apiErrorHandler(chatCompletionRes)
 				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 
 				end := gtime.Now().UnixMilli()
@@ -433,7 +433,7 @@ func (c *Client) getAuthorizationUrl(ctx context.Context) string {
 	return fmt.Sprintf("%s?authorization=%s&date=%s&host=%s", wsURL, authorizationOrigin, gurl.RawEncode(date), parse.Host)
 }
 
-func (c *Client) handleErrorResp(response *model.XfyunChatCompletionRes) error {
+func (c *Client) apiErrorHandler(response *model.XfyunChatCompletionRes) error {
 
 	switch response.Header.Code {
 	case 10163, 10907:

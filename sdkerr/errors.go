@@ -35,7 +35,7 @@ type ErrorResponse struct {
 
 func (e *ApiError) Error() string {
 	if e.HttpStatusCode > 0 {
-		return fmt.Sprintf("error, status code: %d, message: %s", e.HttpStatusCode, e.Message)
+		return fmt.Sprintf("error, status code: %d, response: %s", e.HttpStatusCode, e.Message)
 	}
 
 	return e.Message
@@ -94,7 +94,7 @@ func (e *ApiError) UnmarshalJSON(data []byte) (err error) {
 }
 
 func (e *RequestError) Error() string {
-	return fmt.Sprintf("error, status code: %d, message: %s", e.HttpStatusCode, e.Err)
+	return fmt.Sprintf("error, status code: %d, response: %s", e.HttpStatusCode, e.Err)
 }
 
 func (e *RequestError) Unwrap() error {

@@ -7,7 +7,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/logger"
 )
 
-func HttpGet(ctx context.Context, url string, header map[string]string, data g.Map, result interface{}, proxyURL ...string) error {
+func HttpGet(ctx context.Context, url string, header map[string]string, data g.Map, result interface{}, proxyURL string) error {
 
 	logger.Debugf(ctx, "HttpGet url: %s, header: %+v, data: %s, proxyURL: %v", url, header, gjson.MustEncodeString(data), proxyURL)
 
@@ -17,8 +17,8 @@ func HttpGet(ctx context.Context, url string, header map[string]string, data g.M
 		client.SetHeaderMap(header)
 	}
 
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		client.SetProxy(proxyURL[0])
+	if proxyURL != "" {
+		client.SetProxy(proxyURL)
 	}
 
 	response, err := client.Get(ctx, url, data)
@@ -49,7 +49,7 @@ func HttpGet(ctx context.Context, url string, header map[string]string, data g.M
 	return nil
 }
 
-func HttpPost(ctx context.Context, url string, header map[string]string, data, result interface{}, proxyURL ...string) error {
+func HttpPost(ctx context.Context, url string, header map[string]string, data, result interface{}, proxyURL string) error {
 
 	logger.Debugf(ctx, "HttpPost url: %s, header: %+v, data: %s, proxyURL: %v", url, header, gjson.MustEncodeString(data), proxyURL)
 
@@ -59,8 +59,8 @@ func HttpPost(ctx context.Context, url string, header map[string]string, data, r
 		client.SetHeaderMap(header)
 	}
 
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		client.SetProxy(proxyURL[0])
+	if proxyURL != "" {
+		client.SetProxy(proxyURL)
 	}
 
 	response, err := client.ContentJson().Post(ctx, url, data)

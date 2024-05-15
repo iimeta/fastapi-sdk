@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/grand"
@@ -96,7 +97,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	if chatCompletionRes.Error.Code != 0 || chatCompletionRes.Candidates[0].FinishReason != "STOP" {
 		logger.Errorf(ctx, "ChatCompletion Google model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
-		err = c.handleErrorResp(chatCompletionRes)
+		err = c.apiErrorHandler(chatCompletionRes)
 		logger.Errorf(ctx, "ChatCompletion Google model: %s, error: %v", request.Model, err)
 
 		return
@@ -158,7 +159,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		Contents: contents,
 	}
 
-	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", c.BaseURL+c.Path, c.Key), nil, chatCompletionReq, c.ProxyURL)
+	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", c.BaseURL+c.Path, c.Key), nil, chatCompletionReq, c.ProxyURL, c.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream Google model: %s, error: %v", request.Model, err)
 		return responseChan, err
@@ -251,7 +252,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if chatCompletionRes.Error.Code != 0 {
 				logger.Errorf(ctx, "ChatCompletionStream Google model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
-				err = c.handleErrorResp(chatCompletionRes)
+				err = c.apiErrorHandler(chatCompletionRes)
 				logger.Errorf(ctx, "ChatCompletionStream Google model: %s, error: %v", request.Model, err)
 
 				end := gtime.Now().UnixMilli()
@@ -309,7 +310,12 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	return
 }
 
-func (c *Client) handleErrorResp(response *model.GoogleChatCompletionRes) error {
+func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Response) (err error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *Client) apiErrorHandler(response *model.GoogleChatCompletionRes) error {
 
 	return errors.New(gjson.MustEncodeString(response))
 }

@@ -25,6 +25,8 @@ var (
 	ErrTooManyEmptyStreamMessages = errors.New("stream has sent too many empty messages")
 )
 
+type RequestErrorHandler func(ctx context.Context, response *gclient.Response) (err error)
+
 type StreamReader struct {
 	reader             *bufio.Reader
 	response           *gclient.Response
@@ -32,7 +34,7 @@ type StreamReader struct {
 	isFinished         bool
 }
 
-func SSEClient(ctx context.Context, url string, header map[string]string, data interface{}, proxyURL ...string) (stream *StreamReader, err error) {
+func SSEClient(ctx context.Context, url string, header map[string]string, data interface{}, proxyURL string, requestErrorHandler RequestErrorHandler) (stream *StreamReader, err error) {
 
 	logger.Debugf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %v", url, header, gjson.MustEncodeString(data), proxyURL)
 
@@ -42,8 +44,8 @@ func SSEClient(ctx context.Context, url string, header map[string]string, data i
 		client.SetHeaderMap(header)
 	}
 
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		client.SetProxy(proxyURL[0])
+	if proxyURL != "" {
+		client.SetProxy(proxyURL)
 	}
 
 	client.SetHeader("Accept", "text/event-stream")
@@ -63,11 +65,18 @@ func SSEClient(ctx context.Context, url string, header map[string]string, data i
 	}
 
 	if isFailureStatusCode(response) {
-		message := response.ReadAllString()
-		if err := response.Close(); err != nil {
-			logger.Error(ctx, err)
+
+		defer func() {
+			if err := response.Close(); err != nil {
+				logger.Error(ctx, err)
+			}
+		}()
+
+		if requestErrorHandler != nil {
+			return nil, requestErrorHandler(ctx, response)
 		}
-		return nil, errors.New(fmt.Sprintf("error, status code: %d, message: %s", response.StatusCode, message))
+
+		return nil, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, response.ReadAllString()))
 	}
 
 	stream = &StreamReader{

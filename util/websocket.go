@@ -15,7 +15,7 @@ type WebSocketConn struct {
 	response *http.Response
 }
 
-func WebSocketClient(ctx context.Context, wsURL string, messageType int, message []byte, proxyURL ...string) (*WebSocketConn, error) {
+func WebSocketClient(ctx context.Context, wsURL string, messageType int, message []byte, proxyURL string) (*WebSocketConn, error) {
 
 	logger.Infof(ctx, "WebSocketClient wsURL: %s", wsURL)
 
@@ -25,8 +25,8 @@ func WebSocketClient(ctx context.Context, wsURL string, messageType int, message
 	//client.TLSClientConfig = &tls.Config{}   // 设置 tls 配置
 
 	// 设置代理
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		if proxyUrl, err := url.Parse(proxyURL[0]); err != nil {
+	if proxyURL != "" {
+		if proxyUrl, err := url.Parse(proxyURL); err != nil {
 			logger.Error(ctx, err)
 		} else {
 			client.Proxy = http.ProxyURL(proxyUrl)

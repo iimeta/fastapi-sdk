@@ -101,7 +101,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	})
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion DeepSeek model: %s, error: %v", request.Model, err)
-		return res, c.handleError(err)
+		return res, c.apiErrorHandler(err)
 	}
 
 	logger.Infof(ctx, "ChatCompletion DeepSeek model: %s finished", request.Model)
@@ -179,7 +179,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	})
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream DeepSeek model: %s, error: %v", request.Model, err)
-		return responseChan, c.handleError(err)
+		return responseChan, c.apiErrorHandler(err)
 	}
 
 	duration := gtime.Now().UnixMilli()
@@ -312,7 +312,7 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	return res, nil
 }
 
-func (c *Client) handleError(err error) error {
+func (c *Client) apiErrorHandler(err error) error {
 
 	apiError := &openai.APIError{}
 	if errors.As(err, &apiError) {

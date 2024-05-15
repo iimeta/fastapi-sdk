@@ -52,10 +52,7 @@ type ZhipuAIChatCompletionRes struct {
 	// 结束时返回本次模型调用的 tokens 数量统计。
 	Usage *Usage `json:"usage"`
 	// 当failed时会有错误信息
-	Error struct {
-		Code    string `json:"code"`
-		Message string `json:"message"`
-	} `json:"error"`
+	Error ZhipuAIError `json:"error"`
 }
 
 type Choice struct {
@@ -72,4 +69,13 @@ type Choice struct {
 	Message *openai.ChatCompletionMessage `json:"message,omitempty"`
 	// 模型返回的文本信息-流式
 	Delta *openai.ChatCompletionStreamChoiceDelta `json:"delta,omitempty"`
+}
+
+type ZhipuAIError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+type ZhipuAIErrorResponse struct {
+	Error *ZhipuAIError `json:"error,omitempty"`
 }

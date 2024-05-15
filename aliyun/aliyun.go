@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
+	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -64,10 +66,12 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion Aliyun model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
+	messages := common.HandleMessages(request.Messages, true)
+
 	chatCompletionReq := model.AliyunChatCompletionReq{
 		Model: request.Model,
 		Input: model.Input{
-			Messages: request.Messages,
+			Messages: messages,
 		},
 		Parameters: model.Parameters{
 			MaxTokens:         request.MaxTokens,
@@ -98,7 +102,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	if chatCompletionRes.Code != "" {
 		logger.Errorf(ctx, "ChatCompletion Aliyun model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
-		err = c.handleErrorResp(chatCompletionRes)
+		err = c.apiErrorHandler(chatCompletionRes)
 		logger.Errorf(ctx, "ChatCompletion Aliyun model: %s, error: %v", request.Model, err)
 
 		return
@@ -136,10 +140,12 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
+	messages := common.HandleMessages(request.Messages, true)
+
 	chatCompletionReq := model.AliyunChatCompletionReq{
 		Model: request.Model,
 		Input: model.Input{
-			Messages: request.Messages,
+			Messages: messages,
 		},
 		Parameters: model.Parameters{
 			ResultFormat:      "message",
@@ -162,7 +168,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	header := make(map[string]string)
 	header["Authorization"] = "Bearer " + c.Key
 
-	stream, err := util.SSEClient(ctx, c.BaseURL+c.Path, header, chatCompletionReq, c.ProxyURL)
+	stream, err := util.SSEClient(ctx, c.BaseURL+c.Path, header, chatCompletionReq, c.ProxyURL, c.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
 		return responseChan, err
@@ -255,7 +261,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if chatCompletionRes.Code != "" {
 				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
-				err = c.handleErrorResp(chatCompletionRes)
+				err = c.apiErrorHandler(chatCompletionRes)
 				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
 
 				end := gtime.Now().UnixMilli()
@@ -313,7 +319,12 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	return
 }
 
-func (c *Client) handleErrorResp(response *model.AliyunChatCompletionRes) error {
+func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Response) (err error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *Client) apiErrorHandler(response *model.AliyunChatCompletionRes) error {
 
 	switch response.Code {
 	case "InvalidParameter":

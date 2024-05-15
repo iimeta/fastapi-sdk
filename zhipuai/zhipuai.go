@@ -2,8 +2,11 @@ package zhipuai
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/golang-jwt/jwt/v5"
@@ -108,7 +111,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	if chatCompletionRes.Error.Code != "" && chatCompletionRes.Error.Code != "200" {
 		logger.Errorf(ctx, "ChatCompletion ZhipuAI model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
-		err = c.handleErrorResp(chatCompletionRes)
+		err = c.apiErrorHandler(chatCompletionRes)
 		logger.Errorf(ctx, "ChatCompletion ZhipuAI model: %s, error: %v", request.Model, err)
 
 		return
@@ -180,7 +183,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	header := make(map[string]string)
 	header["Authorization"] = "Bearer " + c.generateToken(ctx)
 
-	stream, err := util.SSEClient(ctx, c.BaseURL+c.Path, header, chatCompletionReq, c.ProxyURL)
+	stream, err := util.SSEClient(ctx, c.BaseURL+c.Path, header, chatCompletionReq, c.ProxyURL, c.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, error: %v", request.Model, err)
 		return responseChan, err
@@ -245,7 +248,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if chatCompletionRes.Error.Code != "" && chatCompletionRes.Error.Code != "200" {
 				logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
-				err = c.handleErrorResp(chatCompletionRes)
+				err = c.apiErrorHandler(chatCompletionRes)
 				logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, error: %v", request.Model, err)
 
 				end := gtime.Now().UnixMilli()
@@ -344,7 +347,35 @@ func (c *Client) generateToken(ctx context.Context) string {
 	return sign
 }
 
-func (c *Client) handleErrorResp(response *model.ZhipuAIChatCompletionRes) error {
+func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Response) error {
+
+	var errRes model.ZhipuAIErrorResponse
+
+	if err := json.NewDecoder(response.Body).Decode(&errRes); err != nil || errRes.Error == nil {
+
+		reqErr := &sdkerr.RequestError{
+			HttpStatusCode: response.StatusCode,
+			Err:            err,
+		}
+
+		if errRes.Error != nil {
+			reqErr.Err = errors.New(gjson.MustEncodeString(errRes.Error))
+		}
+
+		return reqErr
+	}
+
+	switch errRes.Error.Code {
+	case "1261":
+		return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
+	case "1113":
+		return sdkerr.ERR_INSUFFICIENT_QUOTA
+	}
+
+	return errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, gjson.MustEncodeString(errRes.Error)))
+}
+
+func (c *Client) apiErrorHandler(response *model.ZhipuAIChatCompletionRes) error {
 
 	switch response.Error.Code {
 	case "1261":
