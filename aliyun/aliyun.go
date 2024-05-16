@@ -3,6 +3,7 @@ package aliyun
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gogf/gf/v2/os/grpool"
@@ -320,8 +321,7 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 }
 
 func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Response) (err error) {
-	//TODO implement me
-	panic("implement me")
+	return errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, response.ReadAllString()))
 }
 
 func (c *Client) apiErrorHandler(response *model.AliyunChatCompletionRes) error {

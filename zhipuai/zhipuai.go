@@ -349,8 +349,7 @@ func (c *Client) generateToken(ctx context.Context) string {
 
 func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Response) error {
 
-	var errRes model.ZhipuAIErrorResponse
-
+	errRes := model.ZhipuAIErrorResponse{}
 	if err := json.NewDecoder(response.Body).Decode(&errRes); err != nil || errRes.Error == nil {
 
 		reqErr := &sdkerr.RequestError{

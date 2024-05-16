@@ -284,8 +284,7 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 }
 
 func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Response) (err error) {
-	//TODO implement me
-	panic("implement me")
+	return errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, response.ReadAllString()))
 }
 
 func (c *Client) apiErrorHandler(response *model.BaiduChatCompletionRes) error {
