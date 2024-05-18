@@ -269,10 +269,12 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				return
 			}
 
-			usage = &model.Usage{
-				PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
-				CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
-				TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
+			if chatCompletionRes.UsageMetadata != nil {
+				usage = &model.Usage{
+					PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
+					CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
+					TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
+				}
 			}
 
 			response := &model.ChatCompletionResponse{
