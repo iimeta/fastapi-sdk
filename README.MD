@@ -23,6 +23,11 @@
 - 管理端: https://demo.fastapi.ai/admin
 - 账号/密码: admin/admin123
 
+## 公益站点
+
+- API地址: https://api.free.fastapi.ai/
+- 注册后请联系作者领取1000万额度
+
 ## 项目截图
 ### 管理端
 ![dashboard](https://github.com/iimeta/fastapi-admin/assets/138393700/4d26474f-2082-41b4-8bd9-843ccb66d0a7)
@@ -49,7 +54,7 @@
 <img src="https://iim.ai/public/images/Author.png?t=20231207" width="320" alt="作者"/>
 
 ## 交流群
-<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20240510" width="320" alt="交流群"/>
+<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20240519" width="320" alt="交流群"/>
 
 
 ![Star History Chart](https://api.star-history.com/svg?repos=iimeta/fastapi-sdk&type=Date)
