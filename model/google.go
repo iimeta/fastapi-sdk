@@ -3,7 +3,8 @@ package model
 import "github.com/sashabaranov/go-openai"
 
 type GoogleChatCompletionReq struct {
-	Contents []Content `json:"contents"`
+	Contents         []Content        `json:"contents"`
+	GenerationConfig GenerationConfig `json:"generationConfig"`
 }
 
 type GoogleChatCompletionRes struct {
@@ -49,4 +50,13 @@ type UsageMetadata struct {
 	PromptTokenCount     int `json:"promptTokenCount"`
 	CandidatesTokenCount int `json:"candidatesTokenCount"`
 	TotalTokenCount      int `json:"totalTokenCount"`
+}
+
+type GenerationConfig struct {
+	StopSequences   []string `json:"stopSequences"`
+	CandidateCount  int      `json:"candidateCount"`
+	MaxOutputTokens int      `json:"maxOutputTokens"`
+	Temperature     float32  `json:"temperature"`
+	TopP            float32  `json:"topP"`
+	TopK            int      `json:"topK"`
 }

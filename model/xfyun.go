@@ -50,6 +50,10 @@ type Chat struct {
 	// 用于关联用户会话
 	// 需要保障用户下的唯一性
 	ChatId string `json:"chat_id,omitempty"`
+	// 图片的宽度
+	Width int `json:"width,omitempty"`
+	// 图片的宽度
+	Height int `json:"height,omitempty"`
 }
 
 type Payload struct {

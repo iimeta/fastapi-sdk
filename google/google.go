@@ -85,6 +85,11 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 	chatCompletionReq := model.GoogleChatCompletionReq{
 		Contents: contents,
+		GenerationConfig: model.GenerationConfig{
+			MaxOutputTokens: request.MaxTokens,
+			Temperature:     request.Temperature,
+			TopP:            request.TopP,
+		},
 	}
 
 	chatCompletionRes := new(model.GoogleChatCompletionRes)
@@ -157,6 +162,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 	chatCompletionReq := model.GoogleChatCompletionReq{
 		Contents: contents,
+		GenerationConfig: model.GenerationConfig{
+			MaxOutputTokens: request.MaxTokens,
+			Temperature:     request.Temperature,
+			TopP:            request.TopP,
+		},
 	}
 
 	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", c.BaseURL+c.Path, c.Key), nil, chatCompletionReq, c.ProxyURL, c.requestErrorHandler)
