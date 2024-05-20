@@ -23,6 +23,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 	"io"
 	"math"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -141,7 +142,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		return res, err
 	}
 
-	conn, err := util.WebSocketClient(ctx, c.getAuthorizationUrl(ctx), websocket.TextMessage, data, c.ProxyURL)
+	conn, err := util.WebSocketClient(ctx, c.getWebSocketUrl(ctx), websocket.TextMessage, data, c.ProxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
 		return res, err
@@ -260,7 +261,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		return responseChan, err
 	}
 
-	conn, err := util.WebSocketClient(ctx, c.getAuthorizationUrl(ctx), websocket.TextMessage, data, c.ProxyURL)
+	conn, err := util.WebSocketClient(ctx, c.getWebSocketUrl(ctx), websocket.TextMessage, data, c.ProxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 		return responseChan, err
@@ -410,7 +411,25 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	height := 512
 
 	if request.Size != "" {
+
 		size := gstr.Split(request.Size, `×`)
+
+		if len(size) != 2 {
+			size = gstr.Split(request.Size, `x`)
+		}
+
+		if len(size) != 2 {
+			size = gstr.Split(request.Size, `X`)
+		}
+
+		if len(size) != 2 {
+			size = gstr.Split(request.Size, `*`)
+		}
+
+		if len(size) != 2 {
+			size = gstr.Split(request.Size, `:`)
+		}
+
 		if len(size) == 2 {
 			width = gconv.Int(size[0])
 			height = gconv.Int(size[1])
@@ -420,6 +439,7 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	imageReq := model.XfyunChatCompletionReq{
 		Header: model.Header{
 			AppId: c.AppId,
+			Uid:   grand.Digits(10),
 		},
 		Parameter: model.Parameter{
 			Chat: &model.Chat{
@@ -439,7 +459,7 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	}
 
 	imageRes := new(model.XfyunChatCompletionRes)
-	err = util.HttpPost(ctx, c.getAuthorizationUrl(ctx), nil, imageReq, &imageRes, c.ProxyURL)
+	err = util.HttpPost(ctx, c.getHttpUrl(ctx), nil, imageReq, &imageRes, c.ProxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "Image Xfyun model: %s, error: %v", request.Model, err)
 		return res, err
@@ -455,38 +475,61 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	return res, nil
 }
 
-func (c *Client) getAuthorizationUrl(ctx context.Context) string {
+func (c *Client) getWebSocketUrl(ctx context.Context) string {
 
-	parse, err := url.Parse(c.OriginalURL + c.BaseURL[strings.LastIndex(c.BaseURL, "/"):] + c.Path)
+	date, host, signature, err := c.getSignature(ctx, http.MethodGet)
 	if err != nil {
-		logger.Errorf(ctx, "getAuthorizationUrl Xfyun client: %+v, error: %s", c, err)
+		logger.Errorf(ctx, "getWebSocketUrl Xfyun client: %+v, error: %s", c, err)
 		return ""
 	}
-
-	now := gtime.Now()
-	loc, _ := time.LoadLocation("GMT")
-	zone, _ := now.ToZone(loc.String())
-	date := zone.Layout("Mon, 02 Jan 2006 15:04:05 GMT")
-
-	tmp := "host: " + parse.Host + "\n"
-	tmp += "date: " + date + "\n"
-	tmp += "GET " + parse.Path + " HTTP/1.1"
-
-	hash := hmac.New(sha256.New, []byte(c.Secret))
-
-	_, err = hash.Write([]byte(tmp))
-	if err != nil {
-		logger.Errorf(ctx, "getAuthorizationUrl Xfyun client: %+v, error: %s", c, err)
-		return ""
-	}
-
-	signature := gbase64.EncodeToString(hash.Sum(nil))
 
 	authorizationOrigin := gbase64.EncodeToString([]byte(fmt.Sprintf("api_key=\"%s\",algorithm=\"%s\",headers=\"%s\",signature=\"%s\"", c.Key, "hmac-sha256", "host date request-line", signature)))
 
 	wsURL := gstr.Replace(gstr.Replace(c.BaseURL+c.Path, "https://", "wss://"), "http://", "ws://")
 
-	return fmt.Sprintf("%s?authorization=%s&date=%s&host=%s", wsURL, authorizationOrigin, gurl.RawEncode(date), parse.Host)
+	return fmt.Sprintf("%s?authorization=%s&date=%s&host=%s", wsURL, authorizationOrigin, date, host)
+}
+
+func (c *Client) getHttpUrl(ctx context.Context) string {
+
+	c.OriginalURL = "https://spark-api.cn-huabei-1.xf-yun.com"
+
+	date, host, signature, err := c.getSignature(ctx, http.MethodPost)
+	if err != nil {
+		logger.Errorf(ctx, "getHttpUrl Xfyun client: %+v, error: %s", c, err)
+		return ""
+	}
+
+	authorizationOrigin := gbase64.EncodeToString([]byte(fmt.Sprintf("api_key=\"%s\",algorithm=\"%s\",headers=\"%s\",signature=\"%s\"", c.Key, "hmac-sha256", "host date request-line", signature)))
+
+	return fmt.Sprintf("%s?authorization=%s&date=%s&host=%s", c.BaseURL+c.Path, authorizationOrigin, date, host)
+}
+
+func (c *Client) getSignature(ctx context.Context, method string) (date, host, signature string, err error) {
+
+	parse, err := url.Parse(c.OriginalURL + c.BaseURL[strings.LastIndex(c.BaseURL, "/"):] + c.Path)
+	if err != nil {
+		logger.Errorf(ctx, "getSignature Xfyun client: %+v, error: %s", c, err)
+		return "", "", "", err
+	}
+
+	now := gtime.Now()
+	loc, _ := time.LoadLocation("GMT")
+	zone, _ := now.ToZone(loc.String())
+	date = zone.Layout("Mon, 02 Jan 2006 15:04:05 GMT")
+
+	tmp := "host: " + parse.Host + "\n"
+	tmp += "date: " + date + "\n"
+	tmp += method + " " + parse.Path + " HTTP/1.1"
+
+	hash := hmac.New(sha256.New, []byte(c.Secret))
+
+	if _, err = hash.Write([]byte(tmp)); err != nil {
+		logger.Errorf(ctx, "getSignature Xfyun client: %+v, error: %s", c, err)
+		return "", "", "", err
+	}
+
+	return gurl.RawEncode(date), parse.Host, gbase64.EncodeToString(hash.Sum(nil)), nil
 }
 
 func (c *Client) apiErrorHandler(response *model.XfyunChatCompletionRes) error {

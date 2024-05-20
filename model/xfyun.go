@@ -43,7 +43,7 @@ type Chat struct {
 	// 模型回答的tokens的最大长度
 	// V1.5取值为[1,4096]
 	// V2.0、V3.0和V3.5取值为[1,8192]，默认为2048。
-	MaxTokens int `json:"max_tokens"`
+	MaxTokens int `json:"max_tokens,omitempty"`
 	// 从k个候选中随机选择⼀个（⾮等概率）
 	// 取值为[1，6],默认为4
 	TopK int `json:"top_k,omitempty"`
