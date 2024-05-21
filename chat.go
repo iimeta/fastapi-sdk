@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"context"
+	"github.com/iimeta/fastapi-sdk/ai360"
 	"github.com/iimeta/fastapi-sdk/aliyun"
 	"github.com/iimeta/fastapi-sdk/baidu"
 	"github.com/iimeta/fastapi-sdk/consts"
@@ -39,6 +40,8 @@ func NewClient(ctx context.Context, corp, model, key, baseURL, path string, prox
 		return google.NewClient(ctx, model, key, baseURL, path, proxyURL...)
 	case consts.CORP_DEEPSEEK:
 		return deepseek.NewClient(ctx, model, key, baseURL, path, proxyURL...)
+	case consts.CORP_360AI:
+		return ai360.NewClient(ctx, model, key, baseURL, path, proxyURL...)
 	}
 
 	return openai.NewClient(ctx, model, key, baseURL, path, proxyURL...)

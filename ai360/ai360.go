@@ -1,4 +1,4 @@
-package openai
+package ai360
 
 import (
 	"context"
@@ -21,18 +21,18 @@ type Client struct {
 
 func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL ...string) *Client {
 
-	logger.Infof(ctx, "NewClient OpenAI model: %s, key: %s", model, key)
+	logger.Infof(ctx, "NewClient 360AI model: %s, key: %s", model, key)
 
 	config := openai.DefaultConfig(key)
 
 	if baseURL != "" {
-		logger.Infof(ctx, "NewClient OpenAI model: %s, baseURL: %s", model, baseURL)
+		logger.Infof(ctx, "NewClient 360AI model: %s, baseURL: %s", model, baseURL)
 		config.BaseURL = baseURL
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
 
-		logger.Infof(ctx, "NewClient OpenAI model: %s, proxyURL: %s", model, proxyURL[0])
+		logger.Infof(ctx, "NewClient 360AI model: %s, proxyURL: %s", model, proxyURL[0])
 
 		proxyUrl, err := url.Parse(proxyURL[0])
 		if err != nil {
@@ -53,12 +53,12 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 
 func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletionRequest) (res model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletion OpenAI model: %s start", request.Model)
+	logger.Infof(ctx, "ChatCompletion 360AI model: %s start", request.Model)
 
 	now := gtime.Now().UnixMilli()
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
-		logger.Infof(ctx, "ChatCompletion OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
+		logger.Infof(ctx, "ChatCompletion 360AI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
 	messages := make([]openai.ChatCompletionMessage, 0)
@@ -97,11 +97,11 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		ToolChoice:       request.ToolChoice,
 	})
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletion OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletion 360AI model: %s, error: %v", request.Model, err)
 		return res, c.apiErrorHandler(err)
 	}
 
-	logger.Infof(ctx, "ChatCompletion OpenAI model: %s finished", request.Model)
+	logger.Infof(ctx, "ChatCompletion 360AI model: %s finished", request.Model)
 
 	res = model.ChatCompletionResponse{
 		ID:      response.ID,
@@ -130,12 +130,12 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCompletionRequest) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s start", request.Model)
+	logger.Infof(ctx, "ChatCompletionStream 360AI model: %s start", request.Model)
 
 	now := gtime.Now().UnixMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
+			logger.Infof(ctx, "ChatCompletionStream 360AI model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
 		}
 	}()
 
@@ -175,7 +175,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		ToolChoice:       request.ToolChoice,
 	})
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionStream 360AI model: %s, error: %v", request.Model, err)
 		return responseChan, c.apiErrorHandler(err)
 	}
 
@@ -187,11 +187,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 		defer func() {
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, stream.Close error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionStream 360AI model: %s, stream.Close error: %v", request.Model, err)
 			}
 
 			end := gtime.Now().UnixMilli()
-			logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionStream 360AI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 		}()
 
 		for {
@@ -200,7 +200,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if err != nil && !errors.Is(err, io.EOF) {
 
 				if !errors.Is(err, context.Canceled) {
-					logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
+					logger.Errorf(ctx, "ChatCompletionStream 360AI model: %s, error: %v", request.Model, err)
 				}
 
 				end := gtime.Now().UnixMilli()
@@ -241,10 +241,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					CompletionTokens: streamResponse.Usage.CompletionTokens,
 					TotalTokens:      streamResponse.Usage.TotalTokens,
 				}
+				response.Choices[0].FinishReason = openai.FinishReasonStop
 			}
 
 			if errors.Is(err, io.EOF) || response.Choices[0].FinishReason == openai.FinishReasonStop {
-				logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s finished", request.Model)
+				logger.Infof(ctx, "ChatCompletionStream 360AI model: %s finished", request.Model)
 
 				if len(response.Choices) == 0 {
 					response.Choices = append(response.Choices, model.ChatCompletionChoice{
@@ -268,7 +269,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			responseChan <- response
 		}
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionStream 360AI model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 
@@ -277,12 +278,12 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res model.ImageResponse, err error) {
 
-	logger.Infof(ctx, "Image OpenAI model: %s start", request.Model)
+	logger.Infof(ctx, "Image 360AI model: %s start", request.Model)
 
 	now := gtime.Now().UnixMilli()
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
-		logger.Infof(ctx, "Image OpenAI model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
+		logger.Infof(ctx, "Image 360AI model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
 	}()
 
 	response, err := c.client.CreateImage(ctx, openai.ImageRequest{
@@ -296,7 +297,7 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 		User:           request.User,
 	})
 	if err != nil {
-		logger.Errorf(ctx, "Image OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "Image 360AI model: %s, error: %v", request.Model, err)
 		return res, err
 	}
 
@@ -324,18 +325,24 @@ func (c *Client) apiErrorHandler(err error) error {
 
 		switch apiError.HTTPStatusCode {
 		case 400:
-			if apiError.Code == "context_length_exceeded" {
+			if apiError.Code == "1001" {
 				return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
 			}
 		case 401:
-			if apiError.Code == "invalid_api_key" {
+
+			if apiError.Code == "1002" {
 				return sdkerr.ERR_INVALID_API_KEY
 			}
+
+			if apiError.Code == "1004" || apiError.Code == "1006" {
+				return sdkerr.ERR_INSUFFICIENT_QUOTA
+			}
+
 		case 404:
 			return sdkerr.ERR_MODEL_NOT_FOUND
 		case 429:
-			if apiError.Code == "insufficient_quota" {
-				return sdkerr.ERR_INSUFFICIENT_QUOTA
+			if apiError.Code == "1005" {
+				return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
 			}
 		}
 

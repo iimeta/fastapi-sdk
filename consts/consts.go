@@ -8,6 +8,7 @@ const (
 	CORP_ZHIPUAI    = "ZhipuAI"
 	CORP_GOOGLE     = "Google"
 	CORP_DEEPSEEK   = "DeepSeek"
+	CORP_360AI      = "360AI"
 	CORP_MIDJOURNEY = "Midjourney"
 )
 
