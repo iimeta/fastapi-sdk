@@ -11,6 +11,7 @@ var (
 	ERR_INVALID_API_KEY         = NewApiError(401, "invalid_api_key", "Incorrect API key provided or has been disabled.", "invalid_request_error", "")
 	ERR_MODEL_NOT_FOUND         = NewApiError(404, "model_not_found", "The model does not exist or you do not have access to it.", "invalid_request_error", "")
 	ERR_INSUFFICIENT_QUOTA      = NewApiError(429, "insufficient_quota", "You exceeded your current quota.", "insufficient_quota", "")
+	ERR_RATE_LIMIT_EXCEEDED     = NewApiError(429, "rate_limit_exceeded", "Rate limit reached. Please try again later.", "requests", "")
 )
 
 // ApiError provides error information returned by the OpenAI API.

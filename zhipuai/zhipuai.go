@@ -371,7 +371,7 @@ func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Resp
 		return sdkerr.ERR_INSUFFICIENT_QUOTA
 	}
 
-	return errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, gjson.MustEncodeString(errRes.Error)))
+	return sdkerr.NewRequestError(response.StatusCode, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, gjson.MustEncodeString(errRes.Error))))
 }
 
 func (c *Client) apiErrorHandler(response *model.ZhipuAIChatCompletionRes) error {
@@ -383,5 +383,5 @@ func (c *Client) apiErrorHandler(response *model.ZhipuAIChatCompletionRes) error
 		return sdkerr.ERR_INSUFFICIENT_QUOTA
 	}
 
-	return errors.New(gjson.MustEncodeString(response))
+	return sdkerr.NewApiError(400, response.Error.Code, gjson.MustEncodeString(response), "api_error", "")
 }

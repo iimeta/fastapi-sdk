@@ -284,7 +284,7 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 }
 
 func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Response) (err error) {
-	return errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, response.ReadAllString()))
+	return sdkerr.NewRequestError(response.StatusCode, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, response.ReadAllString())))
 }
 
 func (c *Client) apiErrorHandler(response *model.BaiduChatCompletionRes) error {
@@ -292,7 +292,9 @@ func (c *Client) apiErrorHandler(response *model.BaiduChatCompletionRes) error {
 	switch response.ErrorCode {
 	case 336103, 336007:
 		return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
+	case 18:
+		return sdkerr.ERR_RATE_LIMIT_EXCEEDED
 	}
 
-	return errors.New(gjson.MustEncodeString(response))
+	return sdkerr.NewApiError(400, response.ErrorCode, gjson.MustEncodeString(response), "api_error", "")
 }

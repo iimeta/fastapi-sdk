@@ -539,5 +539,5 @@ func (c *Client) apiErrorHandler(response *model.XfyunChatCompletionRes) error {
 		return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
 	}
 
-	return errors.New(gjson.MustEncodeString(response))
+	return sdkerr.NewApiError(400, response.Header.Code, gjson.MustEncodeString(response), "api_error", "")
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/iimeta/fastapi-sdk/util"
 	"github.com/sashabaranov/go-openai"
 	"io"
@@ -323,10 +324,9 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 }
 
 func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Response) (err error) {
-	return errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, response.ReadAllString()))
+	return sdkerr.NewRequestError(response.StatusCode, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, response.ReadAllString())))
 }
 
 func (c *Client) apiErrorHandler(response *model.GoogleChatCompletionRes) error {
-
-	return errors.New(gjson.MustEncodeString(response))
+	return sdkerr.NewApiError(400, response.Error.Code, gjson.MustEncodeString(response), "api_error", "")
 }
