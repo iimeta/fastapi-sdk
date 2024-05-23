@@ -301,9 +301,6 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					Error:     err,
 				}
 
-				time.Sleep(time.Millisecond)
-				close(responseChan)
-
 				return
 			}
 
@@ -318,9 +315,6 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					TotalTime: end - now,
 					Error:     err,
 				}
-
-				time.Sleep(time.Millisecond)
-				close(responseChan)
 
 				return
 			}
@@ -338,9 +332,6 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					TotalTime: end - now,
 					Error:     err,
 				}
-
-				time.Sleep(time.Millisecond)
-				close(responseChan)
 
 				return
 			}
@@ -539,5 +530,5 @@ func (c *Client) apiErrorHandler(response *model.XfyunChatCompletionRes) error {
 		return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
 	}
 
-	return sdkerr.NewApiError(400, response.Header.Code, gjson.MustEncodeString(response), "api_error", "")
+	return sdkerr.NewApiError(500, response.Header.Code, gjson.MustEncodeString(response), "api_error", "")
 }

@@ -12,7 +12,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"time"
 )
 
 type Client struct {
@@ -210,9 +209,6 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					TotalTime: end - now,
 					Error:     err,
 				}
-
-				time.Sleep(time.Millisecond)
-				close(responseChan)
 
 				return
 			}

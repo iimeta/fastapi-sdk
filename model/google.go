@@ -53,10 +53,10 @@ type UsageMetadata struct {
 }
 
 type GenerationConfig struct {
-	StopSequences   []string `json:"stopSequences"`
-	CandidateCount  int      `json:"candidateCount"`
-	MaxOutputTokens int      `json:"maxOutputTokens"`
-	Temperature     float32  `json:"temperature"`
-	TopP            float32  `json:"topP"`
-	TopK            int      `json:"topK"`
+	StopSequences   []string `json:"stopSequences,omitempty"`
+	CandidateCount  int      `json:"candidateCount,omitempty"`
+	MaxOutputTokens int      `json:"maxOutputTokens,omitempty"`
+	Temperature     float32  `json:"temperature,omitempty"`
+	TopP            float32  `json:"topP,omitempty"`
+	TopK            int      `json:"topK,omitempty"`
 }

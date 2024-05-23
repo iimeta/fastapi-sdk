@@ -17,7 +17,6 @@ import (
 	"github.com/iimeta/fastapi-sdk/util"
 	"github.com/sashabaranov/go-openai"
 	"io"
-	"time"
 )
 
 type Client struct {
@@ -214,9 +213,6 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					Error:     err,
 				}
 
-				time.Sleep(time.Millisecond)
-				close(responseChan)
-
 				return
 			}
 
@@ -254,9 +250,6 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					Error:     err,
 				}
 
-				time.Sleep(time.Millisecond)
-				close(responseChan)
-
 				return
 			}
 
@@ -273,9 +266,6 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					TotalTime: end - now,
 					Error:     err,
 				}
-
-				time.Sleep(time.Millisecond)
-				close(responseChan)
 
 				return
 			}
@@ -319,14 +309,14 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 }
 
 func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res model.ImageResponse, err error) {
-
-	return
+	//TODO implement me
+	panic("implement me")
 }
 
 func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Response) (err error) {
-	return sdkerr.NewRequestError(response.StatusCode, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, response.ReadAllString())))
+	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, response.ReadAllString())))
 }
 
 func (c *Client) apiErrorHandler(response *model.GoogleChatCompletionRes) error {
-	return sdkerr.NewApiError(400, response.Error.Code, gjson.MustEncodeString(response), "api_error", "")
+	return sdkerr.NewApiError(500, response.Error.Code, gjson.MustEncodeString(response), "api_error", "")
 }
