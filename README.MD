@@ -15,6 +15,33 @@
 ## 功能介绍
 - 智元 Fast API SDK模块, 主要集成各类 `大模型 API` 的能力
 
+### 已支持
+
+- 文生文
+- [x] OpenAI gpt3.5、4.0系列
+- [x] 百度 文心一言
+- [x] 科大讯飞 星火
+- [x] 阿里云 通义千问
+- [x] 智谱AI GLM-4
+- [x] Google Gemini
+- [x] DeepSeek deepseek-chat、deepseek-coder
+- [x] 360智脑
+
+
+- 文生图
+- [x] OpenAI DALL-E-2、DALL-E-3
+- [x] Midjourney
+- [x] 科大讯飞
+
+### 即将支持
+
+- 文生图
+- [ ] 百度
+- [ ] 阿里云
+- [ ] 智谱AI
+- [ ] Google
+- [ ] 360智脑
+
 ## 项目预览
 
 - 用户端: https://demo.fastapi.ai/login
