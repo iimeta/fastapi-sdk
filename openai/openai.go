@@ -50,6 +50,33 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 	}
 }
 
+func NewAzureClient(ctx context.Context, model, key, baseURL, path string, proxyURL ...string) *Client {
+
+	logger.Infof(ctx, "NewAzureClient OpenAI model: %s, baseURL: %s, key: %s", model, baseURL, key)
+
+	config := openai.DefaultAzureConfig(key, baseURL)
+
+	if len(proxyURL) > 0 && proxyURL[0] != "" {
+
+		logger.Infof(ctx, "NewAzureClient OpenAI model: %s, proxyURL: %s", model, proxyURL[0])
+
+		proxyUrl, err := url.Parse(proxyURL[0])
+		if err != nil {
+			panic(err)
+		}
+
+		config.HTTPClient = &http.Client{
+			Transport: &http.Transport{
+				Proxy: http.ProxyURL(proxyUrl),
+			},
+		}
+	}
+
+	return &Client{
+		client: openai.NewClientWithConfig(config),
+	}
+}
+
 func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletionRequest) (res model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletion OpenAI model: %s start", request.Model)

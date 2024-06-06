@@ -28,6 +28,8 @@ func NewClient(ctx context.Context, corp, model, key, baseURL, path string, prox
 	switch corp {
 	case consts.CORP_OPENAI:
 		return openai.NewClient(ctx, model, key, baseURL, path, proxyURL...)
+	case consts.CORP_AZURE:
+		return openai.NewAzureClient(ctx, model, key, baseURL, path, proxyURL...)
 	case consts.CORP_BAIDU:
 		return baidu.NewClient(ctx, model, key, baseURL, path, proxyURL...)
 	case consts.CORP_XFYUN:
