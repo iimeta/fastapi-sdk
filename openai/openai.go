@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
@@ -30,7 +31,6 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
-
 		logger.Infof(ctx, "NewClient OpenAI model: %s, proxyURL: %s", model, proxyURL[0])
 
 		proxyUrl, err := url.Parse(proxyURL[0])
@@ -56,8 +56,17 @@ func NewAzureClient(ctx context.Context, model, key, baseURL, path string, proxy
 
 	config := openai.DefaultAzureConfig(key, baseURL)
 
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
+	if path != "" {
+		logger.Infof(ctx, "NewAzureClient OpenAI model: %s, path: %s", model, path)
 
+		split := gstr.Split(path, "?api-version=")
+
+		if len(split) > 1 && split[1] != "" {
+			config.APIVersion = split[1]
+		}
+	}
+
+	if len(proxyURL) > 0 && proxyURL[0] != "" {
 		logger.Infof(ctx, "NewAzureClient OpenAI model: %s, proxyURL: %s", model, proxyURL[0])
 
 		proxyUrl, err := url.Parse(proxyURL[0])

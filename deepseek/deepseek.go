@@ -33,7 +33,6 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
-
 		logger.Infof(ctx, "NewClient DeepSeek model: %s, proxyURL: %s", model, proxyURL[0])
 
 		proxyUrl, err := url.Parse(proxyURL[0])

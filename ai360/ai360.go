@@ -27,10 +27,11 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 	if baseURL != "" {
 		logger.Infof(ctx, "NewClient 360AI model: %s, baseURL: %s", model, baseURL)
 		config.BaseURL = baseURL
+	} else {
+		config.BaseURL = "https://api.360.cn/v1"
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
-
 		logger.Infof(ctx, "NewClient 360AI model: %s, proxyURL: %s", model, proxyURL[0])
 
 		proxyUrl, err := url.Parse(proxyURL[0])

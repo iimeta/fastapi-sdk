@@ -57,8 +57,8 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 	}
 
 	if baseURL != "" {
-
 		logger.Infof(ctx, "NewClient Xfyun model: %s, baseURL: %s", model, baseURL)
+
 		client.BaseURL = baseURL
 
 		version := baseURL[strings.LastIndex(baseURL, "/")+1:]
