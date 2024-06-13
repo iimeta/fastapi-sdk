@@ -10,6 +10,7 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -66,9 +67,11 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion ZhipuAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
+	messages := common.HandleMessages(request.Messages, true)
+
 	chatCompletionReq := model.ZhipuAIChatCompletionReq{
 		Model:       request.Model,
-		Messages:    request.Messages,
+		Messages:    messages,
 		MaxTokens:   request.MaxTokens,
 		Temperature: request.Temperature,
 		TopP:        request.TopP,
@@ -93,10 +96,6 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 	if chatCompletionReq.MaxTokens == 1 {
 		chatCompletionReq.MaxTokens = 2
-	}
-
-	if chatCompletionReq.Messages[0].Role == openai.ChatMessageRoleSystem && chatCompletionReq.Messages[0].Content == "" && len(chatCompletionReq.Messages[0].ToolCalls) == 0 {
-		chatCompletionReq.Messages = chatCompletionReq.Messages[1:]
 	}
 
 	header := make(map[string]string)
@@ -147,9 +146,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
+	messages := common.HandleMessages(request.Messages, true)
+
 	chatCompletionReq := model.ZhipuAIChatCompletionReq{
 		Model:       request.Model,
-		Messages:    request.Messages,
+		Messages:    messages,
 		MaxTokens:   request.MaxTokens,
 		Temperature: request.Temperature,
 		TopP:        request.TopP,
@@ -174,10 +175,6 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 	if chatCompletionReq.MaxTokens == 1 {
 		chatCompletionReq.MaxTokens = 2
-	}
-
-	if chatCompletionReq.Messages[0].Role == openai.ChatMessageRoleSystem && chatCompletionReq.Messages[0].Content == "" && len(chatCompletionReq.Messages[0].ToolCalls) == 0 {
-		chatCompletionReq.Messages = chatCompletionReq.Messages[1:]
 	}
 
 	header := make(map[string]string)
