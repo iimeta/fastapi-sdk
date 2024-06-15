@@ -19,16 +19,16 @@
 
 | 公司           | 模型                                    | Completion | Image |
 |----------------|-----------------------------------------|------------|-------| 
-| OpenAI / Azure | gpt3.5、4.0系列                         | ✅         |       |
-| OpenAI / Azure | DALL-E-2、DALL-E-3                      |            | ✅    |
-| 百度           | 文心一言                                | ✅         |       |
-| 科大讯飞       | 星火                                    | ✅         | ✅    |
-| 阿里云         | 通义千问                                | ✅         |       |
-| 智谱AI         | GLM系列                                 | ✅         |       |
-| Google         | Gemini                                  | ✅         |       |
-| DeepSeek       | deepseek-chat、deepseek-coder           | ✅         |       |
-| 360智脑        | 360gpt系列                              | ✅         |       |
-| Midjourney     | Midjourney-Proxy、Midjourney-Proxy-Plus |            | ✅    |
+| OpenAI / Azure | gpt3.5、4.0系列                         | ✔️         |       |
+| OpenAI / Azure | DALL-E-2、DALL-E-3                      |            | ✔️    |
+| 百度           | 文心一言                                | ✔️         |       |
+| 科大讯飞       | 星火                                    | ✔️         | ✔️    |
+| 阿里云         | 通义千问                                | ✔️         |       |
+| 智谱AI         | GLM系列                                 | ✔️         |       |
+| Google         | Gemini                                  | ✔️         |       |
+| DeepSeek       | deepseek-chat、deepseek-coder           | ✔️         |       |
+| 360智脑        | 360gpt系列                              | ✔️         |       |
+| Midjourney     | Midjourney-Proxy、Midjourney-Proxy-Plus |            | ✔️    |
 
 ## 项目预览
 
