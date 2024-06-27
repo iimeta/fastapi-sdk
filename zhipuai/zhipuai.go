@@ -23,35 +23,37 @@ import (
 )
 
 type Client struct {
-	Key      string
-	BaseURL  string
-	Path     string
-	ProxyURL string
+	key                 string
+	baseURL             string
+	path                string
+	proxyURL            string
+	isSupportSystemRole *bool
 }
 
-func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL ...string) *Client {
+func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewClient ZhipuAI model: %s, key: %s", model, key)
 
 	client := &Client{
-		Key:     key,
-		BaseURL: "https://open.bigmodel.cn/api/paas/v4",
-		Path:    "/chat/completions",
+		key:                 key,
+		baseURL:             "https://open.bigmodel.cn/api/paas/v4",
+		path:                "/chat/completions",
+		isSupportSystemRole: isSupportSystemRole,
 	}
 
 	if baseURL != "" {
 		logger.Infof(ctx, "NewClient ZhipuAI model: %s, baseURL: %s", model, baseURL)
-		client.BaseURL = baseURL
+		client.baseURL = baseURL
 	}
 
 	if path != "" {
 		logger.Infof(ctx, "NewClient ZhipuAI model: %s, path: %s", model, path)
-		client.Path = path
+		client.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
 		logger.Infof(ctx, "NewClient ZhipuAI model: %s, proxyURL: %s", model, proxyURL[0])
-		client.ProxyURL = proxyURL[0]
+		client.proxyURL = proxyURL[0]
 	}
 
 	return client
@@ -67,7 +69,12 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion ZhipuAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
-	messages := common.HandleMessages(request.Messages, true)
+	var messages []model.ChatCompletionMessage
+	if c.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	} else {
+		messages = common.HandleMessages(request.Messages, true)
+	}
 
 	chatCompletionReq := model.ZhipuAIChatCompletionReq{
 		Model:       request.Model,
@@ -102,7 +109,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	header["Authorization"] = "Bearer " + c.generateToken(ctx)
 
 	chatCompletionRes := new(model.ZhipuAIChatCompletionRes)
-	if err = util.HttpPost(ctx, c.BaseURL+c.Path, header, chatCompletionReq, &chatCompletionRes, c.ProxyURL); err != nil {
+	if err = util.HttpPost(ctx, c.baseURL+c.path, header, chatCompletionReq, &chatCompletionRes, c.proxyURL); err != nil {
 		logger.Errorf(ctx, "ChatCompletion ZhipuAI model: %s, error: %v", request.Model, err)
 		return
 	}
@@ -146,7 +153,12 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
-	messages := common.HandleMessages(request.Messages, true)
+	var messages []model.ChatCompletionMessage
+	if c.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	} else {
+		messages = common.HandleMessages(request.Messages, true)
+	}
 
 	chatCompletionReq := model.ZhipuAIChatCompletionReq{
 		Model:       request.Model,
@@ -180,7 +192,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	header := make(map[string]string)
 	header["Authorization"] = "Bearer " + c.generateToken(ctx)
 
-	stream, err := util.SSEClient(ctx, c.BaseURL+c.Path, header, chatCompletionReq, c.ProxyURL, c.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, c.baseURL+c.path, header, chatCompletionReq, c.proxyURL, c.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, error: %v", request.Model, err)
 		return responseChan, err
@@ -309,9 +321,9 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 
 func (c *Client) generateToken(ctx context.Context) string {
 
-	split := strings.Split(c.Key, ".")
+	split := strings.Split(c.key, ".")
 	if len(split) != 2 {
-		return c.Key
+		return c.key
 	}
 
 	now := gtime.Now()

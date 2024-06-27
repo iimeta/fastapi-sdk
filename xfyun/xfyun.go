@@ -31,68 +31,70 @@ import (
 )
 
 type Client struct {
-	AppId       string
-	Secret      string
-	Key         string
-	OriginalURL string
-	BaseURL     string
-	Path        string
-	ProxyURL    string
-	Domain      string
+	appId               string
+	secret              string
+	key                 string
+	originalURL         string
+	baseURL             string
+	path                string
+	proxyURL            string
+	domain              string
+	isSupportSystemRole *bool
 }
 
-func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL ...string) *Client {
+func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewClient Xfyun model: %s, key: %s", model, key)
 
 	result := gstr.Split(key, "|")
 
 	client := &Client{
-		AppId:       result[0],
-		Secret:      result[1],
-		Key:         result[2],
-		OriginalURL: "https://spark-api.xf-yun.com",
-		BaseURL:     "https://spark-api.xf-yun.com/v4.0",
-		Path:        "/chat",
-		Domain:      "4.0Ultra",
+		appId:               result[0],
+		secret:              result[1],
+		key:                 result[2],
+		originalURL:         "https://spark-api.xf-yun.com",
+		baseURL:             "https://spark-api.xf-yun.com/v4.0",
+		path:                "/chat",
+		domain:              "4.0Ultra",
+		isSupportSystemRole: isSupportSystemRole,
 	}
 
 	if baseURL != "" {
 		logger.Infof(ctx, "NewClient Xfyun model: %s, baseURL: %s", model, baseURL)
 
-		client.BaseURL = baseURL
+		client.baseURL = baseURL
 
 		version := baseURL[strings.LastIndex(baseURL, "/")+1:]
 
 		switch version {
 		case "v4.0":
-			client.Domain = "4.0Ultra"
+			client.domain = "4.0Ultra"
 		case "v3.5":
-			client.Domain = "generalv3.5"
+			client.domain = "generalv3.5"
 		case "v3.1":
-			client.Domain = "generalv3"
+			client.domain = "generalv3"
 		case "v2.1":
-			client.Domain = "generalv2"
+			client.domain = "generalv2"
 		case "v1.1":
-			client.Domain = "general"
+			client.domain = "general"
 		default:
 			v := gconv.Float64(version[1:])
 			if math.Round(v) > v {
-				client.Domain = fmt.Sprintf("general%s", version)
+				client.domain = fmt.Sprintf("general%s", version)
 			} else {
-				client.Domain = fmt.Sprintf("generalv%0.f", math.Round(v))
+				client.domain = fmt.Sprintf("generalv%0.f", math.Round(v))
 			}
 		}
 	}
 
 	if path != "" {
 		logger.Infof(ctx, "NewClient Xfyun model: %s, path: %s", model, path)
-		client.Path = path
+		client.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
 		logger.Infof(ctx, "NewClient Xfyun model: %s, proxyURL: %s", model, proxyURL[0])
-		client.ProxyURL = proxyURL[0]
+		client.proxyURL = proxyURL[0]
 	}
 
 	return client
@@ -108,7 +110,12 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion Xfyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, res.ConnTime, res.Duration, res.TotalTime)
 	}()
 
-	messages := common.HandleMessages(request.Messages, true)
+	var messages []model.ChatCompletionMessage
+	if c.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	} else {
+		messages = common.HandleMessages(request.Messages, true)
+	}
 
 	if len(messages) == 1 && messages[0].Role == consts.ROLE_SYSTEM {
 		messages[0].Role = consts.ROLE_USER
@@ -121,12 +128,12 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 	chatCompletionReq := model.XfyunChatCompletionReq{
 		Header: model.Header{
-			AppId: c.AppId,
+			AppId: c.appId,
 			Uid:   grand.Digits(10),
 		},
 		Parameter: model.Parameter{
 			Chat: &model.Chat{
-				Domain:      c.Domain,
+				Domain:      c.domain,
 				MaxTokens:   maxTokens,
 				Temperature: request.Temperature,
 				TopK:        request.N,
@@ -151,7 +158,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		return res, err
 	}
 
-	conn, err := util.WebSocketClient(ctx, c.getWebSocketUrl(ctx), websocket.TextMessage, data, c.ProxyURL)
+	conn, err := util.WebSocketClient(ctx, c.getWebSocketUrl(ctx), websocket.TextMessage, data, c.proxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
 		return res, err
@@ -233,7 +240,12 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
-	messages := common.HandleMessages(request.Messages, true)
+	var messages []model.ChatCompletionMessage
+	if c.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	} else {
+		messages = common.HandleMessages(request.Messages, true)
+	}
 
 	if len(messages) == 1 && messages[0].Role == consts.ROLE_SYSTEM {
 		messages[0].Role = consts.ROLE_USER
@@ -246,12 +258,12 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 	chatCompletionReq := model.XfyunChatCompletionReq{
 		Header: model.Header{
-			AppId: c.AppId,
+			AppId: c.appId,
 			Uid:   grand.Digits(10),
 		},
 		Parameter: model.Parameter{
 			Chat: &model.Chat{
-				Domain:      c.Domain,
+				Domain:      c.domain,
 				MaxTokens:   maxTokens,
 				Temperature: request.Temperature,
 				TopK:        request.N,
@@ -276,7 +288,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		return responseChan, err
 	}
 
-	conn, err := util.WebSocketClient(ctx, c.getWebSocketUrl(ctx), websocket.TextMessage, data, c.ProxyURL)
+	conn, err := util.WebSocketClient(ctx, c.getWebSocketUrl(ctx), websocket.TextMessage, data, c.proxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 		return responseChan, err
@@ -444,7 +456,7 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 
 	imageReq := model.XfyunChatCompletionReq{
 		Header: model.Header{
-			AppId: c.AppId,
+			AppId: c.appId,
 			Uid:   grand.Digits(10),
 		},
 		Parameter: model.Parameter{
@@ -465,7 +477,7 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	}
 
 	imageRes := new(model.XfyunChatCompletionRes)
-	err = util.HttpPost(ctx, c.getHttpUrl(ctx), nil, imageReq, &imageRes, c.ProxyURL)
+	err = util.HttpPost(ctx, c.getHttpUrl(ctx), nil, imageReq, &imageRes, c.proxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "Image Xfyun model: %s, error: %v", request.Model, err)
 		return res, err
@@ -489,16 +501,16 @@ func (c *Client) getWebSocketUrl(ctx context.Context) string {
 		return ""
 	}
 
-	authorizationOrigin := gbase64.EncodeToString([]byte(fmt.Sprintf("api_key=\"%s\",algorithm=\"%s\",headers=\"%s\",signature=\"%s\"", c.Key, "hmac-sha256", "host date request-line", signature)))
+	authorizationOrigin := gbase64.EncodeToString([]byte(fmt.Sprintf("api_key=\"%s\",algorithm=\"%s\",headers=\"%s\",signature=\"%s\"", c.key, "hmac-sha256", "host date request-line", signature)))
 
-	wsURL := gstr.Replace(gstr.Replace(c.BaseURL+c.Path, "https://", "wss://"), "http://", "ws://")
+	wsURL := gstr.Replace(gstr.Replace(c.baseURL+c.path, "https://", "wss://"), "http://", "ws://")
 
 	return fmt.Sprintf("%s?authorization=%s&date=%s&host=%s", wsURL, authorizationOrigin, date, host)
 }
 
 func (c *Client) getHttpUrl(ctx context.Context) string {
 
-	c.OriginalURL = "https://spark-api.cn-huabei-1.xf-yun.com"
+	c.originalURL = "https://spark-api.cn-huabei-1.xf-yun.com"
 
 	date, host, signature, err := c.getSignature(ctx, http.MethodPost)
 	if err != nil {
@@ -506,14 +518,14 @@ func (c *Client) getHttpUrl(ctx context.Context) string {
 		return ""
 	}
 
-	authorizationOrigin := gbase64.EncodeToString([]byte(fmt.Sprintf("api_key=\"%s\",algorithm=\"%s\",headers=\"%s\",signature=\"%s\"", c.Key, "hmac-sha256", "host date request-line", signature)))
+	authorizationOrigin := gbase64.EncodeToString([]byte(fmt.Sprintf("api_key=\"%s\",algorithm=\"%s\",headers=\"%s\",signature=\"%s\"", c.key, "hmac-sha256", "host date request-line", signature)))
 
-	return fmt.Sprintf("%s?authorization=%s&date=%s&host=%s", c.BaseURL+c.Path, authorizationOrigin, date, host)
+	return fmt.Sprintf("%s?authorization=%s&date=%s&host=%s", c.baseURL+c.path, authorizationOrigin, date, host)
 }
 
 func (c *Client) getSignature(ctx context.Context, method string) (date, host, signature string, err error) {
 
-	parse, err := url.Parse(c.OriginalURL + c.BaseURL[strings.LastIndex(c.BaseURL, "/"):] + c.Path)
+	parse, err := url.Parse(c.originalURL + c.baseURL[strings.LastIndex(c.baseURL, "/"):] + c.path)
 	if err != nil {
 		logger.Errorf(ctx, "getSignature Xfyun client: %+v, error: %s", c, err)
 		return "", "", "", err
@@ -528,7 +540,7 @@ func (c *Client) getSignature(ctx context.Context, method string) (date, host, s
 	tmp += "date: " + date + "\n"
 	tmp += method + " " + parse.Path + " HTTP/1.1"
 
-	hash := hmac.New(sha256.New, []byte(c.Secret))
+	hash := hmac.New(sha256.New, []byte(c.secret))
 
 	if _, err = hash.Write([]byte(tmp)); err != nil {
 		logger.Errorf(ctx, "getSignature Xfyun client: %+v, error: %s", c, err)

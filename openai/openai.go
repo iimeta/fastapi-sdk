@@ -6,6 +6,7 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
@@ -16,10 +17,11 @@ import (
 )
 
 type Client struct {
-	client *openai.Client
+	client              *openai.Client
+	isSupportSystemRole *bool
 }
 
-func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL ...string) *Client {
+func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewClient OpenAI model: %s, key: %s", model, key)
 
@@ -46,11 +48,12 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 	}
 
 	return &Client{
-		client: openai.NewClientWithConfig(config),
+		client:              openai.NewClientWithConfig(config),
+		isSupportSystemRole: isSupportSystemRole,
 	}
 }
 
-func NewAzureClient(ctx context.Context, model, key, baseURL, path string, proxyURL ...string) *Client {
+func NewAzureClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewAzureClient OpenAI model: %s, baseURL: %s, key: %s", model, baseURL, key)
 
@@ -82,7 +85,8 @@ func NewAzureClient(ctx context.Context, model, key, baseURL, path string, proxy
 	}
 
 	return &Client{
-		client: openai.NewClientWithConfig(config),
+		client:              openai.NewClientWithConfig(config),
+		isSupportSystemRole: isSupportSystemRole,
 	}
 }
 
@@ -96,8 +100,15 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
+	var newMessages []model.ChatCompletionMessage
+	if c.isSupportSystemRole != nil {
+		newMessages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	} else {
+		newMessages = common.HandleMessages(request.Messages, true)
+	}
+
 	messages := make([]openai.ChatCompletionMessage, 0)
-	for _, message := range request.Messages {
+	for _, message := range newMessages {
 		messages = append(messages, openai.ChatCompletionMessage{
 			Role:         message.Role,
 			Content:      message.Content,
@@ -174,8 +185,15 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
+	var newMessages []model.ChatCompletionMessage
+	if c.isSupportSystemRole != nil {
+		newMessages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	} else {
+		newMessages = common.HandleMessages(request.Messages, true)
+	}
+
 	messages := make([]openai.ChatCompletionMessage, 0)
-	for _, message := range request.Messages {
+	for _, message := range newMessages {
 		messages = append(messages, openai.ChatCompletionMessage{
 			Role:         message.Role,
 			Content:      message.Content,

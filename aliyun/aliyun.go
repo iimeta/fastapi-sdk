@@ -22,35 +22,37 @@ import (
 )
 
 type Client struct {
-	Key      string
-	BaseURL  string
-	Path     string
-	ProxyURL string
+	key                 string
+	baseURL             string
+	path                string
+	proxyURL            string
+	isSupportSystemRole *bool
 }
 
-func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL ...string) *Client {
+func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewClient Aliyun model: %s, key: %s", model, key)
 
 	client := &Client{
-		Key:     key,
-		BaseURL: "https://dashscope.aliyuncs.com/api/v1",
-		Path:    "/services/aigc/text-generation/generation",
+		key:                 key,
+		baseURL:             "https://dashscope.aliyuncs.com/api/v1",
+		path:                "/services/aigc/text-generation/generation",
+		isSupportSystemRole: isSupportSystemRole,
 	}
 
 	if baseURL != "" {
 		logger.Infof(ctx, "NewClient Aliyun model: %s, baseURL: %s", model, baseURL)
-		client.BaseURL = baseURL
+		client.baseURL = baseURL
 	}
 
 	if path != "" {
 		logger.Infof(ctx, "NewClient Aliyun model: %s, path: %s", model, path)
-		client.Path = path
+		client.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
 		logger.Infof(ctx, "NewClient Aliyun model: %s, proxyURL: %s", model, proxyURL[0])
-		client.ProxyURL = proxyURL[0]
+		client.proxyURL = proxyURL[0]
 	}
 
 	return client
@@ -66,7 +68,12 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion Aliyun model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
-	messages := common.HandleMessages(request.Messages, true)
+	var messages []model.ChatCompletionMessage
+	if c.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	} else {
+		messages = common.HandleMessages(request.Messages, true)
+	}
 
 	chatCompletionReq := model.AliyunChatCompletionReq{
 		Model: request.Model,
@@ -90,10 +97,10 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	header := make(map[string]string)
-	header["Authorization"] = "Bearer " + c.Key
+	header["Authorization"] = "Bearer " + c.key
 
 	chatCompletionRes := new(model.AliyunChatCompletionRes)
-	err = util.HttpPost(ctx, c.BaseURL+c.Path, header, chatCompletionReq, &chatCompletionRes, c.ProxyURL)
+	err = util.HttpPost(ctx, c.baseURL+c.path, header, chatCompletionReq, &chatCompletionRes, c.proxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion Aliyun model: %s, error: %v", request.Model, err)
 		return
@@ -140,7 +147,12 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
-	messages := common.HandleMessages(request.Messages, true)
+	var messages []model.ChatCompletionMessage
+	if c.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	} else {
+		messages = common.HandleMessages(request.Messages, true)
+	}
 
 	chatCompletionReq := model.AliyunChatCompletionReq{
 		Model: request.Model,
@@ -166,9 +178,9 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}
 
 	header := make(map[string]string)
-	header["Authorization"] = "Bearer " + c.Key
+	header["Authorization"] = "Bearer " + c.key
 
-	stream, err := util.SSEClient(ctx, c.BaseURL+c.Path, header, chatCompletionReq, c.ProxyURL, c.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, c.baseURL+c.path, header, chatCompletionReq, c.proxyURL, c.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
 		return responseChan, err

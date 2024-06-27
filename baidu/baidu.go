@@ -20,35 +20,37 @@ import (
 )
 
 type Client struct {
-	AccessToken string
-	BaseURL     string
-	Path        string
-	ProxyURL    string
+	accessToken         string
+	baseURL             string
+	path                string
+	proxyURL            string
+	isSupportSystemRole *bool
 }
 
-func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL ...string) *Client {
+func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewClient Baidu model: %s, key: %s", model, key)
 
 	client := &Client{
-		AccessToken: key,
-		BaseURL:     "https://aip.baidubce.com/rpc/2.0/ai_custom/v1",
-		Path:        "/wenxinworkshop/chat/completions_pro",
+		accessToken:         key,
+		baseURL:             "https://aip.baidubce.com/rpc/2.0/ai_custom/v1",
+		path:                "/wenxinworkshop/chat/completions_pro",
+		isSupportSystemRole: isSupportSystemRole,
 	}
 
 	if baseURL != "" {
 		logger.Infof(ctx, "NewClient Baidu model: %s, baseURL: %s", model, baseURL)
-		client.BaseURL = baseURL
+		client.baseURL = baseURL
 	}
 
 	if path != "" {
 		logger.Infof(ctx, "NewClient Baidu model: %s, path: %s", model, path)
-		client.Path = path
+		client.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
 		logger.Infof(ctx, "NewClient Baidu model: %s, proxyURL: %s", model, proxyURL[0])
-		client.ProxyURL = proxyURL[0]
+		client.proxyURL = proxyURL[0]
 	}
 
 	return client
@@ -64,7 +66,12 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion Baidu model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
-	messages := common.HandleMessages(request.Messages, true)
+	var messages []model.ChatCompletionMessage
+	if c.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	} else {
+		messages = common.HandleMessages(request.Messages, true)
+	}
 
 	if len(messages) == 1 && messages[0].Role == consts.ROLE_SYSTEM {
 		messages[0].Role = consts.ROLE_USER
@@ -91,7 +98,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	chatCompletionRes := new(model.BaiduChatCompletionRes)
-	err = util.HttpPost(ctx, fmt.Sprintf("%s?access_token=%s", c.BaseURL+c.Path, c.AccessToken), nil, chatCompletionReq, &chatCompletionRes, c.ProxyURL)
+	err = util.HttpPost(ctx, fmt.Sprintf("%s?access_token=%s", c.baseURL+c.path, c.accessToken), nil, chatCompletionReq, &chatCompletionRes, c.proxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion Baidu model: %s, error: %v", request.Model, err)
 		return
@@ -134,7 +141,12 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
-	messages := common.HandleMessages(request.Messages, true)
+	var messages []model.ChatCompletionMessage
+	if c.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	} else {
+		messages = common.HandleMessages(request.Messages, true)
+	}
 
 	if len(messages) == 1 && messages[0].Role == consts.ROLE_SYSTEM {
 		messages[0].Role = consts.ROLE_USER
@@ -160,7 +172,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		chatCompletionReq.ResponseFormat = gconv.String(request.ResponseFormat.Type)
 	}
 
-	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s?access_token=%s", c.BaseURL+c.Path, c.AccessToken), nil, chatCompletionReq, c.ProxyURL, c.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s?access_token=%s", c.baseURL+c.path, c.accessToken), nil, chatCompletionReq, c.proxyURL, c.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream Baidu model: %s, error: %v", request.Model, err)
 		return responseChan, err

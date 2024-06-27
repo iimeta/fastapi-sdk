@@ -20,35 +20,37 @@ import (
 )
 
 type Client struct {
-	Key      string
-	BaseURL  string
-	Path     string
-	ProxyURL string
+	key                 string
+	baseURL             string
+	path                string
+	proxyURL            string
+	isSupportSystemRole *bool
 }
 
-func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL ...string) *Client {
+func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewClient Google model: %s, key: %s", model, key)
 
 	client := &Client{
-		Key:     key,
-		BaseURL: "https://generativelanguage.googleapis.com/v1beta",
-		Path:    "/models/" + model,
+		key:                 key,
+		baseURL:             "https://generativelanguage.googleapis.com/v1beta",
+		path:                "/models/" + model,
+		isSupportSystemRole: isSupportSystemRole,
 	}
 
 	if baseURL != "" {
 		logger.Infof(ctx, "NewClient Google model: %s, baseURL: %s", model, baseURL)
-		client.BaseURL = baseURL
+		client.baseURL = baseURL
 	}
 
 	if path != "" {
 		logger.Infof(ctx, "NewClient Google model: %s, path: %s", model, path)
-		client.Path = path
+		client.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
 		logger.Infof(ctx, "NewClient Google model: %s, proxyURL: %s", model, proxyURL[0])
-		client.ProxyURL = proxyURL[0]
+		client.proxyURL = proxyURL[0]
 	}
 
 	return client
@@ -64,9 +66,14 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion Google model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
-	contents := make([]model.Content, 0)
-	messages := common.HandleMessages(request.Messages, false)
+	var messages []model.ChatCompletionMessage
+	if c.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	} else {
+		messages = common.HandleMessages(request.Messages, false)
+	}
 
+	contents := make([]model.Content, 0)
 	for _, message := range messages {
 
 		role := message.Role
@@ -93,7 +100,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	chatCompletionRes := new(model.GoogleChatCompletionRes)
-	err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", c.BaseURL+c.Path, c.Key), nil, chatCompletionReq, &chatCompletionRes, c.ProxyURL)
+	err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", c.baseURL+c.path, c.key), nil, chatCompletionReq, &chatCompletionRes, c.proxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion Google model: %s, error: %v", request.Model, err)
 		return
@@ -141,9 +148,14 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
-	contents := make([]model.Content, 0)
-	messages := common.HandleMessages(request.Messages, false)
+	var messages []model.ChatCompletionMessage
+	if c.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	} else {
+		messages = common.HandleMessages(request.Messages, false)
+	}
 
+	contents := make([]model.Content, 0)
 	for _, message := range messages {
 
 		role := message.Role
@@ -169,7 +181,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		},
 	}
 
-	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", c.BaseURL+c.Path, c.Key), nil, chatCompletionReq, c.ProxyURL, c.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", c.baseURL+c.path, c.key), nil, chatCompletionReq, c.proxyURL, c.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream Google model: %s, error: %v", request.Model, err)
 		return responseChan, err

@@ -21,30 +21,30 @@ type Chat interface {
 	Image(ctx context.Context, request model.ImageRequest) (res model.ImageResponse, err error)
 }
 
-func NewClient(ctx context.Context, corp, model, key, baseURL, path string, proxyURL ...string) Chat {
+func NewClient(ctx context.Context, corp, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) Chat {
 
 	logger.Infof(ctx, "NewClient corp: %s, model: %s, key: %s", corp, model, key)
 
 	switch corp {
 	case consts.CORP_OPENAI:
-		return openai.NewClient(ctx, model, key, baseURL, path, proxyURL...)
+		return openai.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	case consts.CORP_AZURE:
-		return openai.NewAzureClient(ctx, model, key, baseURL, path, proxyURL...)
+		return openai.NewAzureClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	case consts.CORP_BAIDU:
-		return baidu.NewClient(ctx, model, key, baseURL, path, proxyURL...)
+		return baidu.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	case consts.CORP_XFYUN:
-		return xfyun.NewClient(ctx, model, key, baseURL, path, proxyURL...)
+		return xfyun.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	case consts.CORP_ALIYUN:
-		return aliyun.NewClient(ctx, model, key, baseURL, path, proxyURL...)
+		return aliyun.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	case consts.CORP_ZHIPUAI:
-		return zhipuai.NewClient(ctx, model, key, baseURL, path, proxyURL...)
+		return zhipuai.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	case consts.CORP_GOOGLE:
-		return google.NewClient(ctx, model, key, baseURL, path, proxyURL...)
+		return google.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	case consts.CORP_DEEPSEEK:
-		return deepseek.NewClient(ctx, model, key, baseURL, path, proxyURL...)
+		return deepseek.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	case consts.CORP_360AI:
-		return ai360.NewClient(ctx, model, key, baseURL, path, proxyURL...)
+		return ai360.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	}
 
-	return openai.NewClient(ctx, model, key, baseURL, path, proxyURL...)
+	return openai.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 }
