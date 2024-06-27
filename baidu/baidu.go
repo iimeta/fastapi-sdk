@@ -66,6 +66,10 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 	messages := common.HandleMessages(request.Messages, true)
 
+	if len(messages) == 1 && messages[0].Role == consts.ROLE_SYSTEM {
+		messages[0].Role = consts.ROLE_USER
+	}
+
 	chatCompletionReq := model.BaiduChatCompletionReq{
 		Messages:        messages,
 		MaxOutputTokens: request.MaxTokens,
@@ -131,6 +135,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}()
 
 	messages := common.HandleMessages(request.Messages, true)
+
+	if len(messages) == 1 && messages[0].Role == consts.ROLE_SYSTEM {
+		messages[0].Role = consts.ROLE_USER
+	}
 
 	chatCompletionReq := model.BaiduChatCompletionReq{
 		Messages:        messages,

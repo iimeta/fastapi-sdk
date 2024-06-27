@@ -23,7 +23,7 @@ func HandleMessages(messages []model.ChatCompletionMessage, isSupportSystemRole 
 		newMessages = newMessages[1:]
 	}
 
-	if len(newMessages)%2 == 0 {
+	if len(newMessages) != 0 && len(newMessages)%2 == 0 {
 		newMessages = newMessages[1:]
 	}
 

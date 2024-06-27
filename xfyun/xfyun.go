@@ -15,6 +15,7 @@ import (
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/gorilla/websocket"
+	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -51,9 +52,9 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 		Secret:      result[1],
 		Key:         result[2],
 		OriginalURL: "https://spark-api.xf-yun.com",
-		BaseURL:     "https://spark-api.xf-yun.com/v3.5",
+		BaseURL:     "https://spark-api.xf-yun.com/v4.0",
 		Path:        "/chat",
-		Domain:      "generalv3.5",
+		Domain:      "4.0Ultra",
 	}
 
 	if baseURL != "" {
@@ -64,6 +65,8 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, proxyURL .
 		version := baseURL[strings.LastIndex(baseURL, "/")+1:]
 
 		switch version {
+		case "v4.0":
+			client.Domain = "4.0Ultra"
 		case "v3.5":
 			client.Domain = "generalv3.5"
 		case "v3.1":
@@ -105,6 +108,12 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		logger.Infof(ctx, "ChatCompletion Xfyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, res.ConnTime, res.Duration, res.TotalTime)
 	}()
 
+	messages := common.HandleMessages(request.Messages, true)
+
+	if len(messages) == 1 && messages[0].Role == consts.ROLE_SYSTEM {
+		messages[0].Role = consts.ROLE_USER
+	}
+
 	maxTokens := request.MaxTokens
 	if maxTokens == 0 {
 		maxTokens = 4096
@@ -126,7 +135,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		},
 		Payload: model.Payload{
 			Message: &model.Message{
-				Text: request.Messages,
+				Text: messages,
 			},
 		},
 	}
@@ -224,6 +233,12 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
+	messages := common.HandleMessages(request.Messages, true)
+
+	if len(messages) == 1 && messages[0].Role == consts.ROLE_SYSTEM {
+		messages[0].Role = consts.ROLE_USER
+	}
+
 	maxTokens := request.MaxTokens
 	if maxTokens == 0 {
 		maxTokens = 4096
@@ -245,7 +260,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		},
 		Payload: model.Payload{
 			Message: &model.Message{
-				Text: request.Messages,
+				Text: messages,
 			},
 		},
 	}
