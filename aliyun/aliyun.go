@@ -251,14 +251,14 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			chatCompletionRes := new(model.AliyunChatCompletionRes)
 			if err := gjson.Unmarshal(streamResponse, &chatCompletionRes); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, streamResponse: %s, error: %v", request.Model, streamResponse, err)
 
 				end := gtime.Now().UnixMilli()
 				responseChan <- &model.ChatCompletionResponse{
 					ConnTime:  duration - now,
 					Duration:  end - duration,
 					TotalTime: end - now,
-					Error:     err,
+					Error:     errors.New(fmt.Sprintf("streamResponse: %s, error: %v", streamResponse, err)),
 				}
 
 				return

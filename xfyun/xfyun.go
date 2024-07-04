@@ -184,8 +184,8 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		}
 
 		if err = gjson.Unmarshal(message, &chatCompletionRes); err != nil {
-			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
-			return res, err
+			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, message: %s, error: %v", request.Model, message, err)
+			return res, errors.New(fmt.Sprintf("message: %s, error: %v", message, err))
 		}
 
 		if chatCompletionRes.Header.Code != 0 {
@@ -333,14 +333,14 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			chatCompletionRes := new(model.XfyunChatCompletionRes)
 			if err := gjson.Unmarshal(message, &chatCompletionRes); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, message: %s, error: %v", request.Model, message, err)
 
 				end := gtime.Now().UnixMilli()
 				responseChan <- &model.ChatCompletionResponse{
 					ConnTime:  duration - now,
 					Duration:  end - duration,
 					TotalTime: end - now,
-					Error:     err,
+					Error:     errors.New(fmt.Sprintf("message: %s, error: %v", message, err)),
 				}
 
 				return
