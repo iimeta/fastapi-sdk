@@ -1,20 +1,5 @@
 package model
 
-type MidjourneyProxy struct {
-	ApiSecret              string `json:"api_secret"`
-	ApiSecretHeader        string `json:"api_secret_header"`
-	ImagineUrl             string `json:"imagine_url"`
-	ChangeUrl              string `json:"change_url"`
-	DescribeUrl            string `json:"describe_url"`
-	BlendUrl               string `json:"blend_url"`
-	SwapFaceUrl            string `json:"swap_face_url"`
-	ActionUrl              string `json:"action_url"`
-	ModalUrl               string `json:"modal_url"`
-	ShortenUrl             string `json:"shorten_url"`
-	UploadDiscordImagesUrl string `json:"upload_discord_images_url"`
-	FetchUrl               string `json:"fetch_url"`
-}
-
 type MidjourneyProxyRequest struct {
 	Prompt        string         `json:"prompt,omitempty"`
 	Base64        string         `json:"base64,omitempty"`
@@ -54,6 +39,11 @@ type MidjourneyProxyResponse struct {
 	Result      string      `json:"result,omitempty"`
 	Properties  *Properties `json:"properties,omitempty"`
 	TotalTime   int64       `json:"-"`
+}
+
+type MidjourneyResponse struct {
+	Response  []byte `json:"response,omitempty"`
+	TotalTime int64  `json:"-"`
 }
 
 type MidjourneyProxyFetchResponse struct {
