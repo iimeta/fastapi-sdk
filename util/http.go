@@ -89,6 +89,40 @@ func HttpPost(ctx context.Context, url string, header map[string]string, data, r
 	return nil
 }
 
+func HttpGetByMidjourney(ctx context.Context, url string, header map[string]string, data g.Map, proxyURL string) ([]byte, error) {
+
+	logger.Debugf(ctx, "HttpGetByMidjourney url: %s, header: %+v, data: %s, proxyURL: %v", url, header, gjson.MustEncodeString(data), proxyURL)
+
+	client := g.Client()
+
+	if header != nil {
+		client.SetHeaderMap(header)
+	}
+
+	if proxyURL != "" {
+		client.SetProxy(proxyURL)
+	}
+
+	response, err := client.Get(ctx, url, data)
+	if response != nil {
+		defer func() {
+			if err := response.Close(); err != nil {
+				logger.Error(ctx, err)
+			}
+		}()
+	}
+
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	bytes := response.ReadAll()
+	logger.Debugf(ctx, "HttpGetByMidjourney url: %s, statusCode: %d, header: %+v, data: %s, response: %s", url, response.StatusCode, header, gjson.MustEncodeString(data), string(bytes))
+
+	return bytes, nil
+}
+
 func HttpPostByMidjourney(ctx context.Context, url string, header map[string]string, data interface{}, proxyURL string) ([]byte, error) {
 
 	logger.Debugf(ctx, "HttpPostByMidjourney url: %s, header: %+v, data: %s, proxyURL: %v", url, header, gjson.MustEncodeString(data), proxyURL)
