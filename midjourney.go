@@ -4,10 +4,10 @@ import (
 	"context"
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
-	"github.com/iimeta/fastapi-sdk/util"
 	"net/http"
 )
 
@@ -38,27 +38,61 @@ func NewMidjourneyClient(ctx context.Context, baseURL, path, apiSecret, apiSecre
 	return client
 }
 
-func (c *Client) Main(ctx context.Context, request interface{}) (res model.MidjourneyResponse, err error) {
+func (c *Client) Request(ctx context.Context, data interface{}) (res model.MidjourneyResponse, err error) {
 
-	logger.Infof(ctx, "Midjourney Main request: %s start", gjson.MustEncodeString(request))
+	logger.Infof(ctx, "Midjourney Request data: %s start", gjson.MustEncodeString(data))
 
 	now := gtime.Now().UnixMilli()
 	defer func() {
 		res.TotalTime = gtime.Now().UnixMilli() - now
-		logger.Infof(ctx, "Midjourney Main request: %s totalTime: %d ms", gjson.MustEncodeString(request), gtime.Now().UnixMilli()-now)
+		logger.Infof(ctx, "Midjourney Request data: %s totalTime: %d ms", gjson.MustEncodeString(data), gtime.Now().UnixMilli()-now)
 	}()
 
-	if c.method == http.MethodGet {
-		if res.Response, err = util.HttpGetByMidjourney(ctx, c.baseURL+c.path, g.MapStrStr{c.apiSecretHeader: c.apiSecret}, nil, c.proxyURL); err != nil {
-			logger.Error(ctx, err)
-			return res, err
-		}
-	} else {
-		if res.Response, err = util.HttpPostByMidjourney(ctx, c.baseURL+c.path, g.MapStrStr{c.apiSecretHeader: c.apiSecret}, request, c.proxyURL); err != nil {
-			logger.Error(ctx, err)
-			return res, err
-		}
+	if res.Response, err = request(ctx, c.method, c.baseURL+c.path, c.apiSecretHeader, c.apiSecret, data, c.proxyURL); err != nil {
+		logger.Error(ctx, err)
+		return res, err
 	}
 
 	return res, nil
+}
+
+func request(ctx context.Context, method, url, apiSecretHeader, apiSecret string, data interface{}, proxyURL string) ([]byte, error) {
+
+	logger.Debugf(ctx, "Midjourney Request url: %s, apiSecretHeader: %s, apiSecret: %s, data: %s, proxyURL: %v", url, apiSecretHeader, apiSecret, gjson.MustEncodeString(data), proxyURL)
+
+	var (
+		client   = g.Client()
+		response *gclient.Response
+		err      error
+	)
+
+	client.SetHeaderMap(g.MapStrStr{apiSecretHeader: apiSecret})
+
+	if proxyURL != "" {
+		client.SetProxy(proxyURL)
+	}
+
+	if method == http.MethodGet {
+		response, err = client.Get(ctx, url, data)
+	} else {
+		response, err = client.ContentJson().Post(ctx, url, data)
+	}
+
+	if response != nil {
+		defer func() {
+			if err := response.Close(); err != nil {
+				logger.Error(ctx, err)
+			}
+		}()
+	}
+
+	if err != nil {
+		logger.Error(ctx, err)
+		return nil, err
+	}
+
+	bytes := response.ReadAll()
+	logger.Debugf(ctx, "Midjourney Request url: %s, statusCode: %d, apiSecretHeader: %s, apiSecret: %s, data: %s, response: %s", url, response.StatusCode, apiSecretHeader, apiSecret, gjson.MustEncodeString(data), string(bytes))
+
+	return bytes, nil
 }
