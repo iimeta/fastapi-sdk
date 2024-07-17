@@ -89,7 +89,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	if chatCompletionReq.Messages[0].Role == consts.ROLE_SYSTEM {
-		chatCompletionReq.System = chatCompletionReq.Messages[0].Content
+		chatCompletionReq.System = gconv.String(chatCompletionReq.Messages[0].Content)
 		chatCompletionReq.Messages = chatCompletionReq.Messages[1:]
 	}
 
@@ -164,7 +164,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}
 
 	if chatCompletionReq.Messages[0].Role == consts.ROLE_SYSTEM {
-		chatCompletionReq.System = chatCompletionReq.Messages[0].Content
+		chatCompletionReq.System = gconv.String(chatCompletionReq.Messages[0].Content)
 		chatCompletionReq.Messages = chatCompletionReq.Messages[1:]
 	}
 

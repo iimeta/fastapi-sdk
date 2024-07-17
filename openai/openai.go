@@ -3,9 +3,11 @@ package openai
 import (
 	"context"
 	"errors"
+	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -109,15 +111,24 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 	messages := make([]openai.ChatCompletionMessage, 0)
 	for _, message := range newMessages {
-		messages = append(messages, openai.ChatCompletionMessage{
+
+		chatCompletionMessage := openai.ChatCompletionMessage{
 			Role:         message.Role,
-			Content:      message.Content,
-			MultiContent: message.MultiContent,
 			Name:         message.Name,
 			FunctionCall: message.FunctionCall,
 			ToolCalls:    message.ToolCalls,
 			ToolCallID:   message.ToolCallID,
-		})
+		}
+
+		if content, ok := message.Content.([]interface{}); ok {
+			if err = gjson.Unmarshal(gjson.MustEncode(content), &chatCompletionMessage.MultiContent); err != nil {
+				return res, err
+			}
+		} else {
+			chatCompletionMessage.Content = gconv.String(message.Content)
+		}
+
+		messages = append(messages, chatCompletionMessage)
 	}
 
 	response, err := c.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
@@ -194,15 +205,24 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 	messages := make([]openai.ChatCompletionMessage, 0)
 	for _, message := range newMessages {
-		messages = append(messages, openai.ChatCompletionMessage{
+
+		chatCompletionMessage := openai.ChatCompletionMessage{
 			Role:         message.Role,
-			Content:      message.Content,
-			MultiContent: message.MultiContent,
 			Name:         message.Name,
 			FunctionCall: message.FunctionCall,
 			ToolCalls:    message.ToolCalls,
 			ToolCallID:   message.ToolCallID,
-		})
+		}
+
+		if content, ok := message.Content.(map[string]any); ok {
+			if err = gjson.Unmarshal(gjson.MustEncode(content), &chatCompletionMessage.MultiContent); err != nil {
+				return responseChan, err
+			}
+		} else {
+			chatCompletionMessage.Content = gconv.String(message.Content)
+		}
+
+		messages = append(messages, chatCompletionMessage)
 	}
 
 	stream, err := c.client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{

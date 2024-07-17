@@ -54,7 +54,7 @@ type ChatCompletionResponse struct {
 
 type ChatCompletionMessage struct {
 	Role         string `json:"role"`
-	Content      string `json:"content"`
+	Content      any    `json:"content"`
 	MultiContent []openai.ChatMessagePart
 
 	// This property isn't in the official documentation, but it's in

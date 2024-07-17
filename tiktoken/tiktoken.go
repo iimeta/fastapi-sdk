@@ -1,6 +1,7 @@
 package tiktoken
 
 import (
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/pkoukk/tiktoken-go"
 )
@@ -43,7 +44,7 @@ func NumTokensFromMessages(model string, messages []model.ChatCompletionMessage)
 
 	for _, message := range messages {
 		numTokens += tokensPerMessage
-		numTokens += len(tkm.Encode(message.Content, nil, nil))
+		numTokens += len(tkm.Encode(gconv.String(message.Content), nil, nil))
 		numTokens += len(tkm.Encode(message.Role, nil, nil))
 		if message.Name != "" {
 			numTokens += len(tkm.Encode(message.Name, nil, nil))

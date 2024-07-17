@@ -8,6 +8,7 @@ import (
 	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/consts"
@@ -85,7 +86,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		contents = append(contents, model.Content{
 			Role: role,
 			Parts: []model.Part{{
-				Text: message.Content,
+				Text: gconv.String(message.Content),
 			}},
 		})
 	}
@@ -167,7 +168,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		contents = append(contents, model.Content{
 			Role: role,
 			Parts: []model.Part{{
-				Text: message.Content,
+				Text: gconv.String(message.Content),
 			}},
 		})
 	}
