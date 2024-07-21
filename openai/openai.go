@@ -214,7 +214,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			ToolCallID:   message.ToolCallID,
 		}
 
-		if content, ok := message.Content.(map[string]any); ok {
+		if content, ok := message.Content.([]interface{}); ok {
 			if err = gjson.Unmarshal(gjson.MustEncode(content), &chatCompletionMessage.MultiContent); err != nil {
 				return responseChan, err
 			}
