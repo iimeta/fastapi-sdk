@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-type Client struct {
+type MidjourneyClient struct {
 	baseURL         string
 	path            string
 	apiSecret       string
@@ -20,9 +20,9 @@ type Client struct {
 	method          string
 }
 
-func NewMidjourneyClient(ctx context.Context, baseURL, path, apiSecret, apiSecretHeader, method string, proxyURL ...string) *Client {
+func NewMidjourneyClient(ctx context.Context, baseURL, path, apiSecret, apiSecretHeader, method string, proxyURL ...string) *MidjourneyClient {
 
-	client := &Client{
+	client := &MidjourneyClient{
 		baseURL:         baseURL,
 		path:            path,
 		apiSecret:       apiSecret,
@@ -38,7 +38,7 @@ func NewMidjourneyClient(ctx context.Context, baseURL, path, apiSecret, apiSecre
 	return client
 }
 
-func (c *Client) Request(ctx context.Context, data interface{}) (res model.MidjourneyResponse, err error) {
+func (c *MidjourneyClient) Request(ctx context.Context, data interface{}) (res model.MidjourneyResponse, err error) {
 
 	logger.Infof(ctx, "Midjourney Request data: %s start", gjson.MustEncodeString(data))
 
