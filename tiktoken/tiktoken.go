@@ -1,6 +1,7 @@
 package tiktoken
 
 import (
+	"encoding/json"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/pkoukk/tiktoken-go"
@@ -43,9 +44,16 @@ func NumTokensFromMessages(model string, messages []model.ChatCompletionMessage)
 	}
 
 	for _, message := range messages {
+
 		numTokens += tokensPerMessage
-		numTokens += len(tkm.Encode(gconv.String(message.Content), nil, nil))
+
+		content := gconv.String(message.Content)
+		if !isArray(content) { // 忽略数组情况, 如: 识图情况下传入base64图片内容
+			numTokens += len(tkm.Encode(content, nil, nil))
+		}
+
 		numTokens += len(tkm.Encode(message.Role, nil, nil))
+
 		if message.Name != "" {
 			numTokens += len(tkm.Encode(message.Name, nil, nil))
 			numTokens += tokensPerName
@@ -59,4 +67,16 @@ func NumTokensFromMessages(model string, messages []model.ChatCompletionMessage)
 
 func EncodingForModel(model string) (*tiktoken.Tiktoken, error) {
 	return tiktoken.EncodingForModel(model)
+}
+
+func isArray(str string) bool {
+
+	var result interface{}
+	if err := json.Unmarshal([]byte(str), &result); err != nil {
+		return false
+	}
+
+	_, ok := result.([]interface{})
+
+	return ok
 }
