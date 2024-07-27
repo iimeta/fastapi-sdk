@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/model"
-	"github.com/pkoukk/tiktoken-go"
+	"github.com/iimeta/tiktoken-go"
 )
 
 func NumTokensFromString(model, text string) (int, error) {
