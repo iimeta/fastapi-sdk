@@ -2,6 +2,7 @@ package tiktoken
 
 import (
 	"encoding/json"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/tiktoken-go"
@@ -46,12 +47,7 @@ func NumTokensFromMessages(model string, messages []model.ChatCompletionMessage)
 	for _, message := range messages {
 
 		numTokens += tokensPerMessage
-
-		content := gconv.String(message.Content)
-		if !isArray(content) { // 忽略数组情况, 如: 识图情况下传入base64图片内容
-			numTokens += len(tkm.Encode(content, nil, nil))
-		}
-
+		numTokens += NumTokensFromContent(tkm, model, message.Content)
 		numTokens += len(tkm.Encode(message.Role, nil, nil))
 
 		if message.Name != "" {
@@ -69,14 +65,39 @@ func EncodingForModel(model string) (*tiktoken.Tiktoken, error) {
 	return tiktoken.EncodingForModel(model)
 }
 
-func isArray(str string) bool {
+func NumTokensFromContent(tkm *tiktoken.Tiktoken, model string, content any) (numTokens int) {
 
-	var result interface{}
-	if err := json.Unmarshal([]byte(str), &result); err != nil {
-		return false
+	text := gconv.String(content)
+
+	// 传入base64图片内容
+	if gstr.Contains(text, "data:image/") {
+
+		var data interface{}
+		if err := json.Unmarshal([]byte(text), &data); err != nil {
+			return len(tkm.Encode(text, nil, nil))
+		}
+
+		if result, ok := data.([]interface{}); ok {
+			for _, value := range result {
+				content := value.(map[string]interface{})
+				if content["type"] == "text" {
+					numTokens += len(tkm.Encode(gconv.String(content["text"]), nil, nil))
+				} else if content["type"] == "image_url" {
+					// 兼容目前计算错误情况
+					if model == "gpt-4o-mini" {
+						numTokens += 1023 * 36
+					} else {
+						// 其它多模态模型
+						numTokens += 1023
+					}
+				} else {
+					numTokens += len(tkm.Encode(gconv.String(content), nil, nil))
+				}
+			}
+		}
+
+		return numTokens
 	}
 
-	_, ok := result.([]interface{})
-
-	return ok
+	return len(tkm.Encode(text, nil, nil))
 }

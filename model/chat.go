@@ -34,6 +34,10 @@ type ChatCompletionRequest struct {
 	Tools        []openai.Tool               `json:"tools,omitempty"`
 	// This can be either a string or an ToolChoice object.
 	ToolChoice any `json:"tool_choice,omitempty"`
+	// Options for streaming response. Only set this when you set stream: true.
+	StreamOptions *openai.StreamOptions `json:"stream_options,omitempty"`
+	// Disable the default behavior of parallel tool calls by setting it: false.
+	ParallelToolCalls any `json:"parallel_tool_calls,omitempty"`
 }
 
 // ChatCompletionResponse represents a response structure for chat completion API.

@@ -132,26 +132,27 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	response, err := c.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model:            request.Model,
-		Messages:         messages,
-		MaxTokens:        request.MaxTokens,
-		Temperature:      request.Temperature,
-		TopP:             request.TopP,
-		N:                request.N,
-		Stream:           request.Stream,
-		Stop:             request.Stop,
-		PresencePenalty:  request.PresencePenalty,
-		ResponseFormat:   request.ResponseFormat,
-		Seed:             request.Seed,
-		FrequencyPenalty: request.FrequencyPenalty,
-		LogitBias:        request.LogitBias,
-		LogProbs:         request.LogProbs,
-		TopLogProbs:      request.TopLogProbs,
-		User:             request.User,
-		Functions:        request.Functions,
-		FunctionCall:     request.FunctionCall,
-		Tools:            request.Tools,
-		ToolChoice:       request.ToolChoice,
+		Model:             request.Model,
+		Messages:          messages,
+		MaxTokens:         request.MaxTokens,
+		Temperature:       request.Temperature,
+		TopP:              request.TopP,
+		N:                 request.N,
+		Stream:            request.Stream,
+		Stop:              request.Stop,
+		PresencePenalty:   request.PresencePenalty,
+		ResponseFormat:    request.ResponseFormat,
+		Seed:              request.Seed,
+		FrequencyPenalty:  request.FrequencyPenalty,
+		LogitBias:         request.LogitBias,
+		LogProbs:          request.LogProbs,
+		TopLogProbs:       request.TopLogProbs,
+		User:              request.User,
+		Functions:         request.Functions,
+		FunctionCall:      request.FunctionCall,
+		Tools:             request.Tools,
+		ToolChoice:        request.ToolChoice,
+		ParallelToolCalls: request.ParallelToolCalls,
 	})
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion OpenAI model: %s, error: %v", request.Model, err)
@@ -225,27 +226,36 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		messages = append(messages, chatCompletionMessage)
 	}
 
+	// 默认让流式返回usage
+	if request.StreamOptions == nil {
+		request.StreamOptions = &openai.StreamOptions{
+			IncludeUsage: true,
+		}
+	}
+
 	stream, err := c.client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
-		Model:            request.Model,
-		Messages:         messages,
-		MaxTokens:        request.MaxTokens,
-		Temperature:      request.Temperature,
-		TopP:             request.TopP,
-		N:                request.N,
-		Stream:           request.Stream,
-		Stop:             request.Stop,
-		PresencePenalty:  request.PresencePenalty,
-		ResponseFormat:   request.ResponseFormat,
-		Seed:             request.Seed,
-		FrequencyPenalty: request.FrequencyPenalty,
-		LogitBias:        request.LogitBias,
-		LogProbs:         request.LogProbs,
-		TopLogProbs:      request.TopLogProbs,
-		User:             request.User,
-		Functions:        request.Functions,
-		FunctionCall:     request.FunctionCall,
-		Tools:            request.Tools,
-		ToolChoice:       request.ToolChoice,
+		Model:             request.Model,
+		Messages:          messages,
+		MaxTokens:         request.MaxTokens,
+		Temperature:       request.Temperature,
+		TopP:              request.TopP,
+		N:                 request.N,
+		Stream:            request.Stream,
+		Stop:              request.Stop,
+		PresencePenalty:   request.PresencePenalty,
+		ResponseFormat:    request.ResponseFormat,
+		Seed:              request.Seed,
+		FrequencyPenalty:  request.FrequencyPenalty,
+		LogitBias:         request.LogitBias,
+		LogProbs:          request.LogProbs,
+		TopLogProbs:       request.TopLogProbs,
+		User:              request.User,
+		Functions:         request.Functions,
+		FunctionCall:      request.FunctionCall,
+		Tools:             request.Tools,
+		ToolChoice:        request.ToolChoice,
+		StreamOptions:     request.StreamOptions,
+		ParallelToolCalls: request.ParallelToolCalls,
 	})
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
@@ -313,19 +323,20 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				}
 			}
 
-			if errors.Is(err, io.EOF) || response.Choices[0].FinishReason == openai.FinishReasonStop {
+			if errors.Is(err, io.EOF) { // || response.Choices[0].FinishReason == openai.FinishReasonStop
 				logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s finished", request.Model)
 
-				if len(response.Choices) == 0 {
-					response.Choices = append(response.Choices, model.ChatCompletionChoice{
-						Delta:        new(openai.ChatCompletionStreamChoiceDelta),
-						FinishReason: openai.FinishReasonStop,
-					})
-				}
+				//if len(response.Choices) == 0 {
+				//	response.Choices = append(response.Choices, model.ChatCompletionChoice{
+				//		Delta:        new(openai.ChatCompletionStreamChoiceDelta),
+				//		FinishReason: openai.FinishReasonStop,
+				//	})
+				//}
 
 				end := gtime.Now().UnixMilli()
 				response.Duration = end - duration
 				response.TotalTime = end - now
+				response.Error = io.EOF
 				responseChan <- response
 
 				return
