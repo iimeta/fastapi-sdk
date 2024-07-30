@@ -1,6 +1,6 @@
 package model
 
-import "github.com/sashabaranov/go-openai"
+import "github.com/iimeta/go-openai"
 
 type GoogleChatCompletionReq struct {
 	Contents         []Content        `json:"contents"`

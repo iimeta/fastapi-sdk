@@ -16,7 +16,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/iimeta/fastapi-sdk/util"
-	"github.com/sashabaranov/go-openai"
+	"github.com/iimeta/go-openai"
 	"io"
 )
 

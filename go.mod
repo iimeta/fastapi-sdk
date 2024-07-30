@@ -2,12 +2,14 @@ module github.com/iimeta/fastapi-sdk
 
 go 1.22
 
+replace github.com/iimeta/go-openai => ../go-openai
+
 require (
 	github.com/gogf/gf/v2 v2.7.2
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/gorilla/websocket v1.5.3
+	github.com/iimeta/go-openai v0.0.0-20240730040448-2f9841dafa42
 	github.com/iimeta/tiktoken-go v0.0.0-20240727093849-292e86033509
-	github.com/sashabaranov/go-openai v1.27.0
 )
 
 require (

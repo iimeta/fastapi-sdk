@@ -1,6 +1,6 @@
 package model
 
-import "github.com/sashabaranov/go-openai"
+import "github.com/iimeta/go-openai"
 
 type AliyunChatCompletionReq struct {
 	// 指定用于对话的通义千问模型名

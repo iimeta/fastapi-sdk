@@ -5,7 +5,7 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
-	"github.com/sashabaranov/go-openai"
+	"github.com/iimeta/go-openai"
 	"net/http"
 	"net/url"
 )

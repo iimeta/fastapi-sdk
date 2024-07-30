@@ -12,7 +12,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
-	"github.com/sashabaranov/go-openai"
+	"github.com/iimeta/go-openai"
 	"io"
 	"net/http"
 	"net/url"

@@ -1,6 +1,6 @@
 package model
 
-import "github.com/sashabaranov/go-openai"
+import "github.com/iimeta/go-openai"
 
 // ChatCompletionRequest represents a request structure for chat completion API.
 type ChatCompletionRequest struct {

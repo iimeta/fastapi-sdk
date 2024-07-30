@@ -1,6 +1,6 @@
 package model
 
-import "github.com/sashabaranov/go-openai"
+import "github.com/iimeta/go-openai"
 
 type XfyunChatCompletionReq struct {
 	Header    Header    `json:"header"`

@@ -3,16 +3,14 @@ package openai
 import (
 	"context"
 	"errors"
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
-	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
-	"github.com/sashabaranov/go-openai"
+	"github.com/iimeta/go-openai"
 	"io"
 	"net/http"
 	"net/url"
@@ -115,18 +113,19 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		chatCompletionMessage := openai.ChatCompletionMessage{
 			Role:         message.Role,
 			Name:         message.Name,
+			Content:      message.Content,
 			FunctionCall: message.FunctionCall,
 			ToolCalls:    message.ToolCalls,
 			ToolCallID:   message.ToolCallID,
 		}
 
-		if content, ok := message.Content.([]interface{}); ok {
-			if err = gjson.Unmarshal(gjson.MustEncode(content), &chatCompletionMessage.MultiContent); err != nil {
-				return res, err
-			}
-		} else {
-			chatCompletionMessage.Content = gconv.String(message.Content)
-		}
+		//if content, ok := message.Content.([]interface{}); ok {
+		//	if err = gjson.Unmarshal(gjson.MustEncode(content), &chatCompletionMessage.MultiContent); err != nil {
+		//		return res, err
+		//	}
+		//} else {
+		//	chatCompletionMessage.Content = gconv.String(message.Content)
+		//}
 
 		messages = append(messages, chatCompletionMessage)
 	}
@@ -210,24 +209,25 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		chatCompletionMessage := openai.ChatCompletionMessage{
 			Role:         message.Role,
 			Name:         message.Name,
+			Content:      message.Content,
 			FunctionCall: message.FunctionCall,
 			ToolCalls:    message.ToolCalls,
 			ToolCallID:   message.ToolCallID,
 		}
 
-		if content, ok := message.Content.([]interface{}); ok {
-			if err = gjson.Unmarshal(gjson.MustEncode(content), &chatCompletionMessage.MultiContent); err != nil {
-				return responseChan, err
-			}
-		} else {
-			chatCompletionMessage.Content = gconv.String(message.Content)
-		}
+		//if content, ok := message.Content.([]interface{}); ok {
+		//	if err = gjson.Unmarshal(gjson.MustEncode(content), &chatCompletionMessage.MultiContent); err != nil {
+		//		return responseChan, err
+		//	}
+		//} else {
+		//	chatCompletionMessage.Content = gconv.String(message.Content)
+		//}
 
 		messages = append(messages, chatCompletionMessage)
 	}
 
 	// 默认让流式返回usage
-	if request.StreamOptions == nil {
+	if request.Tools == nil && request.StreamOptions == nil {
 		request.StreamOptions = &openai.StreamOptions{
 			IncludeUsage: true,
 		}
