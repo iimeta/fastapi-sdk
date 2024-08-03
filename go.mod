@@ -2,8 +2,6 @@ module github.com/iimeta/fastapi-sdk
 
 go 1.22
 
-replace github.com/iimeta/go-openai => ../go-openai
-
 require (
 	github.com/gogf/gf/v2 v2.7.2
 	github.com/golang-jwt/jwt/v5 v5.2.1
