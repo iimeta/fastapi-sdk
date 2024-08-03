@@ -26,6 +26,7 @@ type Client struct {
 	path                string
 	proxyURL            string
 	isSupportSystemRole *bool
+	header              map[string]string
 }
 
 func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
@@ -54,6 +55,11 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 		client.proxyURL = proxyURL[0]
 	}
 
+	client.header = make(map[string]string)
+	client.header["x-api-key"] = key
+	client.header["Authorization"] = "Bearer " + key
+	client.header["anthropic-version"] = "2023-06-01"
+
 	return client
 }
 
@@ -75,15 +81,16 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	chatCompletionReq := model.AnthropicChatCompletionReq{
-		Model:         request.Model,
-		Messages:      messages,
-		MaxTokens:     request.MaxTokens,
-		StopSequences: request.Stop,
-		Stream:        request.Stream,
-		Temperature:   request.Temperature,
-		ToolChoice:    request.ToolChoice,
-		TopK:          request.TopK,
-		TopP:          request.TopP,
+		Model:            request.Model,
+		Messages:         messages,
+		MaxTokens:        request.MaxTokens,
+		StopSequences:    request.Stop,
+		Stream:           request.Stream,
+		Temperature:      request.Temperature,
+		ToolChoice:       request.ToolChoice,
+		TopK:             request.TopK,
+		TopP:             request.TopP,
+		AnthropicVersion: "vertex-2023-10-16",
 	}
 
 	if messages[0].Role == consts.ROLE_SYSTEM {
@@ -101,33 +108,17 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		})
 	}
 
-	if chatCompletionReq.TopP == 1 {
-		chatCompletionReq.TopP -= 0.01
-	} else if chatCompletionReq.TopP == 0 {
-		chatCompletionReq.TopP += 0.01
+	if chatCompletionReq.MaxTokens == 0 {
+		chatCompletionReq.MaxTokens = 4096
 	}
-
-	if chatCompletionReq.Temperature == 1 {
-		chatCompletionReq.Temperature -= 0.01
-	} else if chatCompletionReq.Temperature == 0 {
-		chatCompletionReq.Temperature += 0.01
-	}
-
-	if chatCompletionReq.MaxTokens == 1 {
-		chatCompletionReq.MaxTokens = 2
-	}
-
-	header := make(map[string]string)
-	header["x-api-key"] = c.key
-	header["anthropic-version"] = "2023-06-01"
 
 	chatCompletionRes := new(model.AnthropicChatCompletionRes)
-	if err = util.HttpPost(ctx, c.baseURL+c.path, header, chatCompletionReq, &chatCompletionRes, c.proxyURL); err != nil {
+	if err = util.HttpPost(ctx, c.baseURL+c.path, c.header, chatCompletionReq, &chatCompletionRes, c.proxyURL); err != nil {
 		logger.Errorf(ctx, "ChatCompletion Anthropic model: %s, error: %v", request.Model, err)
 		return
 	}
 
-	if chatCompletionRes.Error.Code != "" && chatCompletionRes.Error.Code != "200" {
+	if chatCompletionRes.Error.Type != "" {
 		logger.Errorf(ctx, "ChatCompletion Anthropic model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = c.apiErrorHandler(chatCompletionRes)
@@ -139,17 +130,36 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	res = model.ChatCompletionResponse{
 		ID:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
 		Object:  consts.COMPLETION_OBJECT,
-		Created: chatCompletionRes.Created,
+		Created: gtime.Now().Unix(),
 		Model:   request.Model,
-		Usage:   chatCompletionRes.Usage,
+		Usage: &model.Usage{
+			PromptTokens:     chatCompletionRes.Usage.InputTokens,
+			CompletionTokens: chatCompletionRes.Usage.OutputTokens,
+			TotalTokens:      chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
+		},
 	}
 
-	for _, choice := range chatCompletionRes.Choices {
-		res.Choices = append(res.Choices, model.ChatCompletionChoice{
-			Index:        choice.Index,
-			Message:      choice.Message,
-			FinishReason: choice.FinishReason,
-		})
+	for _, content := range chatCompletionRes.Content {
+		if content.Type == consts.DELTA_TYPE_INPUT_JSON {
+			res.Choices = append(res.Choices, model.ChatCompletionChoice{
+				Delta: &openai.ChatCompletionStreamChoiceDelta{
+					Role: consts.ROLE_ASSISTANT,
+					ToolCalls: []openai.ToolCall{{
+						Function: openai.FunctionCall{
+							Arguments: content.PartialJson,
+						},
+					}},
+				},
+			})
+		} else {
+			res.Choices = append(res.Choices, model.ChatCompletionChoice{
+				Message: &openai.ChatCompletionMessage{
+					Role:    chatCompletionRes.Role,
+					Content: content.Text,
+				},
+				FinishReason: "stop",
+			})
+		}
 	}
 
 	return res, nil
@@ -174,39 +184,38 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}
 
 	chatCompletionReq := model.AnthropicChatCompletionReq{
-		Model:       request.Model,
-		Messages:    messages,
-		MaxTokens:   request.MaxTokens,
-		Temperature: request.Temperature,
-		TopP:        request.TopP,
-		Stream:      request.Stream,
-		Stop:        request.Stop,
-		Tools:       request.Tools,
-		ToolChoice:  request.ToolChoice,
-		UserId:      request.User,
+		Model:            request.Model,
+		Messages:         messages,
+		MaxTokens:        request.MaxTokens,
+		StopSequences:    request.Stop,
+		Stream:           request.Stream,
+		Temperature:      request.Temperature,
+		ToolChoice:       request.ToolChoice,
+		TopK:             request.TopK,
+		TopP:             request.TopP,
+		AnthropicVersion: "vertex-2023-10-16",
 	}
 
-	if chatCompletionReq.TopP == 1 {
-		chatCompletionReq.TopP -= 0.01
-	} else if chatCompletionReq.TopP == 0 {
-		chatCompletionReq.TopP += 0.01
+	if messages[0].Role == consts.ROLE_SYSTEM {
+		chatCompletionReq.System = gconv.String(messages[0].Content)
+		messages = messages[1:]
 	}
 
-	if chatCompletionReq.Temperature == 1 {
-		chatCompletionReq.Temperature -= 0.01
-	} else if chatCompletionReq.Temperature == 0 {
-		chatCompletionReq.Temperature += 0.01
+	chatCompletionReq.Metadata.UserId = request.User
+
+	for _, tool := range request.Tools {
+		chatCompletionReq.Tools = append(chatCompletionReq.Tools, model.AnthropicTool{
+			Name:        tool.Function.Name,
+			Description: tool.Function.Description,
+			InputSchema: tool.Function.Parameters,
+		})
 	}
 
-	if chatCompletionReq.MaxTokens == 1 {
-		chatCompletionReq.MaxTokens = 2
+	if chatCompletionReq.MaxTokens == 0 {
+		chatCompletionReq.MaxTokens = 4096
 	}
 
-	header := make(map[string]string)
-	header["x-api-key"] = c.key
-	header["anthropic-version"] = "2023-06-01"
-
-	stream, err := util.SSEClient(ctx, c.baseURL+c.path, header, chatCompletionReq, c.proxyURL, c.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, c.baseURL+c.path, c.header, chatCompletionReq, c.proxyURL, c.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream Anthropic model: %s, error: %v", request.Model, err)
 		return responseChan, err
@@ -262,7 +271,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				return
 			}
 
-			if chatCompletionRes.Error.Code != "" && chatCompletionRes.Error.Code != "200" {
+			if chatCompletionRes.Error.Type != "" {
 				logger.Errorf(ctx, "ChatCompletionStream Anthropic model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
 				err = c.apiErrorHandler(chatCompletionRes)
@@ -282,18 +291,43 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			response := &model.ChatCompletionResponse{
 				ID:       consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
 				Object:   consts.COMPLETION_STREAM_OBJECT,
-				Created:  chatCompletionRes.Created,
+				Created:  gtime.Now().Unix(),
 				Model:    request.Model,
-				Usage:    chatCompletionRes.Usage,
 				ConnTime: duration - now,
 			}
 
-			for _, choice := range chatCompletionRes.Choices {
+			if chatCompletionRes.Usage != nil {
+				response.Usage = &model.Usage{
+					PromptTokens:     chatCompletionRes.Usage.InputTokens,
+					CompletionTokens: chatCompletionRes.Usage.OutputTokens,
+					TotalTokens:      chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
+				}
+			}
+
+			if chatCompletionRes.Delta.StopReason != "" {
 				response.Choices = append(response.Choices, model.ChatCompletionChoice{
-					Index:        choice.Index,
-					Delta:        choice.Delta,
-					FinishReason: choice.FinishReason,
+					FinishReason: openai.FinishReasonStop,
 				})
+			} else {
+				if chatCompletionRes.Delta.Type == consts.DELTA_TYPE_INPUT_JSON {
+					response.Choices = append(response.Choices, model.ChatCompletionChoice{
+						Delta: &openai.ChatCompletionStreamChoiceDelta{
+							Role: consts.ROLE_ASSISTANT,
+							ToolCalls: []openai.ToolCall{{
+								Function: openai.FunctionCall{
+									Arguments: chatCompletionRes.Delta.PartialJson,
+								},
+							}},
+						},
+					})
+				} else {
+					response.Choices = append(response.Choices, model.ChatCompletionChoice{
+						Delta: &openai.ChatCompletionStreamChoiceDelta{
+							Role:    consts.ROLE_ASSISTANT,
+							Content: chatCompletionRes.Delta.Text,
+						},
+					})
+				}
 			}
 
 			if errors.Is(err, io.EOF) || response.Choices[0].FinishReason != "" {
@@ -350,11 +384,7 @@ func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Resp
 		return reqErr
 	}
 
-	switch errRes.Error.Code {
-	case "1261":
-		return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
-	case "1113":
-		return sdkerr.ERR_INSUFFICIENT_QUOTA
+	switch errRes.Error.Type {
 	}
 
 	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, gjson.MustEncodeString(errRes.Error))))
@@ -362,12 +392,8 @@ func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Resp
 
 func (c *Client) apiErrorHandler(response *model.AnthropicChatCompletionRes) error {
 
-	switch response.Error.Code {
-	case "1261":
-		return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
-	case "1113":
-		return sdkerr.ERR_INSUFFICIENT_QUOTA
+	switch response.Error.Type {
 	}
 
-	return sdkerr.NewApiError(500, response.Error.Code, gjson.MustEncodeString(response), "api_error", "")
+	return sdkerr.NewApiError(500, response.Error.Type, gjson.MustEncodeString(response), "api_error", "")
 }

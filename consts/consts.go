@@ -11,6 +11,7 @@ const (
 	CORP_DEEPSEEK   = "DeepSeek"
 	CORP_360AI      = "360AI"
 	CORP_MIDJOURNEY = "Midjourney"
+	CORP_ANTHROPIC  = "Anthropic"
 )
 
 const (
@@ -20,6 +21,11 @@ const (
 	ROLE_FUNCTION  = "function"
 	ROLE_TOOL      = "tool"
 	ROLE_MODEL     = "model"
+)
+
+const (
+	DELTA_TYPE_TEXT       = "text_delta"
+	DELTA_TYPE_INPUT_JSON = "input_json_delta"
 )
 
 const (
