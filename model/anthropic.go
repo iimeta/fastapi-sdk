@@ -1,10 +1,10 @@
 package model
 
 type AnthropicChatCompletionReq struct {
-	Model            string                  `json:"model"`
+	Model            string                  `json:"model,omitempty"`
 	Messages         []ChatCompletionMessage `json:"messages"`
 	MaxTokens        int                     `json:"max_tokens,omitempty"`
-	Metadata         Metadata                `json:"metadata,omitempty"`
+	Metadata         *Metadata               `json:"metadata,omitempty"`
 	StopSequences    []string                `json:"stop_sequences,omitempty"`
 	Stream           bool                    `json:"stream,omitempty"`
 	System           string                  `json:"system,omitempty"`
@@ -36,14 +36,14 @@ type Metadata struct {
 }
 
 type AnthropicMessage struct {
-	Id           string         `json:"id"`
-	Type         string         `json:"type"`
-	Role         string         `json:"role"`
-	Model        string         `json:"model"`
-	Content      []interface{}  `json:"content"`
-	StopReason   interface{}    `json:"stop_reason"`
-	StopSequence interface{}    `json:"stop_sequence"`
-	Usage        AnthropicUsage `json:"usage"`
+	Id           string          `json:"id"`
+	Type         string          `json:"type"`
+	Role         string          `json:"role"`
+	Model        string          `json:"model"`
+	Content      []interface{}   `json:"content"`
+	StopReason   interface{}     `json:"stop_reason"`
+	StopSequence interface{}     `json:"stop_sequence"`
+	Usage        *AnthropicUsage `json:"usage"`
 }
 
 type AnthropicContent struct {
@@ -71,6 +71,8 @@ type AnthropicUsage struct {
 type AnthropicError struct {
 	Type    string `json:"type"`
 	Message string `json:"message"`
+	Code    int    `json:"code"`
+	Status  string `json:"status"`
 }
 
 type AnthropicErrorResponse struct {

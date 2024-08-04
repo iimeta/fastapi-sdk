@@ -47,6 +47,8 @@ func NewClient(ctx context.Context, corp, model, key, baseURL, path string, isSu
 		return ai360.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	case consts.CORP_ANTHROPIC:
 		return anthropic.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
+	case consts.CORP_GCP_CLAUDE:
+		return anthropic.NewGcpClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	}
 
 	return openai.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)

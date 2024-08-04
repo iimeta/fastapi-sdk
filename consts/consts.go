@@ -12,6 +12,7 @@ const (
 	CORP_360AI      = "360AI"
 	CORP_MIDJOURNEY = "Midjourney"
 	CORP_ANTHROPIC  = "Anthropic"
+	CORP_GCP_CLAUDE = "GCPClaude"
 )
 
 const (

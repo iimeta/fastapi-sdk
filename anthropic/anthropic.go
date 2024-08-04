@@ -2,7 +2,6 @@ package anthropic
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gogf/gf/v2/encoding/gjson"
@@ -27,6 +26,7 @@ type Client struct {
 	proxyURL            string
 	isSupportSystemRole *bool
 	header              map[string]string
+	isGcp               bool
 }
 
 func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
@@ -57,8 +57,40 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 
 	client.header = make(map[string]string)
 	client.header["x-api-key"] = key
-	client.header["Authorization"] = "Bearer " + key
 	client.header["anthropic-version"] = "2023-06-01"
+
+	return client
+}
+
+func NewGcpClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
+
+	logger.Infof(ctx, "NewGcpClient Anthropic model: %s, key: %s", model, key)
+
+	client := &Client{
+		key:                 key,
+		baseURL:             "https://us-east5-aiplatform.googleapis.com/v1",
+		path:                "/projects/%s/locations/us-east5/publishers/anthropic/models/%s:streamRawPredict",
+		isSupportSystemRole: isSupportSystemRole,
+		isGcp:               true,
+	}
+
+	if baseURL != "" {
+		logger.Infof(ctx, "NewGcpClient Anthropic model: %s, baseURL: %s", model, baseURL)
+		client.baseURL = baseURL
+	}
+
+	if path != "" {
+		logger.Infof(ctx, "NewGcpClient Anthropic model: %s, path: %s", model, path)
+		client.path = path
+	}
+
+	if len(proxyURL) > 0 && proxyURL[0] != "" {
+		logger.Infof(ctx, "NewGcpClient Anthropic model: %s, proxyURL: %s", model, proxyURL[0])
+		client.proxyURL = proxyURL[0]
+	}
+
+	client.header = make(map[string]string)
+	client.header["Authorization"] = "Bearer " + key
 
 	return client
 }
@@ -98,7 +130,11 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		messages = messages[1:]
 	}
 
-	chatCompletionReq.Metadata.UserId = request.User
+	if request.User != "" {
+		chatCompletionReq.Metadata = &model.Metadata{
+			UserId: request.User,
+		}
+	}
 
 	for _, tool := range request.Tools {
 		chatCompletionReq.Tools = append(chatCompletionReq.Tools, model.AnthropicTool{
@@ -112,13 +148,17 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		chatCompletionReq.MaxTokens = 4096
 	}
 
+	if c.isGcp {
+		chatCompletionReq.Model = ""
+	}
+
 	chatCompletionRes := new(model.AnthropicChatCompletionRes)
 	if err = util.HttpPost(ctx, c.baseURL+c.path, c.header, chatCompletionReq, &chatCompletionRes, c.proxyURL); err != nil {
 		logger.Errorf(ctx, "ChatCompletion Anthropic model: %s, error: %v", request.Model, err)
 		return
 	}
 
-	if chatCompletionRes.Error.Type != "" {
+	if chatCompletionRes.Error != nil && chatCompletionRes.Error.Type != "" {
 		logger.Errorf(ctx, "ChatCompletion Anthropic model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = c.apiErrorHandler(chatCompletionRes)
@@ -201,7 +241,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		messages = messages[1:]
 	}
 
-	chatCompletionReq.Metadata.UserId = request.User
+	if request.User != "" {
+		chatCompletionReq.Metadata = &model.Metadata{
+			UserId: request.User,
+		}
+	}
 
 	for _, tool := range request.Tools {
 		chatCompletionReq.Tools = append(chatCompletionReq.Tools, model.AnthropicTool{
@@ -213,6 +257,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 	if chatCompletionReq.MaxTokens == 0 {
 		chatCompletionReq.MaxTokens = 4096
+	}
+
+	if c.isGcp {
+		chatCompletionReq.Model = ""
 	}
 
 	stream, err := util.SSEClient(ctx, c.baseURL+c.path, c.header, chatCompletionReq, c.proxyURL, c.requestErrorHandler)
@@ -271,7 +319,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				return
 			}
 
-			if chatCompletionRes.Error.Type != "" {
+			if chatCompletionRes.Error != nil && chatCompletionRes.Error.Type != "" {
 				logger.Errorf(ctx, "ChatCompletionStream Anthropic model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
 				err = c.apiErrorHandler(chatCompletionRes)
@@ -301,6 +349,12 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					PromptTokens:     chatCompletionRes.Usage.InputTokens,
 					CompletionTokens: chatCompletionRes.Usage.OutputTokens,
 					TotalTokens:      chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
+				}
+			}
+
+			if chatCompletionRes.Message.Usage != nil {
+				response.Usage = &model.Usage{
+					PromptTokens: chatCompletionRes.Message.Usage.InputTokens,
 				}
 			}
 
@@ -345,6 +399,13 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				response.TotalTime = end - now
 				responseChan <- response
 
+				responseChan <- &model.ChatCompletionResponse{
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+					Error:     io.EOF,
+				}
+
 				return
 			}
 
@@ -369,12 +430,14 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 
 func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Response) error {
 
+	bytes := response.ReadAll()
+
 	errRes := model.AnthropicErrorResponse{}
-	if err := json.NewDecoder(response.Body).Decode(&errRes); err != nil || errRes.Error == nil {
+	if err := gjson.Unmarshal(bytes, &errRes); err != nil || errRes.Error == nil {
 
 		reqErr := &sdkerr.RequestError{
 			HttpStatusCode: response.StatusCode,
-			Err:            err,
+			Err:            errors.New(fmt.Sprintf("response: %s, err: %v", bytes, err)),
 		}
 
 		if errRes.Error != nil {

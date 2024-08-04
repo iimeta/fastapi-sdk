@@ -246,6 +246,13 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					TotalTime: end - now,
 				}
 
+				responseChan <- &model.ChatCompletionResponse{
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+					Error:     io.EOF,
+				}
+
 				return
 			}
 

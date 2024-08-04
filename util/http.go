@@ -2,6 +2,8 @@ package util
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/iimeta/fastapi-sdk/logger"
@@ -82,7 +84,7 @@ func HttpPost(ctx context.Context, url string, header map[string]string, data, r
 	if bytes != nil && len(bytes) > 0 {
 		if err = gjson.Unmarshal(bytes, result); err != nil {
 			logger.Error(ctx, err)
-			return err
+			return errors.New(fmt.Sprintf("response: %s, err: %v", bytes, err))
 		}
 	}
 
