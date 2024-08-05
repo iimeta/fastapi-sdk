@@ -125,9 +125,9 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		AnthropicVersion: "vertex-2023-10-16",
 	}
 
-	if messages[0].Role == consts.ROLE_SYSTEM {
-		chatCompletionReq.System = gconv.String(messages[0].Content)
-		messages = messages[1:]
+	if chatCompletionReq.Messages[0].Role == consts.ROLE_SYSTEM {
+		chatCompletionReq.System = gconv.String(chatCompletionReq.Messages[0].Content)
+		chatCompletionReq.Messages = chatCompletionReq.Messages[1:]
 	}
 
 	if request.User != "" {
@@ -236,9 +236,9 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		AnthropicVersion: "vertex-2023-10-16",
 	}
 
-	if messages[0].Role == consts.ROLE_SYSTEM {
-		chatCompletionReq.System = gconv.String(messages[0].Content)
-		messages = messages[1:]
+	if chatCompletionReq.Messages[0].Role == consts.ROLE_SYSTEM {
+		chatCompletionReq.System = gconv.String(chatCompletionReq.Messages[0].Content)
+		chatCompletionReq.Messages = chatCompletionReq.Messages[1:]
 	}
 
 	if request.User != "" {
