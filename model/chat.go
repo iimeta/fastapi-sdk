@@ -51,6 +51,7 @@ type ChatCompletionResponse struct {
 	Usage             *Usage                    `json:"usage"`
 	SystemFingerprint string                    `json:"system_fingerprint,omitempty"`
 	PromptAnnotations []openai.PromptAnnotation `json:"prompt_annotations,omitempty"`
+	ResponseBytes     []byte                    `json:"-"`
 	ConnTime          int64                     `json:"-"`
 	Duration          int64                     `json:"-"`
 	TotalTime         int64                     `json:"-"`
@@ -78,12 +79,12 @@ type ChatCompletionMessage struct {
 }
 
 type ChatCompletionChoice struct {
-	Index                int                                     `json:"index"`
-	Message              *openai.ChatCompletionMessage           `json:"message,omitempty"`
-	Delta                *openai.ChatCompletionStreamChoiceDelta `json:"delta,omitempty"`
-	LogProbs             *openai.LogProbs                        `json:"logprobs,omitempty"`
-	FinishReason         openai.FinishReason                     `json:"finish_reason"`
-	ContentFilterResults *openai.ContentFilterResults            `json:"content_filter_results,omitempty"`
+	Index        int                                     `json:"index"`
+	Message      *openai.ChatCompletionMessage           `json:"message,omitempty"`
+	Delta        *openai.ChatCompletionStreamChoiceDelta `json:"delta,omitempty"`
+	LogProbs     *openai.LogProbs                        `json:"logprobs,omitempty"`
+	FinishReason openai.FinishReason                     `json:"finish_reason"`
+	//ContentFilterResults *openai.ContentFilterResults            `json:"content_filter_results,omitempty"`
 }
 
 // Usage Represents the total token usage per request to OpenAI.

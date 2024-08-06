@@ -233,7 +233,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 		for {
 
-			streamResponse, err := stream.Recv()
+			responseBytes, streamResponse, err := stream.Recv()
 			if err != nil && !errors.Is(err, io.EOF) {
 
 				if !errors.Is(err, context.Canceled) {
@@ -257,15 +257,16 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				Created:           streamResponse.Created,
 				Model:             streamResponse.Model,
 				PromptAnnotations: streamResponse.PromptAnnotations,
+				ResponseBytes:     responseBytes,
 				ConnTime:          duration - now,
 			}
 
 			for _, choice := range streamResponse.Choices {
 				response.Choices = append(response.Choices, model.ChatCompletionChoice{
-					Index:                choice.Index,
-					Delta:                &choice.Delta,
-					FinishReason:         choice.FinishReason,
-					ContentFilterResults: &choice.ContentFilterResults,
+					Index:        choice.Index,
+					Delta:        &choice.Delta,
+					FinishReason: choice.FinishReason,
+					//ContentFilterResults: &choice.ContentFilterResults,
 				})
 			}
 
