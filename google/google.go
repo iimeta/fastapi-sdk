@@ -8,6 +8,7 @@ import (
 	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-sdk/common"
@@ -83,11 +84,62 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 			role = consts.ROLE_MODEL
 		}
 
-		contents = append(contents, model.Content{
-			Role: role,
-			Parts: []model.Part{{
+		parts := make([]model.Part, 0)
+
+		if contents, ok := message.Content.([]interface{}); ok {
+
+			for _, value := range contents {
+
+				content := value.(map[string]interface{})
+				if content["type"] == "image_url" {
+
+					imageUrl := content["image_url"].(map[string]interface{})
+					url := gconv.String(imageUrl["url"])
+
+					if gstr.HasPrefix(url, "data:image/") {
+						base64 := gstr.Split(url, "base64,")
+						if len(base64) > 1 {
+							// data:image/jpeg;base64,
+							mimeType := fmt.Sprintf("image/%s", gstr.Split(base64[0][11:], ";")[0])
+							parts = append(parts, model.Part{
+								InlineData: &model.InlineData{
+									MimeType: mimeType,
+									Data:     base64[1],
+								},
+							})
+						} else {
+							parts = append(parts, model.Part{
+								InlineData: &model.InlineData{
+									MimeType: "image/jpeg",
+									Data:     base64[0],
+								},
+							})
+						}
+					} else {
+						parts = append(parts, model.Part{
+							InlineData: &model.InlineData{
+								MimeType: "image/jpeg",
+								Data:     url,
+							},
+						})
+					}
+
+				} else {
+					parts = append(parts, model.Part{
+						Text: gconv.String(content["text"]),
+					})
+				}
+			}
+
+		} else {
+			parts = append(parts, model.Part{
 				Text: gconv.String(message.Content),
-			}},
+			})
+		}
+
+		contents = append(contents, model.Content{
+			Role:  role,
+			Parts: parts,
 		})
 	}
 
@@ -165,11 +217,62 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			role = consts.ROLE_MODEL
 		}
 
-		contents = append(contents, model.Content{
-			Role: role,
-			Parts: []model.Part{{
+		parts := make([]model.Part, 0)
+
+		if contents, ok := message.Content.([]interface{}); ok {
+
+			for _, value := range contents {
+
+				content := value.(map[string]interface{})
+				if content["type"] == "image_url" {
+
+					imageUrl := content["image_url"].(map[string]interface{})
+					url := gconv.String(imageUrl["url"])
+
+					if gstr.HasPrefix(url, "data:image/") {
+						base64 := gstr.Split(url, "base64,")
+						if len(base64) > 1 {
+							// data:image/jpeg;base64,
+							mimeType := fmt.Sprintf("image/%s", gstr.Split(base64[0][11:], ";")[0])
+							parts = append(parts, model.Part{
+								InlineData: &model.InlineData{
+									MimeType: mimeType,
+									Data:     base64[1],
+								},
+							})
+						} else {
+							parts = append(parts, model.Part{
+								InlineData: &model.InlineData{
+									MimeType: "image/jpeg",
+									Data:     base64[0],
+								},
+							})
+						}
+					} else {
+						parts = append(parts, model.Part{
+							InlineData: &model.InlineData{
+								MimeType: "image/jpeg",
+								Data:     url,
+							},
+						})
+					}
+
+				} else {
+					parts = append(parts, model.Part{
+						Text: gconv.String(content["text"]),
+					})
+				}
+			}
+
+		} else {
+			parts = append(parts, model.Part{
 				Text: gconv.String(message.Content),
-			}},
+			})
+		}
+
+		contents = append(contents, model.Content{
+			Role:  role,
+			Parts: parts,
 		})
 	}
 

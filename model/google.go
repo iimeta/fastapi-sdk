@@ -31,7 +31,13 @@ type Content struct {
 }
 
 type Part struct {
-	Text string `json:"text"`
+	Text       string      `json:"text,omitempty"`
+	InlineData *InlineData `json:"inline_data,omitempty"`
+}
+
+type InlineData struct {
+	MimeType string `json:"mime_type,omitempty"`
+	Data     string `json:"data,omitempty"`
 }
 
 type Candidate struct {
