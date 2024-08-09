@@ -3,7 +3,6 @@ package deepseek
 import (
 	"context"
 	"errors"
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -80,17 +79,10 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		chatCompletionMessage := openai.ChatCompletionMessage{
 			Role:         message.Role,
 			Name:         message.Name,
+			Content:      gconv.String(message.Content),
 			FunctionCall: message.FunctionCall,
 			ToolCalls:    message.ToolCalls,
 			ToolCallID:   message.ToolCallID,
-		}
-
-		if content, ok := message.Content.([]interface{}); ok {
-			if err = gjson.Unmarshal(gjson.MustEncode(content), &chatCompletionMessage.MultiContent); err != nil {
-				return res, err
-			}
-		} else {
-			chatCompletionMessage.Content = gconv.String(message.Content)
 		}
 
 		messages = append(messages, chatCompletionMessage)
@@ -174,17 +166,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		chatCompletionMessage := openai.ChatCompletionMessage{
 			Role:         message.Role,
 			Name:         message.Name,
+			Content:      gconv.String(message.Content),
 			FunctionCall: message.FunctionCall,
 			ToolCalls:    message.ToolCalls,
 			ToolCallID:   message.ToolCallID,
-		}
-
-		if content, ok := message.Content.([]interface{}); ok {
-			if err = gjson.Unmarshal(gjson.MustEncode(content), &chatCompletionMessage.MultiContent); err != nil {
-				return responseChan, err
-			}
-		} else {
-			chatCompletionMessage.Content = gconv.String(message.Content)
 		}
 
 		messages = append(messages, chatCompletionMessage)
