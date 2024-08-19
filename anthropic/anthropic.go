@@ -13,7 +13,6 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
-	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
@@ -76,6 +75,7 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 	client.header = make(map[string]string)
 	client.header["x-api-key"] = key
 	client.header["anthropic-version"] = "2023-06-01"
+	client.header["anthropic-beta"] = "prompt-caching-2024-07-31"
 
 	return client
 }
@@ -177,7 +177,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	if chatCompletionReq.Messages[0].Role == consts.ROLE_SYSTEM {
-		chatCompletionReq.System = gconv.String(chatCompletionReq.Messages[0].Content)
+		chatCompletionReq.System = chatCompletionReq.Messages[0].Content
 		chatCompletionReq.Messages = chatCompletionReq.Messages[1:]
 	}
 
@@ -319,7 +319,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}
 
 	if chatCompletionReq.Messages[0].Role == consts.ROLE_SYSTEM {
-		chatCompletionReq.System = gconv.String(chatCompletionReq.Messages[0].Content)
+		chatCompletionReq.System = chatCompletionReq.Messages[0].Content
 		chatCompletionReq.Messages = chatCompletionReq.Messages[1:]
 	}
 

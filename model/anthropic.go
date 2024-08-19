@@ -7,7 +7,7 @@ type AnthropicChatCompletionReq struct {
 	Metadata         *Metadata               `json:"metadata,omitempty"`
 	StopSequences    []string                `json:"stop_sequences,omitempty"`
 	Stream           bool                    `json:"stream,omitempty"`
-	System           string                  `json:"system,omitempty"`
+	System           any                     `json:"system,omitempty"`
 	Temperature      float32                 `json:"temperature,omitempty"`
 	ToolChoice       any                     `json:"tool_choice,omitempty"`
 	Tools            []AnthropicTool         `json:"tools,omitempty"`
