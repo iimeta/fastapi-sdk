@@ -386,6 +386,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				logger.Infof(ctx, "ChatCompletionStream Anthropic model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 			}()
 
+			var id string
+
 			for {
 
 				event, ok := <-stream.Events()
@@ -463,8 +465,12 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					return
 				}
 
+				if chatCompletionRes.Message.Id != "" {
+					id = chatCompletionRes.Message.Id
+				}
+
 				response := &model.ChatCompletionResponse{
-					ID:       consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
+					ID:       consts.COMPLETION_ID_PREFIX + id,
 					Object:   consts.COMPLETION_STREAM_OBJECT,
 					Created:  gtime.Now().Unix(),
 					Model:    request.Model,
@@ -570,6 +576,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				logger.Infof(ctx, "ChatCompletionStream Anthropic model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 			}()
 
+			var id string
+
 			for {
 
 				streamResponse, err := stream.Recv()
@@ -622,8 +630,12 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					return
 				}
 
+				if chatCompletionRes.Message.Id != "" {
+					id = chatCompletionRes.Message.Id
+				}
+
 				response := &model.ChatCompletionResponse{
-					ID:       consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
+					ID:       consts.COMPLETION_ID_PREFIX + id,
 					Object:   consts.COMPLETION_STREAM_OBJECT,
 					Created:  gtime.Now().Unix(),
 					Model:    request.Model,
