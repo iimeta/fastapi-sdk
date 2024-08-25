@@ -16,13 +16,15 @@ import (
 	"github.com/iimeta/fastapi-sdk/zhipuai"
 )
 
-type Chat interface {
+type Client interface {
 	ChatCompletion(ctx context.Context, request model.ChatCompletionRequest) (res model.ChatCompletionResponse, err error)
 	ChatCompletionStream(ctx context.Context, request model.ChatCompletionRequest) (responseChan chan *model.ChatCompletionResponse, err error)
 	Image(ctx context.Context, request model.ImageRequest) (res model.ImageResponse, err error)
+	Speech(ctx context.Context, request model.SpeechRequest) (res model.SpeechResponse, err error)
+	Transcription(ctx context.Context, request model.AudioRequest) (res model.AudioResponse, err error)
 }
 
-func NewClient(ctx context.Context, corp, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) Chat {
+func NewClient(ctx context.Context, corp, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) Client {
 
 	logger.Infof(ctx, "NewClient corp: %s, model: %s, key: %s", corp, model, key)
 
