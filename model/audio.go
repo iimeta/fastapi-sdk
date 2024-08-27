@@ -15,6 +15,7 @@ type SpeechRequest struct {
 
 type SpeechResponse struct {
 	io.ReadCloser
+	TotalTime int64 `json:"-"`
 }
 
 // AudioRequest represents a request structure for audio API.
