@@ -41,6 +41,41 @@ func (c *Client) Speech(ctx context.Context, request model.SpeechRequest) (res m
 }
 
 func (c *Client) Transcription(ctx context.Context, request model.AudioRequest) (res model.AudioResponse, err error) {
-	//TODO implement me
-	panic("implement me")
+
+	logger.Infof(ctx, "Transcription OpenAI model: %s start", request.Model)
+
+	now := gtime.Now().UnixMilli()
+	defer func() {
+		res.TotalTime = gtime.Now().UnixMilli() - now
+		logger.Infof(ctx, "Transcription OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
+	}()
+
+	response, err := c.client.CreateTranscription(ctx, openai.AudioRequest{
+		Model:                  request.Model,
+		FilePath:               request.FilePath,
+		Reader:                 request.Reader,
+		Prompt:                 request.Prompt,
+		Temperature:            request.Temperature,
+		Language:               request.Language,
+		Format:                 request.Format,
+		TimestampGranularities: request.TimestampGranularities,
+	})
+
+	if err != nil {
+		logger.Errorf(ctx, "Transcription OpenAI model: %s, error: %v", request.Model, err)
+		return res, c.apiErrorHandler(err)
+	}
+
+	logger.Infof(ctx, "Transcription OpenAI model: %s finished", request.Model)
+
+	res = model.AudioResponse{
+		Task:     response.Task,
+		Language: response.Language,
+		Duration: response.Duration,
+		Segments: response.Segments,
+		Words:    response.Words,
+		Text:     response.Text,
+	}
+
+	return res, nil
 }

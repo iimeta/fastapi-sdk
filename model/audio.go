@@ -58,5 +58,6 @@ type AudioResponse struct {
 		Start float64 `json:"start"`
 		End   float64 `json:"end"`
 	} `json:"words"`
-	Text string `json:"text"`
+	Text      string `json:"text"`
+	TotalTime int64  `json:"-"`
 }
