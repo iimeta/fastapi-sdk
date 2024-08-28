@@ -20,7 +20,7 @@ type SpeechResponse struct {
 
 // AudioRequest represents a request structure for audio API.
 type AudioRequest struct {
-	Model string
+	Model string `json:"model"`
 
 	// FilePath is either an existing file in your filesystem or a filename representing the contents of Reader.
 	FilePath string
@@ -28,11 +28,11 @@ type AudioRequest struct {
 	// Reader is an optional io.Reader when you do not want to use an existing file.
 	Reader io.Reader
 
-	Prompt                 string
-	Temperature            float32
-	Language               string // Only for transcription.
-	Format                 openai.AudioResponseFormat
-	TimestampGranularities []openai.TranscriptionTimestampGranularity // Only for transcription.
+	Prompt                 string                                     `json:"prompt"`
+	Temperature            float32                                    `json:"temperature"`
+	Language               string                                     `json:"language"` // Only for transcription.
+	Format                 openai.AudioResponseFormat                 `json:"response_format"`
+	TimestampGranularities []openai.TranscriptionTimestampGranularity `json:"timestamp_granularities"` // Only for transcription.
 }
 
 // AudioResponse represents a response structure for audio API.
