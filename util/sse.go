@@ -36,7 +36,7 @@ type StreamReader struct {
 
 func SSEClient(ctx context.Context, url string, header map[string]string, data interface{}, proxyURL string, requestErrorHandler RequestErrorHandler) (stream *StreamReader, err error) {
 
-	logger.Debugf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %v", url, header, gjson.MustEncodeString(data), proxyURL)
+	logger.Debugf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s", url, header, gjson.MustEncodeString(data), proxyURL)
 
 	client := g.Client().Timeout(600 * time.Second)
 
@@ -55,7 +55,7 @@ func SSEClient(ctx context.Context, url string, header map[string]string, data i
 
 	response, err := client.Post(ctx, url, data)
 	if err != nil {
-		logger.Error(ctx, err)
+		logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, err: %v", url, header, gjson.MustEncodeString(data), proxyURL, err)
 		if response != nil {
 			if err := response.Close(); err != nil {
 				logger.Error(ctx, err)
