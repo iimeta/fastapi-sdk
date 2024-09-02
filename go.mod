@@ -4,12 +4,12 @@ go 1.22
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.30.4
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.29
-	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.15.1
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.30
+	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.16.0
 	github.com/gogf/gf/v2 v2.7.2
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/gorilla/websocket v1.5.3
-	github.com/iimeta/go-openai v0.0.0-20240809024851-bfbfac125988
+	github.com/iimeta/go-openai v0.0.0-20240902022429-1f264949b4d8
 	github.com/iimeta/tiktoken-go v0.0.0-20240727093849-292e86033509
 )
 
