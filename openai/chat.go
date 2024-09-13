@@ -38,31 +38,34 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	chatCompletionRequest := openai.ChatCompletionRequest{
-		Model:             request.Model,
-		Messages:          messages,
-		MaxTokens:         request.MaxTokens,
-		Temperature:       request.Temperature,
-		TopP:              request.TopP,
-		N:                 request.N,
-		Stream:            request.Stream,
-		Stop:              request.Stop,
-		PresencePenalty:   request.PresencePenalty,
-		ResponseFormat:    request.ResponseFormat,
-		Seed:              request.Seed,
-		FrequencyPenalty:  request.FrequencyPenalty,
-		LogitBias:         request.LogitBias,
-		LogProbs:          request.LogProbs,
-		TopLogProbs:       request.TopLogProbs,
-		User:              request.User,
-		Functions:         request.Functions,
-		FunctionCall:      request.FunctionCall,
-		Tools:             request.Tools,
-		ToolChoice:        request.ToolChoice,
-		ParallelToolCalls: request.ParallelToolCalls,
+		Model:               request.Model,
+		Messages:            messages,
+		MaxTokens:           request.MaxTokens,
+		MaxCompletionTokens: request.MaxCompletionTokens,
+		Temperature:         request.Temperature,
+		TopP:                request.TopP,
+		N:                   request.N,
+		Stream:              request.Stream,
+		Stop:                request.Stop,
+		PresencePenalty:     request.PresencePenalty,
+		ResponseFormat:      request.ResponseFormat,
+		Seed:                request.Seed,
+		FrequencyPenalty:    request.FrequencyPenalty,
+		LogitBias:           request.LogitBias,
+		LogProbs:            request.LogProbs,
+		TopLogProbs:         request.TopLogProbs,
+		User:                request.User,
+		Functions:           request.Functions,
+		FunctionCall:        request.FunctionCall,
+		Tools:               request.Tools,
+		ToolChoice:          request.ToolChoice,
+		ParallelToolCalls:   request.ParallelToolCalls,
 	}
 
-	if chatCompletionRequest.MaxTokens != 0 && gstr.HasPrefix(chatCompletionRequest.Model, "o1-") {
-		chatCompletionRequest.MaxCompletionTokens = chatCompletionRequest.MaxTokens
+	if gstr.HasPrefix(chatCompletionRequest.Model, "o1-") {
+		if chatCompletionRequest.MaxCompletionTokens == 0 && chatCompletionRequest.MaxTokens != 0 {
+			chatCompletionRequest.MaxCompletionTokens = chatCompletionRequest.MaxTokens
+		}
 		chatCompletionRequest.MaxTokens = 0
 	}
 
@@ -80,9 +83,10 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		Created: response.Created,
 		Model:   response.Model,
 		Usage: &model.Usage{
-			PromptTokens:     response.Usage.PromptTokens,
-			CompletionTokens: response.Usage.CompletionTokens,
-			TotalTokens:      response.Usage.TotalTokens,
+			PromptTokens:            response.Usage.PromptTokens,
+			CompletionTokens:        response.Usage.CompletionTokens,
+			TotalTokens:             response.Usage.TotalTokens,
+			CompletionTokensDetails: response.Usage.CompletionTokensDetails,
 		},
 		SystemFingerprint: response.SystemFingerprint,
 	}
@@ -133,32 +137,35 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}
 
 	chatCompletionRequest := openai.ChatCompletionRequest{
-		Model:             request.Model,
-		Messages:          messages,
-		MaxTokens:         request.MaxTokens,
-		Temperature:       request.Temperature,
-		TopP:              request.TopP,
-		N:                 request.N,
-		Stream:            request.Stream,
-		Stop:              request.Stop,
-		PresencePenalty:   request.PresencePenalty,
-		ResponseFormat:    request.ResponseFormat,
-		Seed:              request.Seed,
-		FrequencyPenalty:  request.FrequencyPenalty,
-		LogitBias:         request.LogitBias,
-		LogProbs:          request.LogProbs,
-		TopLogProbs:       request.TopLogProbs,
-		User:              request.User,
-		Functions:         request.Functions,
-		FunctionCall:      request.FunctionCall,
-		Tools:             request.Tools,
-		ToolChoice:        request.ToolChoice,
-		StreamOptions:     request.StreamOptions,
-		ParallelToolCalls: request.ParallelToolCalls,
+		Model:               request.Model,
+		Messages:            messages,
+		MaxTokens:           request.MaxTokens,
+		MaxCompletionTokens: request.MaxCompletionTokens,
+		Temperature:         request.Temperature,
+		TopP:                request.TopP,
+		N:                   request.N,
+		Stream:              request.Stream,
+		Stop:                request.Stop,
+		PresencePenalty:     request.PresencePenalty,
+		ResponseFormat:      request.ResponseFormat,
+		Seed:                request.Seed,
+		FrequencyPenalty:    request.FrequencyPenalty,
+		LogitBias:           request.LogitBias,
+		LogProbs:            request.LogProbs,
+		TopLogProbs:         request.TopLogProbs,
+		User:                request.User,
+		Functions:           request.Functions,
+		FunctionCall:        request.FunctionCall,
+		Tools:               request.Tools,
+		ToolChoice:          request.ToolChoice,
+		StreamOptions:       request.StreamOptions,
+		ParallelToolCalls:   request.ParallelToolCalls,
 	}
 
-	if chatCompletionRequest.MaxTokens != 0 && gstr.HasPrefix(chatCompletionRequest.Model, "o1-") {
-		chatCompletionRequest.MaxCompletionTokens = chatCompletionRequest.MaxTokens
+	if gstr.HasPrefix(chatCompletionRequest.Model, "o1-") {
+		if chatCompletionRequest.MaxCompletionTokens == 0 && chatCompletionRequest.MaxTokens != 0 {
+			chatCompletionRequest.MaxCompletionTokens = chatCompletionRequest.MaxTokens
+		}
 		chatCompletionRequest.MaxTokens = 0
 	}
 
@@ -225,9 +232,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if streamResponse.Usage != nil {
 
 				response.Usage = &model.Usage{
-					PromptTokens:     streamResponse.Usage.PromptTokens,
-					CompletionTokens: streamResponse.Usage.CompletionTokens,
-					TotalTokens:      streamResponse.Usage.TotalTokens,
+					PromptTokens:            streamResponse.Usage.PromptTokens,
+					CompletionTokens:        streamResponse.Usage.CompletionTokens,
+					TotalTokens:             streamResponse.Usage.TotalTokens,
+					CompletionTokensDetails: streamResponse.Usage.CompletionTokensDetails,
 				}
 
 				if len(response.Choices) == 0 {
