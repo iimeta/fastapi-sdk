@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/go-openai"
@@ -36,7 +37,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		messages = append(messages, chatCompletionMessage)
 	}
 
-	response, err := c.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
+	chatCompletionRequest := openai.ChatCompletionRequest{
 		Model:             request.Model,
 		Messages:          messages,
 		MaxTokens:         request.MaxTokens,
@@ -58,7 +59,14 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		Tools:             request.Tools,
 		ToolChoice:        request.ToolChoice,
 		ParallelToolCalls: request.ParallelToolCalls,
-	})
+	}
+
+	if chatCompletionRequest.MaxTokens != 0 && gstr.HasPrefix(chatCompletionRequest.Model, "o1-") {
+		chatCompletionRequest.MaxCompletionTokens = chatCompletionRequest.MaxTokens
+		chatCompletionRequest.MaxTokens = 0
+	}
+
+	response, err := c.client.CreateChatCompletion(ctx, chatCompletionRequest)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion OpenAI model: %s, error: %v", request.Model, err)
 		return res, c.apiErrorHandler(err)
@@ -124,7 +132,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}
 
-	stream, err := c.client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
+	chatCompletionRequest := openai.ChatCompletionRequest{
 		Model:             request.Model,
 		Messages:          messages,
 		MaxTokens:         request.MaxTokens,
@@ -147,7 +155,14 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		ToolChoice:        request.ToolChoice,
 		StreamOptions:     request.StreamOptions,
 		ParallelToolCalls: request.ParallelToolCalls,
-	})
+	}
+
+	if chatCompletionRequest.MaxTokens != 0 && gstr.HasPrefix(chatCompletionRequest.Model, "o1-") {
+		chatCompletionRequest.MaxCompletionTokens = chatCompletionRequest.MaxTokens
+		chatCompletionRequest.MaxTokens = 0
+	}
+
+	stream, err := c.client.CreateChatCompletionStream(ctx, chatCompletionRequest)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
 		return responseChan, c.apiErrorHandler(err)
