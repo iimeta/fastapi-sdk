@@ -65,6 +65,10 @@ func EncodingForModel(model string) (*tiktoken.Tiktoken, error) {
 	return tiktoken.EncodingForModel(model)
 }
 
+func IsEncodingForModel(model string) bool {
+	return tiktoken.IsEncodingForModel(model)
+}
+
 func NumTokensFromContent(tkm *tiktoken.Tiktoken, model string, content any) (numTokens int) {
 
 	text := gconv.String(content)
