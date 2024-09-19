@@ -81,6 +81,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	if c.isAws {
 
 		chatCompletionReq.AnthropicVersion = "bedrock-2023-05-31"
+		chatCompletionReq.Metadata = nil
 
 		invokeModelInput := &bedrockruntime.InvokeModelInput{
 			ModelId:     aws.String(AwsModelIDMap[chatCompletionReq.Model]),
