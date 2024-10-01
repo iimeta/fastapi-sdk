@@ -69,7 +69,7 @@
 <img src="https://iim.ai/public/images/Author.png?t=20231207" width="320" alt="作者"/>
 
 ## 交流群
-自动人数已满, 请加我拉群.
+<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20241001" width="320" alt="交流群"/>
 
 
 ![Star History Chart](https://api.star-history.com/svg?repos=iimeta/fastapi-sdk&type=Date)
