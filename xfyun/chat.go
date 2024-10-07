@@ -76,7 +76,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		return res, err
 	}
 
-	conn, err := util.WebSocketClient(ctx, c.getWebSocketUrl(ctx), websocket.TextMessage, data, c.proxyURL)
+	conn, err := util.WebSocketClient(ctx, c.getWebSocketUrl(ctx), nil, websocket.TextMessage, data, c.proxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
 		return res, err
@@ -206,7 +206,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		return responseChan, err
 	}
 
-	conn, err := util.WebSocketClient(ctx, c.getWebSocketUrl(ctx), websocket.TextMessage, data, c.proxyURL)
+	conn, err := util.WebSocketClient(ctx, c.getWebSocketUrl(ctx), nil, websocket.TextMessage, data, c.proxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
 		return responseChan, err
