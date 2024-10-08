@@ -53,96 +53,108 @@ func NewRealtimeClient(ctx context.Context, model, key, baseURL, path string, pr
 
 func (c *RealtimeClient) Realtime(ctx context.Context, requestChan chan *model.RealtimeRequest) (responseChan chan *model.RealtimeResponse, err error) {
 
+	now := gtime.Now().UnixMilli()
+	defer func() {
+		logger.Infof(ctx, "Realtime OpenAI model: %s totalTime: %d ms", c.model, gtime.Now().UnixMilli()-now)
+	}()
+
+	logger.Infof(ctx, "Realtime OpenAI model: %s start", c.model)
+
+	requestHeader := http.Header{
+		"Authorization": {"Bearer " + c.key},
+		"OpenAI-Beta":   {"realtime=v1"},
+	}
+
+	conn, err := util.WebSocketClient(ctx, c.getWebSocketUrl(ctx), requestHeader, 0, nil, c.proxyURL)
+	if err != nil {
+		logger.Errorf(ctx, "Realtime OpenAI model: %s, error: %v", c.model, err)
+		return
+	}
+
+	duration := gtime.Now().UnixMilli()
 	responseChan = make(chan *model.RealtimeResponse)
 
-	if err := grpool.Add(ctx, func(ctx context.Context) {
+	// WriteMessage
+	if err := grpool.AddWithRecover(ctx, func(ctx context.Context) {
 
-		now := gtime.Now().UnixMilli()
 		defer func() {
-			logger.Infof(ctx, "Realtime OpenAI model: %s totalTime: %d ms", c.model, gtime.Now().UnixMilli()-now)
+			logger.Infof(ctx, "Realtime OpenAI WriteMessage model: %s totalTime: %d ms", c.model, gtime.Now().UnixMilli()-now)
 		}()
-
-		logger.Infof(ctx, "Realtime OpenAI model: %s start", c.model)
-
-		duration := gtime.Now().UnixMilli()
-
-		requestHeader := http.Header{
-			"Authorization": {"Bearer " + c.key},
-			"OpenAI-Beta":   {"realtime=v1"},
-		}
-
-		conn, err := util.WebSocketClient(ctx, c.getWebSocketUrl(ctx), requestHeader, 0, nil, c.proxyURL)
-		if err != nil {
-			logger.Errorf(ctx, "Realtime OpenAI model: %s, error: %v", c.model, err)
-			return
-		}
-
-		if err = grpool.Add(ctx, func(ctx context.Context) {
-
-			defer func() {
-				if err := conn.Close(); err != nil {
-					logger.Errorf(ctx, "Realtime OpenAI model: %s, conn.Close error: %v", c.model, err)
-				}
-
-				end := gtime.Now().UnixMilli()
-				logger.Infof(ctx, "Realtime OpenAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", c.model, duration-now, end-duration, end-now)
-			}()
-
-			for {
-
-				messageType, message, err := conn.ReadMessage(ctx)
-				if err != nil && !errors.Is(err, io.EOF) {
-
-					if !errors.Is(err, context.Canceled) {
-						logger.Errorf(ctx, "Realtime OpenAI model: %s, error: %v", c.model, err)
-					}
-
-					end := gtime.Now().UnixMilli()
-					responseChan <- &model.RealtimeResponse{
-						ConnTime:  duration - now,
-						Duration:  end - duration,
-						TotalTime: end - now,
-						Error:     err,
-					}
-
-					return
-				}
-
-				response := &model.RealtimeResponse{
-					MessageType: messageType,
-					Message:     message,
-					ConnTime:    duration - now,
-				}
-
-				end := gtime.Now().UnixMilli()
-				response.Duration = end - duration
-				response.TotalTime = end - now
-
-				responseChan <- response
-			}
-		}); err != nil {
-			logger.Errorf(ctx, "Realtime OpenAI model: %s, error: %v", c.model, err)
-			return
-		}
 
 		for {
 
 			request := <-requestChan
 
-			if request == nil {
+			if request == nil || request.MessageType == -1 {
+
+				if err := conn.Close(); err != nil {
+					logger.Errorf(ctx, "Realtime OpenAI WriteMessage model: %s, conn.Close error: %v", c.model, err)
+				}
+
 				responseChan <- nil
+
 				return
 			}
 
 			if err := conn.WriteMessage(ctx, request.MessageType, request.Message); err != nil {
-				logger.Errorf(ctx, "Realtime OpenAI model: %s, error: %v", c.model, err)
+				logger.Errorf(ctx, "Realtime OpenAI WriteMessage model: %s, error: %v", c.model, err)
 				return
 			}
 		}
 
-	}); err != nil {
-		logger.Errorf(ctx, "Realtime OpenAI model: %s, error: %v", c.model, err)
+	}, nil); err != nil {
+		logger.Errorf(ctx, "Realtime OpenAI WriteMessage model: %s, error: %v", c.model, err)
 		return nil, err
+	}
+
+	// ReadMessage
+	if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
+
+		defer func() {
+			end := gtime.Now().UnixMilli()
+			logger.Infof(ctx, "Realtime OpenAI ReadMessage model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", c.model, duration-now, end-duration, end-now)
+		}()
+
+		for {
+
+			messageType, message, err := conn.ReadMessage(ctx)
+			if err != nil && !errors.Is(err, io.EOF) {
+
+				if !errors.Is(err, context.Canceled) {
+					logger.Errorf(ctx, "Realtime OpenAI ReadMessage model: %s, error: %v", c.model, err)
+				}
+
+				end := gtime.Now().UnixMilli()
+				responseChan <- &model.RealtimeResponse{
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+					Error:     err,
+				}
+
+				return
+			}
+
+			if messageType == -1 {
+				return
+			}
+
+			response := &model.RealtimeResponse{
+				MessageType: messageType,
+				Message:     message,
+				ConnTime:    duration - now,
+			}
+
+			end := gtime.Now().UnixMilli()
+			response.Duration = end - duration
+			response.TotalTime = end - now
+
+			responseChan <- response
+		}
+
+	}, nil); err != nil {
+		logger.Errorf(ctx, "Realtime OpenAI ReadMessage model: %s, error: %v", c.model, err)
+		return
 	}
 
 	return responseChan, nil
