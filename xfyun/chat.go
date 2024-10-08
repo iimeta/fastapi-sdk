@@ -95,7 +95,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 	for {
 
-		message, err := conn.ReadMessage(ctx)
+		_, message, err := conn.ReadMessage(ctx)
 		if err != nil && !errors.Is(err, io.EOF) {
 			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
 			return res, err
@@ -231,7 +231,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 		for {
 
-			message, err := conn.ReadMessage(ctx)
+			_, message, err := conn.ReadMessage(ctx)
 			if err != nil && !errors.Is(err, io.EOF) {
 
 				if !errors.Is(err, context.Canceled) {
