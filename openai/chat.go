@@ -6,6 +6,7 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/go-openai"
@@ -113,6 +114,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			logger.Infof(ctx, "ChatCompletionStream OpenAI model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
 		}
 	}()
+
+	if gstr.HasPrefix(request.Model, "o1-") {
+		return c.O1ChatCompletionStream(ctx, request)
+	}
 
 	messages := make([]openai.ChatCompletionMessage, 0)
 	for _, message := range request.Messages {
@@ -266,6 +271,88 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}, nil); err != nil {
 		logger.Errorf(ctx, "ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
+		return responseChan, err
+	}
+
+	return responseChan, nil
+}
+
+func (c *Client) O1ChatCompletionStream(ctx context.Context, request model.ChatCompletionRequest) (responseChan chan *model.ChatCompletionResponse, err error) {
+
+	responseChan = make(chan *model.ChatCompletionResponse)
+
+	now := gtime.Now().UnixMilli()
+	duration := now
+
+	if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
+
+		defer func() {
+			end := gtime.Now().UnixMilli()
+			logger.Infof(ctx, "O1ChatCompletionStream OpenAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+		}()
+
+		request.Stream = false
+
+		streamResponse, err := c.ChatCompletion(ctx, request)
+		if err != nil {
+
+			if !errors.Is(err, context.Canceled) {
+				logger.Errorf(ctx, "O1ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
+			}
+
+			end := gtime.Now().UnixMilli()
+			responseChan <- &model.ChatCompletionResponse{
+				ConnTime:  duration - now,
+				Duration:  end - duration,
+				TotalTime: end - now,
+				Error:     err,
+			}
+
+			return
+		}
+
+		response := &model.ChatCompletionResponse{
+			ID:                streamResponse.ID,
+			Object:            streamResponse.Object,
+			Created:           streamResponse.Created,
+			Model:             streamResponse.Model,
+			PromptAnnotations: streamResponse.PromptAnnotations,
+			ConnTime:          duration - now,
+			SystemFingerprint: streamResponse.SystemFingerprint,
+		}
+
+		response.Choices = []model.ChatCompletionChoice{{
+			Delta: &openai.ChatCompletionStreamChoiceDelta{
+				Content:      gconv.String(streamResponse.Choices[0].Message.Content),
+				Role:         streamResponse.Choices[0].Message.Role,
+				FunctionCall: streamResponse.Choices[0].Message.FunctionCall,
+				ToolCalls:    streamResponse.Choices[0].Message.ToolCalls,
+			},
+			FinishReason: openai.FinishReasonStop,
+		}}
+
+		response.Usage = &model.Usage{
+			PromptTokens:            streamResponse.Usage.PromptTokens,
+			CompletionTokens:        streamResponse.Usage.CompletionTokens,
+			TotalTokens:             streamResponse.Usage.TotalTokens,
+			CompletionTokensDetails: streamResponse.Usage.CompletionTokensDetails,
+		}
+
+		end := gtime.Now().UnixMilli()
+		response.Duration = end - duration
+		response.TotalTime = end - now
+
+		responseChan <- response
+
+		response = &model.ChatCompletionResponse{}
+		end = gtime.Now().UnixMilli()
+		response.Duration = end - duration
+		response.TotalTime = end - now
+		response.Error = io.EOF
+		responseChan <- response
+
+	}, nil); err != nil {
+		logger.Errorf(ctx, "O1ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 
