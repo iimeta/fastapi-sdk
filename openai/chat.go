@@ -28,11 +28,13 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 		chatCompletionMessage := openai.ChatCompletionMessage{
 			Role:         message.Role,
-			Name:         message.Name,
 			Content:      message.Content,
+			Refusal:      message.Refusal,
+			Name:         message.Name,
 			FunctionCall: message.FunctionCall,
 			ToolCalls:    message.ToolCalls,
 			ToolCallID:   message.ToolCallID,
+			Audio:        message.Audio,
 		}
 
 		messages = append(messages, chatCompletionMessage)
@@ -61,6 +63,10 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		Tools:               request.Tools,
 		ToolChoice:          request.ToolChoice,
 		ParallelToolCalls:   request.ParallelToolCalls,
+		Store:               request.Store,
+		Metadata:            request.Metadata,
+		Modalities:          request.Modalities,
+		Audio:               request.Audio,
 	}
 
 	if gstr.HasPrefix(chatCompletionRequest.Model, "o1-") {
@@ -87,6 +93,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 			PromptTokens:            response.Usage.PromptTokens,
 			CompletionTokens:        response.Usage.CompletionTokens,
 			TotalTokens:             response.Usage.TotalTokens,
+			PromptTokensDetails:     response.Usage.PromptTokensDetails,
 			CompletionTokensDetails: response.Usage.CompletionTokensDetails,
 		},
 		SystemFingerprint: response.SystemFingerprint,
@@ -124,11 +131,13 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 		chatCompletionMessage := openai.ChatCompletionMessage{
 			Role:         message.Role,
-			Name:         message.Name,
 			Content:      message.Content,
+			Refusal:      message.Refusal,
+			Name:         message.Name,
 			FunctionCall: message.FunctionCall,
 			ToolCalls:    message.ToolCalls,
 			ToolCallID:   message.ToolCallID,
+			Audio:        message.Audio,
 		}
 
 		messages = append(messages, chatCompletionMessage)
@@ -165,6 +174,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		ToolChoice:          request.ToolChoice,
 		StreamOptions:       request.StreamOptions,
 		ParallelToolCalls:   request.ParallelToolCalls,
+		Store:               request.Store,
+		Metadata:            request.Metadata,
+		Modalities:          request.Modalities,
+		Audio:               request.Audio,
 	}
 
 	if gstr.HasPrefix(chatCompletionRequest.Model, "o1-") {
@@ -240,6 +253,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					PromptTokens:            streamResponse.Usage.PromptTokens,
 					CompletionTokens:        streamResponse.Usage.CompletionTokens,
 					TotalTokens:             streamResponse.Usage.TotalTokens,
+					PromptTokensDetails:     streamResponse.Usage.PromptTokensDetails,
 					CompletionTokensDetails: streamResponse.Usage.CompletionTokensDetails,
 				}
 
