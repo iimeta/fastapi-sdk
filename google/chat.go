@@ -231,6 +231,19 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 						})
 					}
 
+				} else if content["type"] == "video_url" {
+
+					videoUrl := content["video_url"].(map[string]interface{})
+					url := gconv.String(videoUrl["url"])
+					format := gconv.String(videoUrl["format"])
+
+					parts = append(parts, model.Part{
+						FileData: &model.FileData{
+							MimeType: "video/" + format,
+							FileUri:  url,
+						},
+					})
+
 				} else {
 					parts = append(parts, model.Part{
 						Text: gconv.String(content["text"]),
