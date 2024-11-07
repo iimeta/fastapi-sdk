@@ -83,19 +83,20 @@ func NumTokensFromContent(tkm *tiktoken.Tiktoken, model string, content any) (nu
 
 		if result, ok := data.([]interface{}); ok {
 			for _, value := range result {
-				content := value.(map[string]interface{})
-				if content["type"] == "text" {
-					numTokens += len(tkm.Encode(gconv.String(content["text"]), nil, nil))
-				} else if content["type"] == "image_url" {
-					// 兼容目前计算错误情况
-					if model == "gpt-4o-mini" {
-						numTokens += 1023 * 36
+				if content, ok := value.(map[string]interface{}); ok {
+					if content["type"] == "text" {
+						numTokens += len(tkm.Encode(gconv.String(content["text"]), nil, nil))
+					} else if content["type"] == "image_url" || content["type"] == "image" {
+						// 兼容目前计算错误情况
+						if model == "gpt-4o-mini" {
+							numTokens += 1023 * 36
+						} else {
+							// 其它多模态模型
+							numTokens += 1023
+						}
 					} else {
-						// 其它多模态模型
-						numTokens += 1023
+						numTokens += len(tkm.Encode(gconv.String(content), nil, nil))
 					}
-				} else {
-					numTokens += len(tkm.Encode(gconv.String(content), nil, nil))
 				}
 			}
 		}

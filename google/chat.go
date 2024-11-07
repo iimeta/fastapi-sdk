@@ -51,57 +51,61 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 			for _, value := range contents {
 
-				content := value.(map[string]interface{})
-				if content["type"] == "image_url" {
+				if content, ok := value.(map[string]interface{}); ok {
 
-					imageUrl := content["image_url"].(map[string]interface{})
-					url := gconv.String(imageUrl["url"])
+					if content["type"] == "image_url" {
 
-					if gstr.HasPrefix(url, "data:image/") {
-						base64 := gstr.Split(url, "base64,")
-						if len(base64) > 1 {
-							// data:image/jpeg;base64,
-							mimeType := fmt.Sprintf("image/%s", gstr.Split(base64[0][11:], ";")[0])
+						if imageUrl, ok := content["image_url"].(map[string]interface{}); ok {
+
+							url := gconv.String(imageUrl["url"])
+
+							if gstr.HasPrefix(url, "data:image/") {
+								base64 := gstr.Split(url, "base64,")
+								if len(base64) > 1 {
+									// data:image/jpeg;base64,
+									mimeType := fmt.Sprintf("image/%s", gstr.Split(base64[0][11:], ";")[0])
+									parts = append(parts, model.Part{
+										InlineData: &model.InlineData{
+											MimeType: mimeType,
+											Data:     base64[1],
+										},
+									})
+								} else {
+									parts = append(parts, model.Part{
+										InlineData: &model.InlineData{
+											MimeType: "image/jpeg",
+											Data:     base64[0],
+										},
+									})
+								}
+							} else {
+								parts = append(parts, model.Part{
+									InlineData: &model.InlineData{
+										MimeType: "image/jpeg",
+										Data:     url,
+									},
+								})
+							}
+						}
+
+					} else if content["type"] == "video_url" {
+						if videoUrl, ok := content["video_url"].(map[string]interface{}); ok {
+
+							url := gconv.String(videoUrl["url"])
+							format := gconv.String(videoUrl["format"])
+
 							parts = append(parts, model.Part{
-								InlineData: &model.InlineData{
-									MimeType: mimeType,
-									Data:     base64[1],
-								},
-							})
-						} else {
-							parts = append(parts, model.Part{
-								InlineData: &model.InlineData{
-									MimeType: "image/jpeg",
-									Data:     base64[0],
+								FileData: &model.FileData{
+									MimeType: "video/" + format,
+									FileUri:  url,
 								},
 							})
 						}
 					} else {
 						parts = append(parts, model.Part{
-							InlineData: &model.InlineData{
-								MimeType: "image/jpeg",
-								Data:     url,
-							},
+							Text: gconv.String(content["text"]),
 						})
 					}
-
-				} else if content["type"] == "video_url" {
-
-					videoUrl := content["video_url"].(map[string]interface{})
-					url := gconv.String(videoUrl["url"])
-					format := gconv.String(videoUrl["format"])
-
-					parts = append(parts, model.Part{
-						FileData: &model.FileData{
-							MimeType: "video/" + format,
-							FileUri:  url,
-						},
-					})
-
-				} else {
-					parts = append(parts, model.Part{
-						Text: gconv.String(content["text"]),
-					})
 				}
 			}
 
@@ -197,57 +201,61 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			for _, value := range contents {
 
-				content := value.(map[string]interface{})
-				if content["type"] == "image_url" {
+				if content, ok := value.(map[string]interface{}); ok {
 
-					imageUrl := content["image_url"].(map[string]interface{})
-					url := gconv.String(imageUrl["url"])
+					if content["type"] == "image_url" {
 
-					if gstr.HasPrefix(url, "data:image/") {
-						base64 := gstr.Split(url, "base64,")
-						if len(base64) > 1 {
-							// data:image/jpeg;base64,
-							mimeType := fmt.Sprintf("image/%s", gstr.Split(base64[0][11:], ";")[0])
+						if imageUrl, ok := content["image_url"].(map[string]interface{}); ok {
+
+							url := gconv.String(imageUrl["url"])
+
+							if gstr.HasPrefix(url, "data:image/") {
+								base64 := gstr.Split(url, "base64,")
+								if len(base64) > 1 {
+									// data:image/jpeg;base64,
+									mimeType := fmt.Sprintf("image/%s", gstr.Split(base64[0][11:], ";")[0])
+									parts = append(parts, model.Part{
+										InlineData: &model.InlineData{
+											MimeType: mimeType,
+											Data:     base64[1],
+										},
+									})
+								} else {
+									parts = append(parts, model.Part{
+										InlineData: &model.InlineData{
+											MimeType: "image/jpeg",
+											Data:     base64[0],
+										},
+									})
+								}
+							} else {
+								parts = append(parts, model.Part{
+									InlineData: &model.InlineData{
+										MimeType: "image/jpeg",
+										Data:     url,
+									},
+								})
+							}
+						}
+
+					} else if content["type"] == "video_url" {
+						if videoUrl, ok := content["video_url"].(map[string]interface{}); ok {
+
+							url := gconv.String(videoUrl["url"])
+							format := gconv.String(videoUrl["format"])
+
 							parts = append(parts, model.Part{
-								InlineData: &model.InlineData{
-									MimeType: mimeType,
-									Data:     base64[1],
-								},
-							})
-						} else {
-							parts = append(parts, model.Part{
-								InlineData: &model.InlineData{
-									MimeType: "image/jpeg",
-									Data:     base64[0],
+								FileData: &model.FileData{
+									MimeType: "video/" + format,
+									FileUri:  url,
 								},
 							})
 						}
 					} else {
 						parts = append(parts, model.Part{
-							InlineData: &model.InlineData{
-								MimeType: "image/jpeg",
-								Data:     url,
-							},
+							Text: gconv.String(content["text"]),
 						})
 					}
-
-				} else if content["type"] == "video_url" {
-
-					videoUrl := content["video_url"].(map[string]interface{})
-					url := gconv.String(videoUrl["url"])
-					format := gconv.String(videoUrl["format"])
-
-					parts = append(parts, model.Part{
-						FileData: &model.FileData{
-							MimeType: "video/" + format,
-							FileUri:  url,
-						},
-					})
-
-				} else {
-					parts = append(parts, model.Part{
-						Text: gconv.String(content["text"]),
-					})
 				}
 			}
 

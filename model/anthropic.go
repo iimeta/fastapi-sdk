@@ -35,6 +35,12 @@ type Metadata struct {
 	UserId string `json:"user_id,omitempty"`
 }
 
+type Source struct {
+	Type      string `json:"type"`
+	MediaType string `json:"media_type"`
+	Data      string `json:"data"`
+}
+
 type AnthropicMessage struct {
 	Id           string          `json:"id"`
 	Type         string          `json:"type"`

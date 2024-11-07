@@ -10,6 +10,8 @@ import (
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
@@ -70,6 +72,54 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 	if chatCompletionReq.MaxTokens == 0 {
 		chatCompletionReq.MaxTokens = 4096
+	}
+
+	for _, message := range messages {
+
+		if contents, ok := message.Content.([]interface{}); ok {
+
+			for _, value := range contents {
+
+				if content, ok := value.(map[string]interface{}); ok {
+
+					if content["type"] == "image_url" {
+
+						if imageUrl, ok := content["image_url"].(map[string]interface{}); ok {
+
+							url := gconv.String(imageUrl["url"])
+
+							if gstr.HasPrefix(url, "data:image/") {
+								base64 := gstr.Split(url, "base64,")
+								if len(base64) > 1 {
+									// data:image/jpeg;base64,
+									mimeType := fmt.Sprintf("image/%s", gstr.Split(base64[0][11:], ";")[0])
+									content["source"] = model.Source{
+										Type:      "base64",
+										MediaType: mimeType,
+										Data:      base64[1],
+									}
+								} else {
+									content["source"] = model.Source{
+										Type:      "base64",
+										MediaType: "image/jpeg",
+										Data:      base64[0],
+									}
+								}
+							} else {
+								content["source"] = model.Source{
+									Type:      "base64",
+									MediaType: "image/jpeg",
+									Data:      url,
+								}
+							}
+
+							content["type"] = "image"
+							delete(content, "image_url")
+						}
+					}
+				}
+			}
+		}
 	}
 
 	if c.isGcp {
@@ -213,6 +263,54 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 	if chatCompletionReq.MaxTokens == 0 {
 		chatCompletionReq.MaxTokens = 4096
+	}
+
+	for _, message := range messages {
+
+		if contents, ok := message.Content.([]interface{}); ok {
+
+			for _, value := range contents {
+
+				if content, ok := value.(map[string]interface{}); ok {
+
+					if content["type"] == "image_url" {
+
+						if imageUrl, ok := content["image_url"].(map[string]interface{}); ok {
+
+							url := gconv.String(imageUrl["url"])
+
+							if gstr.HasPrefix(url, "data:image/") {
+								base64 := gstr.Split(url, "base64,")
+								if len(base64) > 1 {
+									// data:image/jpeg;base64,
+									mimeType := fmt.Sprintf("image/%s", gstr.Split(base64[0][11:], ";")[0])
+									content["source"] = model.Source{
+										Type:      "base64",
+										MediaType: mimeType,
+										Data:      base64[1],
+									}
+								} else {
+									content["source"] = model.Source{
+										Type:      "base64",
+										MediaType: "image/jpeg",
+										Data:      base64[0],
+									}
+								}
+							} else {
+								content["source"] = model.Source{
+									Type:      "base64",
+									MediaType: "image/jpeg",
+									Data:      url,
+								}
+							}
+
+							content["type"] = "image"
+							delete(content, "image_url")
+						}
+					}
+				}
+			}
+		}
 	}
 
 	if c.isGcp {
