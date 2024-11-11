@@ -549,6 +549,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}()
 
 			var id string
+			var promptTokens int
 
 			for {
 
@@ -615,16 +616,20 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				}
 
 				if chatCompletionRes.Usage != nil {
+					if chatCompletionRes.Usage.InputTokens != 0 {
+						promptTokens = chatCompletionRes.Usage.InputTokens
+					}
 					response.Usage = &model.Usage{
-						PromptTokens:     chatCompletionRes.Usage.InputTokens,
+						PromptTokens:     promptTokens,
 						CompletionTokens: chatCompletionRes.Usage.OutputTokens,
-						TotalTokens:      chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
+						TotalTokens:      promptTokens + chatCompletionRes.Usage.OutputTokens,
 					}
 				}
 
 				if chatCompletionRes.Message.Usage != nil {
+					promptTokens = chatCompletionRes.Message.Usage.InputTokens
 					response.Usage = &model.Usage{
-						PromptTokens: chatCompletionRes.Message.Usage.InputTokens,
+						PromptTokens: promptTokens,
 					}
 				}
 
