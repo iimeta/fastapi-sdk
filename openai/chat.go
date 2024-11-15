@@ -335,15 +335,20 @@ func (c *Client) O1ChatCompletionStream(ctx context.Context, request model.ChatC
 			SystemFingerprint: streamResponse.SystemFingerprint,
 		}
 
-		response.Choices = []model.ChatCompletionChoice{{
-			Delta: &openai.ChatCompletionStreamChoiceDelta{
-				Content:      gconv.String(streamResponse.Choices[0].Message.Content),
-				Role:         streamResponse.Choices[0].Message.Role,
-				FunctionCall: streamResponse.Choices[0].Message.FunctionCall,
-				ToolCalls:    streamResponse.Choices[0].Message.ToolCalls,
-			},
-			FinishReason: openai.FinishReasonStop,
-		}}
+		choices := make([]model.ChatCompletionChoice, 0)
+		for i, choice := range streamResponse.Choices {
+			choices = append(choices, model.ChatCompletionChoice{
+				Index: i,
+				Delta: &openai.ChatCompletionStreamChoiceDelta{
+					Content:      gconv.String(choice.Message.Content),
+					Role:         choice.Message.Role,
+					FunctionCall: choice.Message.FunctionCall,
+					ToolCalls:    choice.Message.ToolCalls,
+				},
+				FinishReason: openai.FinishReasonStop,
+			})
+		}
+		response.Choices = choices
 
 		response.Usage = &model.Usage{
 			PromptTokens:            streamResponse.Usage.PromptTokens,
