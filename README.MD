@@ -19,12 +19,12 @@
 
 | 公司                                  | Completion | Image | Audio | Multimodal | Realtime | Embedding | Moderation |
 |---------------------------------------|------------|-------|-------|------------|----------|-----------|------------|
-| OpenAI<br/>Azure                      | ✔️         | ✔️    | ✔️    | ✔️         | ✔️       | ✔️       | ✔️         |
+| OpenAI<br/>Azure                      | ✔️         | ✔️    | ✔️     | ✔️         | ✔️       | ✔️        | ✔️         |
 | 百度                                  | ✔️         |       |       |            |          |           |            |
 | 科大讯飞                              | ✔️         | ✔️    |       |            |          |           |            |
 | 阿里云                                | ✔️         |       |       |            |          |           |            |
 | 智谱AI                                | ✔️         |       |       |            |          |           |            |
-| Google                                | ✔️         |       |       | ✔️         |          |  ️         |  ️          |
+| Google                                | ✔️         |       |       | ✔️         |          |           |            |
 | DeepSeek                              | ✔️         |       |       |            |          |           |            |
 | 360智脑                               | ✔️         |       |       |            |          |           |            |
 | Midjourney                            |            | ✔️    |       |            |          |           |            |
@@ -69,7 +69,7 @@
 <img src="https://iim.ai/public/images/Author.png?t=20231207" width="320" alt="作者"/>
 
 ## 交流群
-<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20241126" width="320" alt="交流群"/>
+<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20241128" width="320" alt="交流群"/>
 
 
 ![Star History Chart](https://api.star-history.com/svg?repos=iimeta/fastapi-sdk&type=Date)
