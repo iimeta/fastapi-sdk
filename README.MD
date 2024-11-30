@@ -38,6 +38,17 @@
 - 管理端: https://demo.fastapi.ai/admin
 - 账号/密码: admin/admin123
 
+## 专业版预览
+
+- 用户端: https://demo.fastapi.pro/login
+- 账号/密码: user@fastapi.pro/user@fastapi.pro
+
+- 代理商: https://demo.fastapi.pro/reseller
+- 账号/密码: reseller@fastapi.pro/reseller@fastapi.pro
+
+- 管理端: https://demo.fastapi.pro/admin
+- 账号/密码: admin@fastapi.pro/admin@fastapi.pro
+
 ## 公益站点
 
 - API地址: https://api.free.fastapi.ai
