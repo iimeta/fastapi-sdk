@@ -149,7 +149,7 @@ func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Resp
 
 		reqErr := &sdkerr.RequestError{
 			HttpStatusCode: response.StatusCode,
-			Err:            errors.New(fmt.Sprintf("response: %s, err: %v", bytes, err)),
+			Err:            errors.New(fmt.Sprintf("response: %s, error: %v", bytes, err)),
 		}
 
 		if errRes.Error != nil {
