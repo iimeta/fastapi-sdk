@@ -22,6 +22,8 @@ type Client interface {
 	Image(ctx context.Context, request model.ImageRequest) (res model.ImageResponse, err error)
 	Speech(ctx context.Context, request model.SpeechRequest) (res model.SpeechResponse, err error)
 	Transcription(ctx context.Context, request model.AudioRequest) (res model.AudioResponse, err error)
+	Embeddings(ctx context.Context, request model.EmbeddingRequest) (res model.EmbeddingResponse, err error)
+	Moderations(ctx context.Context, request model.ModerationRequest) (res model.ModerationResponse, err error)
 }
 
 func NewClient(ctx context.Context, corp, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) Client {
