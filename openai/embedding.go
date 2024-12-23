@@ -12,9 +12,9 @@ func (c *Client) Embeddings(ctx context.Context, request model.EmbeddingRequest)
 
 	logger.Infof(ctx, "Embeddings OpenAI model: %s start", request.Model)
 
-	now := gtime.Now().UnixMilli()
+	now := gtime.TimestampMilli()
 	defer func() {
-		res.TotalTime = gtime.Now().UnixMilli() - now
+		res.TotalTime = gtime.TimestampMilli() - now
 		logger.Infof(ctx, "Embeddings OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 

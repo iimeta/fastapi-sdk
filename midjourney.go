@@ -42,10 +42,10 @@ func (c *MidjourneyClient) Request(ctx context.Context, data interface{}) (res m
 
 	logger.Infof(ctx, "Midjourney Request data: %s start", gjson.MustEncodeString(data))
 
-	now := gtime.Now().UnixMilli()
+	now := gtime.TimestampMilli()
 	defer func() {
-		res.TotalTime = gtime.Now().UnixMilli() - now
-		logger.Infof(ctx, "Midjourney Request data: %s totalTime: %d ms", gjson.MustEncodeString(data), gtime.Now().UnixMilli()-now)
+		res.TotalTime = gtime.TimestampMilli() - now
+		logger.Infof(ctx, "Midjourney Request data: %s totalTime: %d ms", gjson.MustEncodeString(data), gtime.TimestampMilli()-now)
 	}()
 
 	if res.Response, err = request(ctx, c.method, c.baseURL+c.path, c.apiSecretHeader, c.apiSecret, data, c.proxyURL); err != nil {

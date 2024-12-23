@@ -53,9 +53,9 @@ func NewRealtimeClient(ctx context.Context, model, key, baseURL, path string, pr
 
 func (c *RealtimeClient) Realtime(ctx context.Context, requestChan chan *model.RealtimeRequest) (responseChan chan *model.RealtimeResponse, err error) {
 
-	now := gtime.Now().UnixMilli()
+	now := gtime.TimestampMilli()
 	defer func() {
-		logger.Infof(ctx, "Realtime OpenAI model: %s totalTime: %d ms", c.model, gtime.Now().UnixMilli()-now)
+		logger.Infof(ctx, "Realtime OpenAI model: %s totalTime: %d ms", c.model, gtime.TimestampMilli()-now)
 	}()
 
 	logger.Infof(ctx, "Realtime OpenAI model: %s start", c.model)
@@ -71,14 +71,14 @@ func (c *RealtimeClient) Realtime(ctx context.Context, requestChan chan *model.R
 		return
 	}
 
-	duration := gtime.Now().UnixMilli()
+	duration := gtime.TimestampMilli()
 	responseChan = make(chan *model.RealtimeResponse)
 
 	// WriteMessage
 	if err := grpool.AddWithRecover(ctx, func(ctx context.Context) {
 
 		defer func() {
-			logger.Infof(ctx, "Realtime OpenAI WriteMessage model: %s totalTime: %d ms", c.model, gtime.Now().UnixMilli()-now)
+			logger.Infof(ctx, "Realtime OpenAI WriteMessage model: %s totalTime: %d ms", c.model, gtime.TimestampMilli()-now)
 		}()
 
 		for {
@@ -111,7 +111,7 @@ func (c *RealtimeClient) Realtime(ctx context.Context, requestChan chan *model.R
 	if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
 
 		defer func() {
-			end := gtime.Now().UnixMilli()
+			end := gtime.TimestampMilli()
 			logger.Infof(ctx, "Realtime OpenAI ReadMessage model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", c.model, duration-now, end-duration, end-now)
 		}()
 
@@ -124,7 +124,7 @@ func (c *RealtimeClient) Realtime(ctx context.Context, requestChan chan *model.R
 					logger.Errorf(ctx, "Realtime OpenAI ReadMessage model: %s, error: %v", c.model, err)
 				}
 
-				end := gtime.Now().UnixMilli()
+				end := gtime.TimestampMilli()
 				responseChan <- &model.RealtimeResponse{
 					ConnTime:  duration - now,
 					Duration:  end - duration,
@@ -145,7 +145,7 @@ func (c *RealtimeClient) Realtime(ctx context.Context, requestChan chan *model.R
 				ConnTime:    duration - now,
 			}
 
-			end := gtime.Now().UnixMilli()
+			end := gtime.TimestampMilli()
 			response.Duration = end - duration
 			response.TotalTime = end - now
 

@@ -12,10 +12,10 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 
 	logger.Infof(ctx, "Image 360AI model: %s start", request.Model)
 
-	now := gtime.Now().UnixMilli()
+	now := gtime.TimestampMilli()
 	defer func() {
-		res.TotalTime = gtime.Now().UnixMilli() - now
-		logger.Infof(ctx, "Image 360AI model: %s totalTime: %d ms", request.Model, gtime.Now().UnixMilli()-now)
+		res.TotalTime = gtime.TimestampMilli() - now
+		logger.Infof(ctx, "Image 360AI model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
 	}()
 
 	response, err := c.client.CreateImage(ctx, openai.ImageRequest{
