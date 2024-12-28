@@ -12,6 +12,7 @@ import (
 )
 
 type Client struct {
+	model               string
 	key                 string
 	baseURL             string
 	path                string
@@ -24,6 +25,7 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 	logger.Infof(ctx, "NewClient Google model: %s, key: %s", model, key)
 
 	client := &Client{
+		model:               model,
 		key:                 key,
 		baseURL:             "https://generativelanguage.googleapis.com/v1beta",
 		path:                "/models/" + model,

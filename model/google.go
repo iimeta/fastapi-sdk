@@ -23,6 +23,11 @@ type GoogleChatCompletionRes struct {
 			} `json:"metadata"`
 		} `json:"details"`
 	} `json:"error"`
+	ResponseBytes []byte `json:"-"`
+	ConnTime      int64  `json:"-"`
+	Duration      int64  `json:"-"`
+	TotalTime     int64  `json:"-"`
+	Err           error  `json:"-"`
 }
 
 type Content struct {
