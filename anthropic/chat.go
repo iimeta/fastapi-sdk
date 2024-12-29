@@ -158,7 +158,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		}
 
 	} else {
-		if err = util.HttpPost(ctx, c.baseURL+c.path, c.header, chatCompletionReq, &chatCompletionRes, c.proxyURL); err != nil {
+		if _, err = util.HttpPost(ctx, c.baseURL+c.path, c.header, chatCompletionReq, &chatCompletionRes, c.proxyURL); err != nil {
 			logger.Errorf(ctx, "ChatCompletion Anthropic model: %s, error: %v", request.Model, err)
 			return
 		}

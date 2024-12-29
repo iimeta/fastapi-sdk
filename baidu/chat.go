@@ -59,8 +59,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	chatCompletionRes := new(model.BaiduChatCompletionRes)
-	err = util.HttpPost(ctx, fmt.Sprintf("%s?access_token=%s", c.baseURL+c.path, c.accessToken), nil, chatCompletionReq, &chatCompletionRes, c.proxyURL)
-	if err != nil {
+	if _, err = util.HttpPost(ctx, fmt.Sprintf("%s?access_token=%s", c.baseURL+c.path, c.accessToken), nil, chatCompletionReq, &chatCompletionRes, c.proxyURL); err != nil {
 		logger.Errorf(ctx, "ChatCompletion Baidu model: %s, error: %v", request.Model, err)
 		return
 	}

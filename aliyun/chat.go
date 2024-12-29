@@ -60,8 +60,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	header["Authorization"] = "Bearer " + c.key
 
 	chatCompletionRes := new(model.AliyunChatCompletionRes)
-	err = util.HttpPost(ctx, c.baseURL+c.path, header, chatCompletionReq, &chatCompletionRes, c.proxyURL)
-	if err != nil {
+	if _, err = util.HttpPost(ctx, c.baseURL+c.path, header, chatCompletionReq, &chatCompletionRes, c.proxyURL); err != nil {
 		logger.Errorf(ctx, "ChatCompletion Aliyun model: %s, error: %v", request.Model, err)
 		return
 	}

@@ -13,7 +13,7 @@ import (
 	"io"
 )
 
-func (c *Client) ChatCompletionOfficial(ctx context.Context, request model.GoogleChatCompletionReq) (res model.GoogleChatCompletionRes, err error) {
+func (c *Client) ChatCompletionOfficial(ctx context.Context, request interface{}) (res model.GoogleChatCompletionRes, err error) {
 
 	logger.Infof(ctx, "ChatCompletionOfficial Google model: %s start", c.model)
 
@@ -23,8 +23,7 @@ func (c *Client) ChatCompletionOfficial(ctx context.Context, request model.Googl
 		logger.Infof(ctx, "ChatCompletionOfficial Google model: %s totalTime: %d ms", c.model, res.TotalTime)
 	}()
 
-	err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", c.baseURL+c.path, c.key), nil, request, &res, c.proxyURL)
-	if err != nil {
+	if res.ResponseBytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", c.baseURL+c.path, c.key), nil, request, &res, c.proxyURL); err != nil {
 		logger.Errorf(ctx, "ChatCompletionOfficialGoogle model: %s, error: %v", c.model, err)
 		return
 	}
@@ -41,7 +40,7 @@ func (c *Client) ChatCompletionOfficial(ctx context.Context, request model.Googl
 	return res, nil
 }
 
-func (c *Client) ChatCompletionStreamOfficial(ctx context.Context, request model.GoogleChatCompletionReq) (responseChan chan *model.GoogleChatCompletionRes, err error) {
+func (c *Client) ChatCompletionStreamOfficial(ctx context.Context, request interface{}) (responseChan chan *model.GoogleChatCompletionRes, err error) {
 
 	logger.Infof(ctx, "ChatCompletionStreamOfficial Google model: %s start", c.model)
 

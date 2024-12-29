@@ -9,7 +9,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/logger"
 )
 
-func HttpGet(ctx context.Context, url string, header map[string]string, data g.Map, result interface{}, proxyURL string) error {
+func HttpGet(ctx context.Context, url string, header map[string]string, data g.Map, result interface{}, proxyURL string) ([]byte, error) {
 
 	logger.Debugf(ctx, "HttpGet url: %s, header: %+v, data: %s, proxyURL: %s", url, header, gjson.MustEncodeString(data), proxyURL)
 
@@ -34,7 +34,7 @@ func HttpGet(ctx context.Context, url string, header map[string]string, data g.M
 
 	if err != nil {
 		logger.Errorf(ctx, "HttpGet url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", url, header, gjson.MustEncodeString(data), proxyURL, err)
-		return err
+		return nil, err
 	}
 
 	bytes := response.ReadAll()
@@ -43,14 +43,14 @@ func HttpGet(ctx context.Context, url string, header map[string]string, data g.M
 	if bytes != nil && len(bytes) > 0 {
 		if err = gjson.Unmarshal(bytes, result); err != nil {
 			logger.Errorf(ctx, "HttpGet url: %s, statusCode: %d, header: %+v, data: %s, proxyURL: %s, response: %s, error: %v", url, response.StatusCode, header, gjson.MustEncodeString(data), proxyURL, string(bytes), err)
-			return err
+			return bytes, err
 		}
 	}
 
-	return nil
+	return bytes, nil
 }
 
-func HttpPost(ctx context.Context, url string, header map[string]string, data, result interface{}, proxyURL string) error {
+func HttpPost(ctx context.Context, url string, header map[string]string, data, result interface{}, proxyURL string) ([]byte, error) {
 
 	logger.Debugf(ctx, "HttpPost url: %s, header: %+v, data: %s, proxyURL: %s", url, header, gjson.MustEncodeString(data), proxyURL)
 
@@ -75,7 +75,7 @@ func HttpPost(ctx context.Context, url string, header map[string]string, data, r
 
 	if err != nil {
 		logger.Errorf(ctx, "HttpPost url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", url, header, gjson.MustEncodeString(data), proxyURL, err)
-		return err
+		return nil, err
 	}
 
 	bytes := response.ReadAll()
@@ -84,9 +84,9 @@ func HttpPost(ctx context.Context, url string, header map[string]string, data, r
 	if bytes != nil && len(bytes) > 0 {
 		if err = gjson.Unmarshal(bytes, result); err != nil {
 			logger.Errorf(ctx, "HttpPost url: %s, statusCode: %d, header: %+v, data: %s, proxyURL: %s, response: %s, error: %v", url, response.StatusCode, header, gjson.MustEncodeString(data), proxyURL, string(bytes), err)
-			return errors.New(fmt.Sprintf("response: %s, error: %v", bytes, err))
+			return bytes, errors.New(fmt.Sprintf("response: %s, error: %v", bytes, err))
 		}
 	}
 
-	return nil
+	return bytes, nil
 }

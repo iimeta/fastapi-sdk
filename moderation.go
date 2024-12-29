@@ -62,7 +62,7 @@ func (c *ModerationClient) Moderations(ctx context.Context, request model.Modera
 
 	response := new(model.ModerationResponse)
 
-	if err = util.HttpPost(ctx, c.baseURL+c.path, header, request, &response, c.proxyURL); err != nil {
+	if _, err = util.HttpPost(ctx, c.baseURL+c.path, header, request, &response, c.proxyURL); err != nil {
 		logger.Errorf(ctx, "Moderations OpenAI model: %s, error: %v", request.Model, err)
 		return res, err
 	}

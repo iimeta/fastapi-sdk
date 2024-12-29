@@ -74,8 +74,7 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	}
 
 	imageRes := new(model.XfyunChatCompletionRes)
-	err = util.HttpPost(ctx, c.getHttpUrl(ctx), nil, imageReq, &imageRes, c.proxyURL)
-	if err != nil {
+	if _, err = util.HttpPost(ctx, c.getHttpUrl(ctx), nil, imageReq, &imageRes, c.proxyURL); err != nil {
 		logger.Errorf(ctx, "Image Xfyun model: %s, error: %v", request.Model, err)
 		return res, err
 	}
