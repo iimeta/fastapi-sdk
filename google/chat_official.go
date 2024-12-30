@@ -105,13 +105,7 @@ func (c *Client) ChatCompletionStreamOfficial(ctx context.Context, request inter
 					ConnTime:      duration - now,
 					Duration:      end - duration,
 					TotalTime:     end - now,
-				}
-
-				responseChan <- &model.GoogleChatCompletionRes{
-					ConnTime:  duration - now,
-					Duration:  end - duration,
-					TotalTime: end - now,
-					Err:       io.EOF,
+					Err:           io.EOF,
 				}
 
 				return
