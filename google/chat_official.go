@@ -72,6 +72,10 @@ func (c *Client) ChatCompletionStreamOfficial(ctx context.Context, request inter
 			}
 		}()
 
+		var (
+			usageMetadata *model.UsageMetadata
+		)
+
 		for {
 
 			streamResponse, err := stream.Recv()
@@ -97,12 +101,10 @@ func (c *Client) ChatCompletionStreamOfficial(ctx context.Context, request inter
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.GoogleChatCompletionRes{
-					//Candidates:    chatCompletionRes.Candidates,
-					//UsageMetadata: chatCompletionRes.UsageMetadata,
-					//Error:         chatCompletionRes.Error,
-					ConnTime:  duration - now,
-					Duration:  end - duration,
-					TotalTime: end - now,
+					UsageMetadata: usageMetadata,
+					ConnTime:      duration - now,
+					Duration:      end - duration,
+					TotalTime:     end - now,
 				}
 
 				responseChan <- &model.GoogleChatCompletionRes{
@@ -145,6 +147,10 @@ func (c *Client) ChatCompletionStreamOfficial(ctx context.Context, request inter
 				}
 
 				return
+			}
+
+			if chatCompletionRes.UsageMetadata != nil {
+				usageMetadata = chatCompletionRes.UsageMetadata
 			}
 
 			response := &model.GoogleChatCompletionRes{

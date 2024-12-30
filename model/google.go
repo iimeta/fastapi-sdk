@@ -10,6 +10,7 @@ type GoogleChatCompletionReq struct {
 type GoogleChatCompletionRes struct {
 	Candidates    []Candidate    `json:"candidates"`
 	UsageMetadata *UsageMetadata `json:"usageMetadata"`
+	ModelVersion  string         `json:"modelVersion"`
 	Error         struct {
 		Code    int    `json:"code"`
 		Message string `json:"message"`
