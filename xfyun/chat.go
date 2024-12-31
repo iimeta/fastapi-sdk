@@ -129,7 +129,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		Model:   request.Model,
 		Choices: []model.ChatCompletionChoice{{
 			Index: chatCompletionRes.Payload.Choices.Seq,
-			Message: &openai.ChatCompletionMessage{
+			Message: &model.ChatCompletionMessage{
 				Role:         chatCompletionRes.Payload.Choices.Text[0].Role,
 				Content:      responseContent,
 				FunctionCall: chatCompletionRes.Payload.Choices.Text[0].FunctionCall,
@@ -288,7 +288,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				Model:   request.Model,
 				Choices: []model.ChatCompletionChoice{{
 					Index: chatCompletionRes.Payload.Choices.Seq,
-					Delta: &openai.ChatCompletionStreamChoiceDelta{
+					Delta: &model.ChatCompletionStreamChoiceDelta{
 						Role:         chatCompletionRes.Payload.Choices.Text[0].Role,
 						Content:      chatCompletionRes.Payload.Choices.Text[0].Content,
 						FunctionCall: chatCompletionRes.Payload.Choices.Text[0].FunctionCall,

@@ -90,8 +90,18 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 	for _, choice := range chatCompletionRes.Choices {
 		res.Choices = append(res.Choices, model.ChatCompletionChoice{
-			Index:        choice.Index,
-			Message:      choice.Message,
+			Index: choice.Index,
+			Message: &model.ChatCompletionMessage{
+				Role:         choice.Message.Role,
+				Content:      choice.Message.Content,
+				Refusal:      choice.Message.Refusal,
+				MultiContent: choice.Message.MultiContent,
+				Name:         choice.Message.Name,
+				FunctionCall: choice.Message.FunctionCall,
+				ToolCalls:    choice.Message.ToolCalls,
+				ToolCallID:   choice.Message.ToolCallID,
+				Audio:        choice.Message.Audio,
+			},
 			FinishReason: choice.FinishReason,
 		})
 	}
@@ -233,8 +243,15 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			for _, choice := range chatCompletionRes.Choices {
 				response.Choices = append(response.Choices, model.ChatCompletionChoice{
-					Index:        choice.Index,
-					Delta:        choice.Delta,
+					Index: choice.Index,
+					Delta: &model.ChatCompletionStreamChoiceDelta{
+						Content:      choice.Delta.Content,
+						Role:         choice.Delta.Role,
+						FunctionCall: choice.Delta.FunctionCall,
+						ToolCalls:    choice.Delta.ToolCalls,
+						Refusal:      choice.Delta.Refusal,
+						Audio:        choice.Delta.Audio,
+					},
 					FinishReason: choice.FinishReason,
 				})
 			}
@@ -244,7 +261,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 				if len(response.Choices) == 0 {
 					response.Choices = append(response.Choices, model.ChatCompletionChoice{
-						Delta:        new(openai.ChatCompletionStreamChoiceDelta),
+						Delta:        new(model.ChatCompletionStreamChoiceDelta),
 						FinishReason: openai.FinishReasonStop,
 					})
 				}

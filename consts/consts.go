@@ -35,3 +35,16 @@ const (
 	COMPLETION_OBJECT        = "chat.completion"
 	COMPLETION_STREAM_OBJECT = "chat.completion.chunk"
 )
+
+var MIME_TYPE_MAP = map[string]string{
+	"pdf":  "application/pdf",
+	"js":   "application/x-javascript",
+	"py":   "application/x-python",
+	"txt":  "text/plain",
+	"html": "text/html",
+	"css":  "text/css",
+	"md":   "text/md",
+	"csv":  "text/csv",
+	"xml":  "text/xml",
+	"rtf":  "text/rtf",
+}

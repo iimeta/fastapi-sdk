@@ -33,7 +33,7 @@ type ZhipuAIChatCompletionReq struct {
 	// 模型在遇到stop所制定的字符时将停止生成，目前仅支持单个停止词，格式为["stop_word1"]
 	Stop []string `json:"stop,omitempty"`
 	// 可供模型调用的工具列表,tools 字段会计算 tokens ，同样受到 tokens 长度的限制
-	Tools []openai.Tool `json:"tools,omitempty"`
+	Tools any `json:"tools,omitempty"`
 	// 用于控制模型是如何选择要调用的函数，仅当工具类型为function时补充。默认为auto，当前仅支持auto
 	ToolChoice any `json:"tool_choice,omitempty"`
 	// 终端用户的唯一ID，协助平台对终端用户的违规行为、生成违法及不良信息或其他滥用行为进行干预。ID长度要求：最少6个字符，最多128个字符。

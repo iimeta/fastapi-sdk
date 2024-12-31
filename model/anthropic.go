@@ -10,7 +10,7 @@ type AnthropicChatCompletionReq struct {
 	System           any                     `json:"system,omitempty"`
 	Temperature      float32                 `json:"temperature,omitempty"`
 	ToolChoice       any                     `json:"tool_choice,omitempty"`
-	Tools            []AnthropicTool         `json:"tools,omitempty"`
+	Tools            any                     `json:"tools,omitempty"`
 	TopK             int                     `json:"top_k,omitempty"`
 	TopP             float32                 `json:"top_p,omitempty"`
 	AnthropicVersion string                  `json:"anthropic_version,omitempty"`

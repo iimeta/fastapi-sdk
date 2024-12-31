@@ -80,7 +80,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		Created: gtime.Timestamp(),
 		Model:   request.Model,
 		Choices: []model.ChatCompletionChoice{{
-			Message: &openai.ChatCompletionMessage{
+			Message: &model.ChatCompletionMessage{
 				Role:    consts.ROLE_ASSISTANT,
 				Content: chatCompletionRes.Output.Text,
 			},
@@ -196,7 +196,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					Created: created,
 					Model:   request.Model,
 					Choices: []model.ChatCompletionChoice{{
-						Delta:        &openai.ChatCompletionStreamChoiceDelta{},
+						Delta:        &model.ChatCompletionStreamChoiceDelta{},
 						FinishReason: openai.FinishReasonStop,
 					}},
 					Usage:     usage,
@@ -260,7 +260,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				Created: created,
 				Model:   request.Model,
 				Choices: []model.ChatCompletionChoice{{
-					Delta: &openai.ChatCompletionStreamChoiceDelta{
+					Delta: &model.ChatCompletionStreamChoiceDelta{
 						Role:    consts.ROLE_ASSISTANT,
 						Content: chatCompletionRes.Output.Text,
 					},

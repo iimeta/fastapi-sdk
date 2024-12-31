@@ -48,6 +48,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		ToolChoice:       request.ToolChoice,
 		TopK:             request.TopK,
 		TopP:             request.TopP,
+		Tools:            request.Tools,
 		AnthropicVersion: "vertex-2023-10-16",
 	}
 
@@ -60,14 +61,6 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		chatCompletionReq.Metadata = &model.Metadata{
 			UserId: request.User,
 		}
-	}
-
-	for _, tool := range request.Tools {
-		chatCompletionReq.Tools = append(chatCompletionReq.Tools, model.AnthropicTool{
-			Name:        tool.Function.Name,
-			Description: tool.Function.Description,
-			InputSchema: tool.Function.Parameters,
-		})
 	}
 
 	if chatCompletionReq.MaxTokens == 0 {
@@ -188,7 +181,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	for _, content := range chatCompletionRes.Content {
 		if content.Type == consts.DELTA_TYPE_INPUT_JSON {
 			res.Choices = append(res.Choices, model.ChatCompletionChoice{
-				Delta: &openai.ChatCompletionStreamChoiceDelta{
+				Delta: &model.ChatCompletionStreamChoiceDelta{
 					Role: consts.ROLE_ASSISTANT,
 					ToolCalls: []openai.ToolCall{{
 						Function: openai.FunctionCall{
@@ -199,7 +192,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 			})
 		} else {
 			res.Choices = append(res.Choices, model.ChatCompletionChoice{
-				Message: &openai.ChatCompletionMessage{
+				Message: &model.ChatCompletionMessage{
 					Role:    chatCompletionRes.Role,
 					Content: content.Text,
 				},
@@ -239,6 +232,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		ToolChoice:       request.ToolChoice,
 		TopK:             request.TopK,
 		TopP:             request.TopP,
+		Tools:            request.Tools,
 		AnthropicVersion: "vertex-2023-10-16",
 	}
 
@@ -251,14 +245,6 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		chatCompletionReq.Metadata = &model.Metadata{
 			UserId: request.User,
 		}
-	}
-
-	for _, tool := range request.Tools {
-		chatCompletionReq.Tools = append(chatCompletionReq.Tools, model.AnthropicTool{
-			Name:        tool.Function.Name,
-			Description: tool.Function.Description,
-			InputSchema: tool.Function.Parameters,
-		})
 	}
 
 	if chatCompletionReq.MaxTokens == 0 {
@@ -470,7 +456,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				} else {
 					if chatCompletionRes.Delta.Type == consts.DELTA_TYPE_INPUT_JSON {
 						response.Choices = append(response.Choices, model.ChatCompletionChoice{
-							Delta: &openai.ChatCompletionStreamChoiceDelta{
+							Delta: &model.ChatCompletionStreamChoiceDelta{
 								Role: consts.ROLE_ASSISTANT,
 								ToolCalls: []openai.ToolCall{{
 									Function: openai.FunctionCall{
@@ -481,7 +467,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 						})
 					} else {
 						response.Choices = append(response.Choices, model.ChatCompletionChoice{
-							Delta: &openai.ChatCompletionStreamChoiceDelta{
+							Delta: &model.ChatCompletionStreamChoiceDelta{
 								Role:    consts.ROLE_ASSISTANT,
 								Content: chatCompletionRes.Delta.Text,
 							},
@@ -494,7 +480,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 					if len(response.Choices) == 0 {
 						response.Choices = append(response.Choices, model.ChatCompletionChoice{
-							Delta:        new(openai.ChatCompletionStreamChoiceDelta),
+							Delta:        new(model.ChatCompletionStreamChoiceDelta),
 							FinishReason: openai.FinishReasonStop,
 						})
 					}
@@ -640,7 +626,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				} else {
 					if chatCompletionRes.Delta.Type == consts.DELTA_TYPE_INPUT_JSON {
 						response.Choices = append(response.Choices, model.ChatCompletionChoice{
-							Delta: &openai.ChatCompletionStreamChoiceDelta{
+							Delta: &model.ChatCompletionStreamChoiceDelta{
 								Role: consts.ROLE_ASSISTANT,
 								ToolCalls: []openai.ToolCall{{
 									Function: openai.FunctionCall{
@@ -651,7 +637,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 						})
 					} else {
 						response.Choices = append(response.Choices, model.ChatCompletionChoice{
-							Delta: &openai.ChatCompletionStreamChoiceDelta{
+							Delta: &model.ChatCompletionStreamChoiceDelta{
 								Role:    consts.ROLE_ASSISTANT,
 								Content: chatCompletionRes.Delta.Text,
 							},
@@ -664,7 +650,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 					if len(response.Choices) == 0 {
 						response.Choices = append(response.Choices, model.ChatCompletionChoice{
-							Delta:        new(openai.ChatCompletionStreamChoiceDelta),
+							Delta:        new(model.ChatCompletionStreamChoiceDelta),
 							FinishReason: openai.FinishReasonStop,
 						})
 					}

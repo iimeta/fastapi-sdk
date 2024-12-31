@@ -40,8 +40,8 @@ type ChatCompletionRequest struct {
 	// Deprecated: use Tools instead.
 	Functions []openai.FunctionDefinition `json:"functions,omitempty"`
 	// Deprecated: use ToolChoice instead.
-	FunctionCall any           `json:"function_call,omitempty"`
-	Tools        []openai.Tool `json:"tools,omitempty"`
+	FunctionCall any `json:"function_call,omitempty"`
+	Tools        any `json:"tools,omitempty"`
 	// This can be either a string or an ToolChoice object.
 	ToolChoice any `json:"tool_choice,omitempty"`
 	// Options for streaming response. Only set this when you set stream: true.
@@ -102,11 +102,11 @@ type ChatCompletionMessage struct {
 }
 
 type ChatCompletionChoice struct {
-	Index        int                                     `json:"index"`
-	Message      *openai.ChatCompletionMessage           `json:"message,omitempty"`
-	Delta        *openai.ChatCompletionStreamChoiceDelta `json:"delta,omitempty"`
-	LogProbs     *openai.LogProbs                        `json:"logprobs,omitempty"`
-	FinishReason openai.FinishReason                     `json:"finish_reason"`
+	Index        int                              `json:"index"`
+	Message      *ChatCompletionMessage           `json:"message,omitempty"`
+	Delta        *ChatCompletionStreamChoiceDelta `json:"delta,omitempty"`
+	LogProbs     *openai.LogProbs                 `json:"logprobs,omitempty"`
+	FinishReason openai.FinishReason              `json:"finish_reason"`
 	//ContentFilterResults *openai.ContentFilterResults            `json:"content_filter_results,omitempty"`
 }
 
@@ -117,4 +117,13 @@ type Usage struct {
 	TotalTokens             int                             `json:"total_tokens"`
 	PromptTokensDetails     *openai.PromptTokensDetails     `json:"prompt_tokens_details"`
 	CompletionTokensDetails *openai.CompletionTokensDetails `json:"completion_tokens_details"`
+}
+
+type ChatCompletionStreamChoiceDelta struct {
+	Content      string               `json:"content"`
+	Role         string               `json:"role,omitempty"`
+	FunctionCall *openai.FunctionCall `json:"function_call,omitempty"`
+	ToolCalls    []openai.ToolCall    `json:"tool_calls,omitempty"`
+	Refusal      string               `json:"refusal,omitempty"`
+	Audio        *openai.Audio        `json:"audio,omitempty"`
 }

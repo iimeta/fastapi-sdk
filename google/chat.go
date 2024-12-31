@@ -128,6 +128,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 			Temperature:     request.Temperature,
 			TopP:            request.TopP,
 		},
+		Tools: request.Tools,
 	}
 
 	chatCompletionRes := new(model.GoogleChatCompletionRes)
@@ -150,18 +151,22 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		Object:  consts.COMPLETION_OBJECT,
 		Created: gtime.Timestamp(),
 		Model:   request.Model,
-		Choices: []model.ChatCompletionChoice{{
-			Message: &openai.ChatCompletionMessage{
-				Role:    consts.ROLE_ASSISTANT,
-				Content: chatCompletionRes.Candidates[0].Content.Parts[0].Text,
-			},
-			FinishReason: openai.FinishReasonStop,
-		}},
 		Usage: &model.Usage{
 			PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
 			CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
 			TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
 		},
+	}
+
+	for i, part := range chatCompletionRes.Candidates[0].Content.Parts {
+		res.Choices = append(res.Choices, model.ChatCompletionChoice{
+			Index: i,
+			Message: &model.ChatCompletionMessage{
+				Role:    consts.ROLE_ASSISTANT,
+				Content: part.Text,
+			},
+			FinishReason: openai.FinishReasonStop,
+		})
 	}
 
 	return res, nil
@@ -277,6 +282,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			Temperature:     request.Temperature,
 			TopP:            request.TopP,
 		},
+		Tools: request.Tools,
 	}
 
 	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", c.baseURL+c.path, c.key), nil, chatCompletionReq, c.proxyURL, c.requestErrorHandler)
@@ -336,7 +342,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					Created: created,
 					Model:   request.Model,
 					Choices: []model.ChatCompletionChoice{{
-						Delta:        &openai.ChatCompletionStreamChoiceDelta{},
+						Delta:        &model.ChatCompletionStreamChoiceDelta{},
 						FinishReason: openai.FinishReasonStop,
 					}},
 					Usage:     usage,
@@ -400,15 +406,19 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 				Object:  consts.COMPLETION_STREAM_OBJECT,
 				Created: created,
 				Model:   request.Model,
-				Choices: []model.ChatCompletionChoice{{
-					Index: chatCompletionRes.Candidates[0].Index,
-					Delta: &openai.ChatCompletionStreamChoiceDelta{
-						Role:    consts.ROLE_ASSISTANT,
-						Content: chatCompletionRes.Candidates[0].Content.Parts[0].Text,
-					},
-				}},
+
 				Usage:    usage,
 				ConnTime: duration - now,
+			}
+
+			for _, candidate := range chatCompletionRes.Candidates {
+				response.Choices = append(response.Choices, model.ChatCompletionChoice{
+					Index: candidate.Index,
+					Delta: &model.ChatCompletionStreamChoiceDelta{
+						Role:    consts.ROLE_ASSISTANT,
+						Content: candidate.Content.Parts[0].Text,
+					},
+				})
 			}
 
 			end := gtime.TimestampMilli()
@@ -423,4 +433,34 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}
 
 	return responseChan, nil
+}
+
+func getMime(url string) (mimeType string, data string) {
+
+	base64 := gstr.Split(url, "base64,")
+	if len(base64) > 1 {
+		data = base64[1]
+		if gstr.HasPrefix(url, "data:image/") {
+			mimeType = fmt.Sprintf("image/%s", gstr.Split(base64[0][11:], ";")[0])
+		} else if gstr.HasPrefix(url, "data:text/") {
+			mimeType = fmt.Sprintf("text/%s", gstr.Split(base64[0][10:], ";")[0])
+		}
+	} else {
+		data = url
+	}
+
+	if mimeType == "" {
+		switch data[:3] {
+		case "JVB":
+			mimeType = consts.MIME_TYPE_MAP["pdf"]
+		case "PGR":
+			mimeType = consts.MIME_TYPE_MAP["md"]
+		case "PCF":
+			mimeType = consts.MIME_TYPE_MAP["html"]
+		default:
+			mimeType = consts.MIME_TYPE_MAP["txt"]
+		}
+	}
+
+	return mimeType, data
 }

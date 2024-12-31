@@ -71,7 +71,7 @@ type Parameters struct {
 	// 在多轮对话中，无论是发起function_call的轮次，还是向模型提交function的执行结果，均请设置tools参数。
 	// 当前支持qwen-turbo、qwen-plus、qwen-max和qwen-max-longcontext。
 	// 注意: tools暂时无法和incremental_output参数同时使用。
-	Tools []openai.Tool `json:"tools,omitempty"`
+	Tools any `json:"tools,omitempty"`
 }
 
 type AliyunChatCompletionRes struct {
