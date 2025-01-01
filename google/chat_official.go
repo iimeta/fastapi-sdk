@@ -13,7 +13,7 @@ import (
 	"io"
 )
 
-func (c *Client) ChatCompletionOfficial(ctx context.Context, request interface{}) (res model.GoogleChatCompletionRes, err error) {
+func (c *Client) ChatCompletionOfficial(ctx context.Context, data []byte) (res model.GoogleChatCompletionRes, err error) {
 
 	logger.Infof(ctx, "ChatCompletionOfficial Google model: %s start", c.model)
 
@@ -23,24 +23,24 @@ func (c *Client) ChatCompletionOfficial(ctx context.Context, request interface{}
 		logger.Infof(ctx, "ChatCompletionOfficial Google model: %s totalTime: %d ms", c.model, res.TotalTime)
 	}()
 
-	if res.ResponseBytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", c.baseURL+c.path, c.key), nil, request, &res, c.proxyURL); err != nil {
-		logger.Errorf(ctx, "ChatCompletionOfficialGoogle model: %s, error: %v", c.model, err)
-		return
+	if res.ResponseBytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", c.baseURL+c.path, c.key), nil, data, &res, c.proxyURL); err != nil {
+		logger.Errorf(ctx, "ChatCompletionOfficial Google model: %s, error: %v", c.model, err)
+		return res, err
 	}
 
 	if res.Error.Code != 0 || res.Candidates[0].FinishReason != "STOP" {
-		logger.Errorf(ctx, "ChatCompletionOfficialGoogle model: %s, chatCompletionRes: %s", c.model, gjson.MustEncodeString(res))
+		logger.Errorf(ctx, "ChatCompletionOfficial Google model: %s, chatCompletionRes: %s", c.model, gjson.MustEncodeString(res))
 
 		err = c.apiErrorHandler(&res)
-		logger.Errorf(ctx, "ChatCompletionOfficialGoogle model: %s, error: %v", c.model, err)
+		logger.Errorf(ctx, "ChatCompletionOfficial Google model: %s, error: %v", c.model, err)
 
-		return
+		return res, err
 	}
 
 	return res, nil
 }
 
-func (c *Client) ChatCompletionStreamOfficial(ctx context.Context, request interface{}) (responseChan chan *model.GoogleChatCompletionRes, err error) {
+func (c *Client) ChatCompletionStreamOfficial(ctx context.Context, data []byte) (responseChan chan *model.GoogleChatCompletionRes, err error) {
 
 	logger.Infof(ctx, "ChatCompletionStreamOfficial Google model: %s start", c.model)
 
@@ -51,7 +51,7 @@ func (c *Client) ChatCompletionStreamOfficial(ctx context.Context, request inter
 		}
 	}()
 
-	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", c.baseURL+c.path, c.key), nil, request, c.proxyURL, c.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", c.baseURL+c.path, c.key), nil, data, c.proxyURL, c.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionStreamOfficial Google model: %s, error: %v", c.model, err)
 		return responseChan, err

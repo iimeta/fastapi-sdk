@@ -16,6 +16,7 @@ import (
 )
 
 type Client struct {
+	model               string
 	key                 string
 	baseURL             string
 	path                string
@@ -45,6 +46,7 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 	logger.Infof(ctx, "NewClient Anthropic model: %s, key: %s", model, key)
 
 	client := &Client{
+		model:               model,
 		key:                 key,
 		baseURL:             "https://api.anthropic.com/v1",
 		path:                "/messages",
@@ -79,6 +81,7 @@ func NewGcpClient(ctx context.Context, model, key, baseURL, path string, isSuppo
 	logger.Infof(ctx, "NewGcpClient Anthropic model: %s, key: %s", model, key)
 
 	client := &Client{
+		model:               model,
 		key:                 key,
 		baseURL:             "https://us-east5-aiplatform.googleapis.com/v1",
 		path:                "/projects/%s/locations/us-east5/publishers/anthropic/models/%s:streamRawPredict",
@@ -114,6 +117,7 @@ func NewAwsClient(ctx context.Context, model, key, baseURL, path string, isSuppo
 	result := gstr.Split(key, "|")
 
 	client := &Client{
+		model:               model,
 		isSupportSystemRole: isSupportSystemRole,
 		isAws:               true,
 		awsClient: bedrockruntime.New(bedrockruntime.Options{

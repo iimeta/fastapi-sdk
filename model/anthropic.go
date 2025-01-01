@@ -17,18 +17,23 @@ type AnthropicChatCompletionReq struct {
 }
 
 type AnthropicChatCompletionRes struct {
-	Id           string             `json:"id"`
-	Type         string             `json:"type"`
-	Role         string             `json:"role"`
-	Content      []AnthropicContent `json:"content"`
-	Model        string             `json:"model"`
-	StopReason   string             `json:"stop_reason"`
-	StopSequence string             `json:"stop_sequence"`
-	Message      AnthropicMessage   `json:"message"`
-	Index        int                `json:"index"`
-	Delta        AnthropicContent   `json:"delta"`
-	Usage        *AnthropicUsage    `json:"usage,omitempty"`
-	Error        *AnthropicError    `json:"error,omitempty"`
+	Id            string             `json:"id"`
+	Type          string             `json:"type"`
+	Role          string             `json:"role"`
+	Content       []AnthropicContent `json:"content"`
+	Model         string             `json:"model"`
+	StopReason    string             `json:"stop_reason"`
+	StopSequence  string             `json:"stop_sequence"`
+	Message       AnthropicMessage   `json:"message"`
+	Index         int                `json:"index"`
+	Delta         AnthropicContent   `json:"delta"`
+	Usage         *AnthropicUsage    `json:"usage,omitempty"`
+	Error         *AnthropicError    `json:"error,omitempty"`
+	ResponseBytes []byte             `json:"-"`
+	ConnTime      int64              `json:"-"`
+	Duration      int64              `json:"-"`
+	TotalTime     int64              `json:"-"`
+	Err           error              `json:"-"`
 }
 
 type Metadata struct {
