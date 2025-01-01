@@ -40,6 +40,8 @@ var MIME_TYPE_MAP = map[string]string{
 	"pdf":  "application/pdf",
 	"js":   "application/x-javascript",
 	"py":   "application/x-python",
+	"jpg":  "image/jpeg",
+	"png":  "image/png",
 	"txt":  "text/plain",
 	"html": "text/html",
 	"css":  "text/css",

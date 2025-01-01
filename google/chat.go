@@ -57,35 +57,14 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 						if imageUrl, ok := content["image_url"].(map[string]interface{}); ok {
 
-							url := gconv.String(imageUrl["url"])
+							mimeType, data := getMime(gconv.String(imageUrl["url"]))
 
-							if gstr.HasPrefix(url, "data:image/") {
-								base64 := gstr.Split(url, "base64,")
-								if len(base64) > 1 {
-									// data:image/jpeg;base64,
-									mimeType := fmt.Sprintf("image/%s", gstr.Split(base64[0][11:], ";")[0])
-									parts = append(parts, model.Part{
-										InlineData: &model.InlineData{
-											MimeType: mimeType,
-											Data:     base64[1],
-										},
-									})
-								} else {
-									parts = append(parts, model.Part{
-										InlineData: &model.InlineData{
-											MimeType: "image/jpeg",
-											Data:     base64[0],
-										},
-									})
-								}
-							} else {
-								parts = append(parts, model.Part{
-									InlineData: &model.InlineData{
-										MimeType: "image/jpeg",
-										Data:     url,
-									},
-								})
-							}
+							parts = append(parts, model.Part{
+								InlineData: &model.InlineData{
+									MimeType: mimeType,
+									Data:     data,
+								},
+							})
 						}
 
 					} else if content["type"] == "video_url" {
@@ -211,35 +190,14 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 						if imageUrl, ok := content["image_url"].(map[string]interface{}); ok {
 
-							url := gconv.String(imageUrl["url"])
+							mimeType, data := getMime(gconv.String(imageUrl["url"]))
 
-							if gstr.HasPrefix(url, "data:image/") {
-								base64 := gstr.Split(url, "base64,")
-								if len(base64) > 1 {
-									// data:image/jpeg;base64,
-									mimeType := fmt.Sprintf("image/%s", gstr.Split(base64[0][11:], ";")[0])
-									parts = append(parts, model.Part{
-										InlineData: &model.InlineData{
-											MimeType: mimeType,
-											Data:     base64[1],
-										},
-									})
-								} else {
-									parts = append(parts, model.Part{
-										InlineData: &model.InlineData{
-											MimeType: "image/jpeg",
-											Data:     base64[0],
-										},
-									})
-								}
-							} else {
-								parts = append(parts, model.Part{
-									InlineData: &model.InlineData{
-										MimeType: "image/jpeg",
-										Data:     url,
-									},
-								})
-							}
+							parts = append(parts, model.Part{
+								InlineData: &model.InlineData{
+									MimeType: mimeType,
+									Data:     data,
+								},
+							})
 						}
 
 					} else if content["type"] == "video_url" {
@@ -451,12 +409,12 @@ func getMime(url string) (mimeType string, data string) {
 
 	if mimeType == "" {
 		switch data[:3] {
+		case "/9j":
+			mimeType = consts.MIME_TYPE_MAP["jpg"]
+		case "iVB":
+			mimeType = consts.MIME_TYPE_MAP["png"]
 		case "JVB":
 			mimeType = consts.MIME_TYPE_MAP["pdf"]
-		case "PGR":
-			mimeType = consts.MIME_TYPE_MAP["md"]
-		case "PCF":
-			mimeType = consts.MIME_TYPE_MAP["html"]
 		default:
 			mimeType = consts.MIME_TYPE_MAP["txt"]
 		}
