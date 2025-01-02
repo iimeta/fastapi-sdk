@@ -313,18 +313,18 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			Accept:      aws.String("application/json"),
 			ContentType: aws.String("application/json"),
 		}
+
 		chatCompletionReq.Model = ""
-		invokeModelStreamInput.Body, err = gjson.Marshal(chatCompletionReq)
-		if err != nil {
+
+		if invokeModelStreamInput.Body, err = gjson.Marshal(chatCompletionReq); err != nil {
 			logger.Error(ctx, err)
-			return
+			return responseChan, err
 		}
 
-		var invokeModelStreamOutput *bedrockruntime.InvokeModelWithResponseStreamOutput
-		invokeModelStreamOutput, err = c.awsClient.InvokeModelWithResponseStream(ctx, invokeModelStreamInput)
+		invokeModelStreamOutput, err := c.awsClient.InvokeModelWithResponseStream(ctx, invokeModelStreamInput)
 		if err != nil {
 			logger.Error(ctx, err)
-			return
+			return responseChan, err
 		}
 
 		stream := invokeModelStreamOutput.GetStream()
