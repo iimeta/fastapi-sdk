@@ -14,6 +14,7 @@ import (
 type Client struct {
 	client              *openai.Client
 	isSupportSystemRole *bool
+	isAzure             bool
 }
 
 func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
@@ -82,6 +83,7 @@ func NewAzureClient(ctx context.Context, model, key, baseURL, path string, isSup
 	return &Client{
 		client:              openai.NewClientWithConfig(config),
 		isSupportSystemRole: isSupportSystemRole,
+		isAzure:             true,
 	}
 }
 
