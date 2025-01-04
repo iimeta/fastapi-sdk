@@ -39,17 +39,16 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	chatCompletionReq := model.AnthropicChatCompletionReq{
-		Model:            request.Model,
-		Messages:         messages,
-		MaxTokens:        request.MaxTokens,
-		StopSequences:    request.Stop,
-		Stream:           request.Stream,
-		Temperature:      request.Temperature,
-		ToolChoice:       request.ToolChoice,
-		TopK:             request.TopK,
-		TopP:             request.TopP,
-		Tools:            request.Tools,
-		AnthropicVersion: "vertex-2023-10-16",
+		Model:         request.Model,
+		Messages:      messages,
+		MaxTokens:     request.MaxTokens,
+		StopSequences: request.Stop,
+		Stream:        request.Stream,
+		Temperature:   request.Temperature,
+		ToolChoice:    request.ToolChoice,
+		TopK:          request.TopK,
+		TopP:          request.TopP,
+		Tools:         request.Tools,
 	}
 
 	if chatCompletionReq.Messages[0].Role == consts.ROLE_SYSTEM {
@@ -117,6 +116,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 	if c.isGcp {
 		chatCompletionReq.Model = ""
+		chatCompletionReq.AnthropicVersion = "vertex-2023-10-16"
 	}
 
 	chatCompletionRes := new(model.AnthropicChatCompletionRes)
@@ -223,17 +223,16 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}
 
 	chatCompletionReq := model.AnthropicChatCompletionReq{
-		Model:            request.Model,
-		Messages:         messages,
-		MaxTokens:        request.MaxTokens,
-		StopSequences:    request.Stop,
-		Stream:           request.Stream,
-		Temperature:      request.Temperature,
-		ToolChoice:       request.ToolChoice,
-		TopK:             request.TopK,
-		TopP:             request.TopP,
-		Tools:            request.Tools,
-		AnthropicVersion: "vertex-2023-10-16",
+		Model:         request.Model,
+		Messages:      messages,
+		MaxTokens:     request.MaxTokens,
+		StopSequences: request.Stop,
+		Stream:        request.Stream,
+		Temperature:   request.Temperature,
+		ToolChoice:    request.ToolChoice,
+		TopK:          request.TopK,
+		TopP:          request.TopP,
+		Tools:         request.Tools,
 	}
 
 	if chatCompletionReq.Messages[0].Role == consts.ROLE_SYSTEM {
@@ -301,6 +300,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 	if c.isGcp {
 		chatCompletionReq.Model = ""
+		chatCompletionReq.AnthropicVersion = "vertex-2023-10-16"
 	}
 
 	if c.isAws {

@@ -168,9 +168,12 @@ func (c *Client) ChatCompletionStreamOfficial(ctx context.Context, data []byte) 
 					return
 				}
 
+				var responseBytes []byte
 				chatCompletionRes := new(model.AnthropicChatCompletionRes)
+
 				switch v := event.(type) {
 				case *types.ResponseStreamMemberChunk:
+					responseBytes = v.Value.Bytes
 					if err := gjson.Unmarshal(v.Value.Bytes, &chatCompletionRes); err != nil {
 						logger.Errorf(ctx, "ChatCompletionStreamOfficial Anthropic model: %s, v.Value.Bytes: %s, error: %v", c.model, v.Value.Bytes, err)
 
@@ -226,19 +229,20 @@ func (c *Client) ChatCompletionStreamOfficial(ctx context.Context, data []byte) 
 				}
 
 				response := &model.AnthropicChatCompletionRes{
-					Id:           chatCompletionRes.Id,
-					Type:         chatCompletionRes.Type,
-					Role:         chatCompletionRes.Role,
-					Content:      chatCompletionRes.Content,
-					Model:        chatCompletionRes.Model,
-					StopReason:   chatCompletionRes.StopReason,
-					StopSequence: chatCompletionRes.StopSequence,
-					Message:      chatCompletionRes.Message,
-					Index:        chatCompletionRes.Index,
-					Delta:        chatCompletionRes.Delta,
-					Usage:        chatCompletionRes.Usage,
-					Error:        chatCompletionRes.Error,
-					ConnTime:     duration - now,
+					Id:            chatCompletionRes.Id,
+					Type:          chatCompletionRes.Type,
+					Role:          chatCompletionRes.Role,
+					Content:       chatCompletionRes.Content,
+					Model:         chatCompletionRes.Model,
+					StopReason:    chatCompletionRes.StopReason,
+					StopSequence:  chatCompletionRes.StopSequence,
+					Message:       chatCompletionRes.Message,
+					Index:         chatCompletionRes.Index,
+					Delta:         chatCompletionRes.Delta,
+					Usage:         chatCompletionRes.Usage,
+					Error:         chatCompletionRes.Error,
+					ResponseBytes: responseBytes,
+					ConnTime:      duration - now,
 				}
 
 				if errors.Is(err, io.EOF) || chatCompletionRes.Delta.StopReason != "" {
@@ -346,19 +350,20 @@ func (c *Client) ChatCompletionStreamOfficial(ctx context.Context, data []byte) 
 				}
 
 				response := &model.AnthropicChatCompletionRes{
-					Id:           chatCompletionRes.Id,
-					Type:         chatCompletionRes.Type,
-					Role:         chatCompletionRes.Role,
-					Content:      chatCompletionRes.Content,
-					Model:        chatCompletionRes.Model,
-					StopReason:   chatCompletionRes.StopReason,
-					StopSequence: chatCompletionRes.StopSequence,
-					Message:      chatCompletionRes.Message,
-					Index:        chatCompletionRes.Index,
-					Delta:        chatCompletionRes.Delta,
-					Usage:        chatCompletionRes.Usage,
-					Error:        chatCompletionRes.Error,
-					ConnTime:     duration - now,
+					Id:            chatCompletionRes.Id,
+					Type:          chatCompletionRes.Type,
+					Role:          chatCompletionRes.Role,
+					Content:       chatCompletionRes.Content,
+					Model:         chatCompletionRes.Model,
+					StopReason:    chatCompletionRes.StopReason,
+					StopSequence:  chatCompletionRes.StopSequence,
+					Message:       chatCompletionRes.Message,
+					Index:         chatCompletionRes.Index,
+					Delta:         chatCompletionRes.Delta,
+					Usage:         chatCompletionRes.Usage,
+					Error:         chatCompletionRes.Error,
+					ResponseBytes: streamResponse,
+					ConnTime:      duration - now,
 				}
 
 				if errors.Is(err, io.EOF) || chatCompletionRes.Delta.StopReason != "" {
