@@ -7,7 +7,6 @@ import (
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
-	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-sdk/common"
@@ -57,7 +56,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 						if imageUrl, ok := content["image_url"].(map[string]interface{}); ok {
 
-							mimeType, data := getMime(gconv.String(imageUrl["url"]))
+							mimeType, data := common.GetMime(gconv.String(imageUrl["url"]))
 
 							parts = append(parts, model.Part{
 								InlineData: &model.InlineData{
@@ -190,7 +189,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 						if imageUrl, ok := content["image_url"].(map[string]interface{}); ok {
 
-							mimeType, data := getMime(gconv.String(imageUrl["url"]))
+							mimeType, data := common.GetMime(gconv.String(imageUrl["url"]))
 
 							parts = append(parts, model.Part{
 								InlineData: &model.InlineData{
@@ -391,34 +390,4 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}
 
 	return responseChan, nil
-}
-
-func getMime(url string) (mimeType string, data string) {
-
-	base64 := gstr.Split(url, "base64,")
-	if len(base64) > 1 {
-		data = base64[1]
-		if gstr.HasPrefix(url, "data:image/") {
-			mimeType = fmt.Sprintf("image/%s", gstr.Split(base64[0][11:], ";")[0])
-		} else if gstr.HasPrefix(url, "data:text/") {
-			mimeType = fmt.Sprintf("text/%s", gstr.Split(base64[0][10:], ";")[0])
-		}
-	} else {
-		data = url
-	}
-
-	if mimeType == "" {
-		switch data[:3] {
-		case "/9j":
-			mimeType = consts.MIME_TYPE_MAP["jpg"]
-		case "iVB":
-			mimeType = consts.MIME_TYPE_MAP["png"]
-		case "JVB":
-			mimeType = consts.MIME_TYPE_MAP["pdf"]
-		default:
-			mimeType = consts.MIME_TYPE_MAP["txt"]
-		}
-	}
-
-	return mimeType, data
 }

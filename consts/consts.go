@@ -42,6 +42,8 @@ var MIME_TYPE_MAP = map[string]string{
 	"py":   "application/x-python",
 	"jpg":  "image/jpeg",
 	"png":  "image/png",
+	"webp": "image/webp",
+	"gif":  "image/gif",
 	"txt":  "text/plain",
 	"html": "text/html",
 	"css":  "text/css",
