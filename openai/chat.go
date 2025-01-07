@@ -65,6 +65,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		ParallelToolCalls:   request.ParallelToolCalls,
 		Store:               request.Store,
 		Metadata:            request.Metadata,
+		ReasoningEffort:     request.ReasoningEffort,
 		Modalities:          request.Modalities,
 		Audio:               request.Audio,
 	}
@@ -186,6 +187,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		ParallelToolCalls:   request.ParallelToolCalls,
 		Store:               request.Store,
 		Metadata:            request.Metadata,
+		ReasoningEffort:     request.ReasoningEffort,
 		Modalities:          request.Modalities,
 		Audio:               request.Audio,
 	}
