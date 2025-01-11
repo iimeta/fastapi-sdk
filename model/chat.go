@@ -119,6 +119,7 @@ type Usage struct {
 	TotalTokens              int                             `json:"total_tokens"`
 	PromptTokensDetails      *openai.PromptTokensDetails     `json:"prompt_tokens_details"`
 	CompletionTokensDetails  *openai.CompletionTokensDetails `json:"completion_tokens_details"`
+	SearchTokens             int                             `json:"search_tokens,omitempty"`
 	CacheCreationInputTokens int                             `json:"cache_creation_input_tokens,omitempty"`
 	CacheReadInputTokens     int                             `json:"cache_read_input_tokens,omitempty"`
 }
