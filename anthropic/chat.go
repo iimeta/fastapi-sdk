@@ -152,9 +152,11 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		Created: gtime.Timestamp(),
 		Model:   request.Model,
 		Usage: &model.Usage{
-			PromptTokens:     chatCompletionRes.Usage.InputTokens,
-			CompletionTokens: chatCompletionRes.Usage.OutputTokens,
-			TotalTokens:      chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
+			PromptTokens:             chatCompletionRes.Usage.InputTokens,
+			CompletionTokens:         chatCompletionRes.Usage.OutputTokens,
+			TotalTokens:              chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
+			CacheCreationInputTokens: chatCompletionRes.Usage.CacheCreationInputTokens,
+			CacheReadInputTokens:     chatCompletionRes.Usage.CacheReadInputTokens,
 		},
 	}
 
@@ -398,15 +400,19 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 				if chatCompletionRes.Usage != nil {
 					response.Usage = &model.Usage{
-						PromptTokens:     chatCompletionRes.Usage.InputTokens,
-						CompletionTokens: chatCompletionRes.Usage.OutputTokens,
-						TotalTokens:      chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
+						PromptTokens:             chatCompletionRes.Usage.InputTokens,
+						CompletionTokens:         chatCompletionRes.Usage.OutputTokens,
+						TotalTokens:              chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
+						CacheCreationInputTokens: chatCompletionRes.Usage.CacheCreationInputTokens,
+						CacheReadInputTokens:     chatCompletionRes.Usage.CacheReadInputTokens,
 					}
 				}
 
 				if chatCompletionRes.Message.Usage != nil {
 					response.Usage = &model.Usage{
-						PromptTokens: chatCompletionRes.Message.Usage.InputTokens,
+						PromptTokens:             chatCompletionRes.Message.Usage.InputTokens,
+						CacheCreationInputTokens: chatCompletionRes.Message.Usage.CacheCreationInputTokens,
+						CacheReadInputTokens:     chatCompletionRes.Message.Usage.CacheReadInputTokens,
 					}
 				}
 
@@ -567,16 +573,20 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 						promptTokens = chatCompletionRes.Usage.InputTokens
 					}
 					response.Usage = &model.Usage{
-						PromptTokens:     promptTokens,
-						CompletionTokens: chatCompletionRes.Usage.OutputTokens,
-						TotalTokens:      promptTokens + chatCompletionRes.Usage.OutputTokens,
+						PromptTokens:             promptTokens,
+						CompletionTokens:         chatCompletionRes.Usage.OutputTokens,
+						TotalTokens:              promptTokens + chatCompletionRes.Usage.OutputTokens,
+						CacheCreationInputTokens: chatCompletionRes.Usage.CacheCreationInputTokens,
+						CacheReadInputTokens:     chatCompletionRes.Usage.CacheReadInputTokens,
 					}
 				}
 
 				if chatCompletionRes.Message.Usage != nil {
 					promptTokens = chatCompletionRes.Message.Usage.InputTokens
 					response.Usage = &model.Usage{
-						PromptTokens: promptTokens,
+						PromptTokens:             promptTokens,
+						CacheCreationInputTokens: chatCompletionRes.Message.Usage.CacheCreationInputTokens,
+						CacheReadInputTokens:     chatCompletionRes.Message.Usage.CacheReadInputTokens,
 					}
 				}
 
