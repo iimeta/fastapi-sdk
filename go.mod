@@ -2,8 +2,6 @@ module github.com/iimeta/fastapi-sdk
 
 go 1.23
 
-replace github.com/iimeta/go-openai => ../go-openai
-
 require (
 	github.com/aws/aws-sdk-go-v2 v1.36.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.59
