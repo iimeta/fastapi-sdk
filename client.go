@@ -47,6 +47,8 @@ func NewClient(ctx context.Context, corp, model, key, baseURL, path string, isSu
 		return google.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	case consts.CORP_DEEPSEEK:
 		return deepseek.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
+	case consts.CORP_DEEPSEEK_BAIDU:
+		return deepseek.NewClientBaidu(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	case consts.CORP_360AI:
 		return ai360.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	case consts.CORP_ANTHROPIC:

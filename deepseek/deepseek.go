@@ -3,6 +3,7 @@ package deepseek
 import (
 	"context"
 	"errors"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/iimeta/go-openai"
@@ -45,6 +46,47 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 
 	return &Client{
 		client:              openai.NewClientWithConfig(config),
+		isSupportSystemRole: isSupportSystemRole,
+	}
+}
+
+func NewClientBaidu(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
+
+	logger.Infof(ctx, "NewClient DeepSeek model: %s, key: %s", model, key)
+
+	split := gstr.Split(key, "|")
+
+	config := openai.DefaultConfig(split[1])
+
+	if baseURL != "" {
+		logger.Infof(ctx, "NewClient DeepSeek model: %s, baseURL: %s", model, baseURL)
+		config.BaseURL = baseURL
+	} else {
+		config.BaseURL = "https://qianfan.baidubce.com/v2"
+	}
+
+	if len(proxyURL) > 0 && proxyURL[0] != "" {
+		logger.Infof(ctx, "NewClient DeepSeek model: %s, proxyURL: %s", model, proxyURL[0])
+
+		proxyUrl, err := url.Parse(proxyURL[0])
+		if err != nil {
+			panic(err)
+		}
+
+		config.HTTPClient = &http.Client{
+			Transport: &http.Transport{
+				Proxy: http.ProxyURL(proxyUrl),
+			},
+		}
+	}
+
+	client := openai.NewClientWithConfig(config)
+	client.Header = http.Header{
+		"appid": []string{split[0]},
+	}
+
+	return &Client{
+		client:              client,
 		isSupportSystemRole: isSupportSystemRole,
 	}
 }

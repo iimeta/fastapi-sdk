@@ -81,10 +81,11 @@ type ChatCompletionResponse struct {
 }
 
 type ChatCompletionMessage struct {
-	Role         string                   `json:"role"`
-	Content      any                      `json:"content"`
-	Refusal      string                   `json:"refusal,omitempty"`
-	MultiContent []openai.ChatMessagePart `json:"-"`
+	Role             string                   `json:"role"`
+	Content          any                      `json:"content"`
+	ReasoningContent any                      `json:"reasoning_content,omitempty"`
+	Refusal          string                   `json:"refusal,omitempty"`
+	MultiContent     []openai.ChatMessagePart `json:"-"`
 
 	// This property isn't in the official documentation, but it's in
 	// the documentation for the official library for python:
@@ -125,10 +126,11 @@ type Usage struct {
 }
 
 type ChatCompletionStreamChoiceDelta struct {
-	Content      string               `json:"content"`
-	Role         string               `json:"role,omitempty"`
-	FunctionCall *openai.FunctionCall `json:"function_call,omitempty"`
-	ToolCalls    []openai.ToolCall    `json:"tool_calls,omitempty"`
-	Refusal      string               `json:"refusal,omitempty"`
-	Audio        *openai.Audio        `json:"audio,omitempty"`
+	Content          string               `json:"content"`
+	ReasoningContent any                  `json:"reasoning_content,omitempty"`
+	Role             string               `json:"role,omitempty"`
+	FunctionCall     *openai.FunctionCall `json:"function_call,omitempty"`
+	ToolCalls        []openai.ToolCall    `json:"tool_calls,omitempty"`
+	Refusal          string               `json:"refusal,omitempty"`
+	Audio            *openai.Audio        `json:"audio,omitempty"`
 }
