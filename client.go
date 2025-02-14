@@ -12,6 +12,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/openai"
+	"github.com/iimeta/fastapi-sdk/volcengine"
 	"github.com/iimeta/fastapi-sdk/xfyun"
 	"github.com/iimeta/fastapi-sdk/zhipuai"
 )
@@ -57,6 +58,8 @@ func NewClient(ctx context.Context, corp, model, key, baseURL, path string, isSu
 		return anthropic.NewGcpClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	case consts.CORP_AWS_CLAUDE:
 		return anthropic.NewAwsClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
+	case consts.CORP_VOLC_ENGINE:
+		return volcengine.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	}
 
 	return openai.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
