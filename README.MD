@@ -34,6 +34,7 @@
 | GCPClaude    | ✔️         |       |        | ✔️        |          |           |            |
 | AWSClaude    | ✔️         |       |        | ✔️        |          |           |            |
 | 百度DeepSeek | ✔️         |       |        |           |          |           |            |
+| 豆包         | ✔️         |       |        |           |          |           |            |
 | 火山引擎     | ✔️         |       |        |           |          |           |            |
 
 ## 项目预览
@@ -96,6 +97,6 @@
 
 ## 交流群
 
-<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20250215" width="320" alt="交流群"/>
+<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20250223" width="320" alt="交流群"/>
 
 ![Star History Chart](https://api.star-history.com/svg?repos=iimeta/fastapi-sdk&type=Date)
