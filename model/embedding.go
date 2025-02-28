@@ -14,7 +14,7 @@ type EmbeddingRequest struct {
 
 type EmbeddingResponse struct {
 	Object    string                `json:"object"`
-	Data      []openai.Embedding    `json:"data"`
+	Data      []any                 `json:"data"`
 	Model     openai.EmbeddingModel `json:"model"`
 	Usage     *Usage                `json:"usage"`
 	TotalTime int64                 `json:"-"`
