@@ -2,10 +2,8 @@ package openai
 
 import (
 	"context"
-	"errors"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
-	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/iimeta/go-openai"
 	"net/http"
 	"net/url"
@@ -89,33 +87,33 @@ func NewAzureClient(ctx context.Context, model, key, baseURL, path string, isSup
 
 func (c *Client) apiErrorHandler(err error) error {
 
-	apiError := &openai.APIError{}
-	if errors.As(err, &apiError) {
-
-		switch apiError.HTTPStatusCode {
-		case 400:
-			if apiError.Code == "context_length_exceeded" {
-				return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
-			}
-		case 401:
-			if apiError.Code == "invalid_api_key" {
-				return sdkerr.ERR_INVALID_API_KEY
-			}
-		case 404:
-			return sdkerr.ERR_MODEL_NOT_FOUND
-		case 429:
-			if apiError.Code == "insufficient_quota" {
-				return sdkerr.ERR_INSUFFICIENT_QUOTA
-			}
-		}
-
-		return err
-	}
-
-	reqError := &openai.RequestError{}
-	if errors.As(err, &reqError) {
-		return sdkerr.NewRequestError(apiError.HTTPStatusCode, reqError.Err)
-	}
+	//apiError := &openai.APIError{}
+	//if errors.As(err, &apiError) {
+	//
+	//	switch apiError.HTTPStatusCode {
+	//	case 400:
+	//		if apiError.Code == "context_length_exceeded" {
+	//			return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
+	//		}
+	//	case 401:
+	//		if apiError.Code == "invalid_api_key" {
+	//			return sdkerr.ERR_INVALID_API_KEY
+	//		}
+	//	case 404:
+	//		return sdkerr.ERR_MODEL_NOT_FOUND
+	//	case 429:
+	//		if apiError.Code == "insufficient_quota" {
+	//			return sdkerr.ERR_INSUFFICIENT_QUOTA
+	//		}
+	//	}
+	//
+	//	return err
+	//}
+	//
+	//reqError := &openai.RequestError{}
+	//if errors.As(err, &reqError) {
+	//	return sdkerr.NewRequestError(apiError.HTTPStatusCode, reqError.Err)
+	//}
 
 	return err
 }
