@@ -61,6 +61,7 @@ type ChatCompletionRequest struct {
 		Voice  string `json:"voice,omitempty"`
 		Format string `json:"format,omitempty"`
 	} `json:"audio,omitempty"`
+	WebSearchOptions any `json:"web_search_options,omitempty"`
 }
 
 // ChatCompletionResponse represents a response structure for chat completion API.
@@ -102,6 +103,8 @@ type ChatCompletionMessage struct {
 	ToolCallID string `json:"tool_call_id,omitempty"`
 
 	Audio *openai.Audio `json:"audio,omitempty"`
+
+	Annotations any `json:"annotations,omitempty"`
 }
 
 type ChatCompletionChoice struct {
@@ -133,4 +136,5 @@ type ChatCompletionStreamChoiceDelta struct {
 	ToolCalls        []openai.ToolCall    `json:"tool_calls,omitempty"`
 	Refusal          string               `json:"refusal,omitempty"`
 	Audio            *openai.Audio        `json:"audio,omitempty"`
+	Annotations      any                  `json:"annotations,omitempty"`
 }

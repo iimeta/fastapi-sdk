@@ -68,6 +68,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		ReasoningEffort:     request.ReasoningEffort,
 		Modalities:          request.Modalities,
 		Audio:               request.Audio,
+		WebSearchOptions:    request.WebSearchOptions,
 	}
 
 	if gstr.HasPrefix(chatCompletionRequest.Model, "o1-") {
@@ -114,6 +115,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 				ToolCalls:        choice.Message.ToolCalls,
 				ToolCallID:       choice.Message.ToolCallID,
 				Audio:            choice.Message.Audio,
+				Annotations:      choice.Message.Annotations,
 			},
 			FinishReason: choice.FinishReason,
 			LogProbs:     choice.LogProbs,
@@ -191,6 +193,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		ReasoningEffort:     request.ReasoningEffort,
 		Modalities:          request.Modalities,
 		Audio:               request.Audio,
+		WebSearchOptions:    request.WebSearchOptions,
 	}
 
 	if gstr.HasPrefix(chatCompletionRequest.Model, "o1-") {
@@ -262,6 +265,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 						ToolCalls:        choice.Delta.ToolCalls,
 						Refusal:          choice.Delta.Refusal,
 						Audio:            choice.Delta.Audio,
+						Annotations:      choice.Delta.Annotations,
 					},
 					FinishReason: choice.FinishReason,
 					//ContentFilterResults: &choice.ContentFilterResults,
@@ -366,6 +370,8 @@ func (c *Client) O1ChatCompletionStream(ctx context.Context, request model.ChatC
 					Role:             choice.Message.Role,
 					FunctionCall:     choice.Message.FunctionCall,
 					ToolCalls:        choice.Message.ToolCalls,
+					Audio:            choice.Message.Audio,
+					Annotations:      choice.Message.Annotations,
 				},
 				FinishReason: openai.FinishReasonStop,
 			})
