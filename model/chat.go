@@ -104,7 +104,7 @@ type ChatCompletionMessage struct {
 
 	Audio *openai.Audio `json:"audio,omitempty"`
 
-	Annotations any `json:"annotations,omitempty"`
+	Annotations []any `json:"annotations"`
 }
 
 type ChatCompletionChoice struct {
@@ -113,7 +113,6 @@ type ChatCompletionChoice struct {
 	Delta        *ChatCompletionStreamChoiceDelta `json:"delta,omitempty"`
 	LogProbs     *openai.LogProbs                 `json:"logprobs,omitempty"`
 	FinishReason openai.FinishReason              `json:"finish_reason"`
-	//ContentFilterResults *openai.ContentFilterResults            `json:"content_filter_results,omitempty"`
 }
 
 // Usage Represents the total token usage per request to OpenAI.

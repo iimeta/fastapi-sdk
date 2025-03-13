@@ -226,7 +226,6 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 						Audio:        choice.Delta.Audio,
 					},
 					FinishReason: choice.FinishReason,
-					//ContentFilterResults: &choice.ContentFilterResults,
 				})
 			}
 

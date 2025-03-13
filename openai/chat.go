@@ -102,6 +102,9 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	for _, choice := range response.Choices {
+		if choice.Message.Annotations == nil {
+			choice.Message.Annotations = []any{}
+		}
 		res.Choices = append(res.Choices, model.ChatCompletionChoice{
 			Index: choice.Index,
 			Message: &model.ChatCompletionMessage{
@@ -268,7 +271,6 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 						Annotations:      choice.Delta.Annotations,
 					},
 					FinishReason: choice.FinishReason,
-					//ContentFilterResults: &choice.ContentFilterResults,
 				})
 			}
 
