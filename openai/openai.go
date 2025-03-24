@@ -2,8 +2,12 @@ package openai
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
+	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/iimeta/go-openai"
 	"net/http"
 	"net/url"
@@ -11,6 +15,12 @@ import (
 
 type Client struct {
 	client              *openai.Client
+	model               string
+	key                 string
+	baseURL             string
+	path                string
+	proxyURL            string
+	header              map[string]string
 	isSupportSystemRole *bool
 	isAzure             bool
 }
@@ -19,11 +29,25 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 
 	logger.Infof(ctx, "NewClient OpenAI model: %s, key: %s", model, key)
 
+	client := &Client{
+		model:               model,
+		key:                 key,
+		baseURL:             "https://api.openai.com/v1",
+		path:                "/chat/completions",
+		isSupportSystemRole: isSupportSystemRole,
+	}
+
 	config := openai.DefaultConfig(key)
 
 	if baseURL != "" {
 		logger.Infof(ctx, "NewClient OpenAI model: %s, baseURL: %s", model, baseURL)
 		config.BaseURL = baseURL
+		client.baseURL = baseURL
+	}
+
+	if path != "" {
+		logger.Infof(ctx, "NewClient OpenAI model: %s, path: %s", model, path)
+		client.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
@@ -39,12 +63,17 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 				Proxy: http.ProxyURL(proxyUrl),
 			},
 		}
+
+		client.proxyURL = proxyURL[0]
 	}
 
-	return &Client{
-		client:              openai.NewClientWithConfig(config),
-		isSupportSystemRole: isSupportSystemRole,
-	}
+	header := make(map[string]string)
+	header["Authorization"] = fmt.Sprintf("Bearer %s", key)
+
+	client.header = header
+	client.client = openai.NewClientWithConfig(config)
+
+	return client
 }
 
 func NewAzureClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
@@ -83,6 +112,10 @@ func NewAzureClient(ctx context.Context, model, key, baseURL, path string, isSup
 		isSupportSystemRole: isSupportSystemRole,
 		isAzure:             true,
 	}
+}
+
+func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Response) (err error) {
+	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, response.ReadAllString())))
 }
 
 func (c *Client) apiErrorHandler(err error) error {
