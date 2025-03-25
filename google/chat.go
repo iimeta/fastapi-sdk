@@ -115,7 +115,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		return
 	}
 
-	if chatCompletionRes.Error.Code != 0 || chatCompletionRes.Candidates[0].FinishReason != "STOP" {
+	if chatCompletionRes.Error.Code != 0 || (chatCompletionRes.Candidates[0].FinishReason != "STOP" && chatCompletionRes.Candidates[0].FinishReason != "MAX_TOKENS") {
 		logger.Errorf(ctx, "ChatCompletion Google model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = c.apiErrorHandler(chatCompletionRes)
