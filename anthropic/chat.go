@@ -107,9 +107,13 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		chatCompletionReq.Metadata = nil
 
 		invokeModelInput := &bedrockruntime.InvokeModelInput{
-			ModelId:     aws.String(AwsModelIDMap[chatCompletionReq.Model]),
+			ModelId:     aws.String(chatCompletionReq.Model),
 			Accept:      aws.String("application/json"),
 			ContentType: aws.String("application/json"),
+		}
+
+		if modelId, ok := AwsModelIDMap[chatCompletionReq.Model]; ok {
+			invokeModelInput.ModelId = aws.String(modelId)
 		}
 
 		chatCompletionReq.Model = ""
@@ -272,9 +276,13 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		chatCompletionReq.Stream = false
 
 		invokeModelStreamInput := &bedrockruntime.InvokeModelWithResponseStreamInput{
-			ModelId:     aws.String(AwsModelIDMap[chatCompletionReq.Model]),
+			ModelId:     aws.String(chatCompletionReq.Model),
 			Accept:      aws.String("application/json"),
 			ContentType: aws.String("application/json"),
+		}
+
+		if modelId, ok := AwsModelIDMap[chatCompletionReq.Model]; ok {
+			invokeModelStreamInput.ModelId = aws.String(modelId)
 		}
 
 		chatCompletionReq.Model = ""
