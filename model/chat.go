@@ -104,7 +104,7 @@ type ChatCompletionMessage struct {
 
 	Audio *openai.Audio `json:"audio,omitempty"`
 
-	Annotations []any `json:"annotations"`
+	Annotations []any `json:"annotations,omitempty"`
 }
 
 type ChatCompletionChoice struct {
