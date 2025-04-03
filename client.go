@@ -46,6 +46,8 @@ func NewClient(ctx context.Context, corp, model, key, baseURL, path string, isSu
 		return zhipuai.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	case consts.CORP_GOOGLE:
 		return google.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
+	case consts.CORP_GCP_GEMINI:
+		return google.NewGcpClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	case consts.CORP_DEEPSEEK:
 		return deepseek.NewClient(ctx, model, key, baseURL, path, isSupportSystemRole, proxyURL...)
 	case consts.CORP_DEEPSEEK_BAIDU:

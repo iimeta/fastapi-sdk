@@ -18,6 +18,8 @@ type Client struct {
 	path                string
 	proxyURL            string
 	isSupportSystemRole *bool
+	header              map[string]string
+	isGcp               bool
 }
 
 func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
@@ -46,6 +48,40 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 		logger.Infof(ctx, "NewClient Google model: %s, proxyURL: %s", model, proxyURL[0])
 		client.proxyURL = proxyURL[0]
 	}
+
+	return client
+}
+
+func NewGcpClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
+
+	logger.Infof(ctx, "NewGcpClient Google model: %s, key: %s", model, key)
+
+	client := &Client{
+		model:               model,
+		key:                 key,
+		baseURL:             "https://us-east5-aiplatform.googleapis.com/v1",
+		path:                "/projects/%s/locations/us-east5/publishers/google/models/%s",
+		isSupportSystemRole: isSupportSystemRole,
+		isGcp:               true,
+	}
+
+	if baseURL != "" {
+		logger.Infof(ctx, "NewGcpClient Google model: %s, baseURL: %s", model, baseURL)
+		client.baseURL = baseURL
+	}
+
+	if path != "" {
+		logger.Infof(ctx, "NewGcpClient Google model: %s, path: %s", model, path)
+		client.path = path
+	}
+
+	if len(proxyURL) > 0 && proxyURL[0] != "" {
+		logger.Infof(ctx, "NewGcpClient Google model: %s, proxyURL: %s", model, proxyURL[0])
+		client.proxyURL = proxyURL[0]
+	}
+
+	client.header = make(map[string]string)
+	client.header["Authorization"] = "Bearer " + key
 
 	return client
 }

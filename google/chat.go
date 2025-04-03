@@ -110,9 +110,16 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	chatCompletionRes := new(model.GoogleChatCompletionRes)
-	if _, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", c.baseURL+c.path, c.key), nil, chatCompletionReq, &chatCompletionRes, c.proxyURL); err != nil {
-		logger.Errorf(ctx, "ChatCompletion Google model: %s, error: %v", request.Model, err)
-		return
+	if c.isGcp {
+		if _, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent", c.baseURL+c.path), c.header, chatCompletionReq, &chatCompletionRes, c.proxyURL); err != nil {
+			logger.Errorf(ctx, "ChatCompletion Google model: %s, error: %v", request.Model, err)
+			return
+		}
+	} else {
+		if _, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", c.baseURL+c.path, c.key), nil, chatCompletionReq, &chatCompletionRes, c.proxyURL); err != nil {
+			logger.Errorf(ctx, "ChatCompletion Google model: %s, error: %v", request.Model, err)
+			return
+		}
 	}
 
 	if chatCompletionRes.Error.Code != 0 || (chatCompletionRes.Candidates[0].FinishReason != "STOP" && chatCompletionRes.Candidates[0].FinishReason != "MAX_TOKENS") {
@@ -242,10 +249,19 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		Tools: request.Tools,
 	}
 
-	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", c.baseURL+c.path, c.key), nil, chatCompletionReq, c.proxyURL, c.requestErrorHandler)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream Google model: %s, error: %v", request.Model, err)
-		return responseChan, err
+	var stream *util.StreamReader
+	if c.isGcp {
+		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse", c.baseURL+c.path), c.header, chatCompletionReq, c.proxyURL, c.requestErrorHandler)
+		if err != nil {
+			logger.Errorf(ctx, "ChatCompletionStream Google model: %s, error: %v", request.Model, err)
+			return responseChan, err
+		}
+	} else {
+		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", c.baseURL+c.path, c.key), nil, chatCompletionReq, c.proxyURL, c.requestErrorHandler)
+		if err != nil {
+			logger.Errorf(ctx, "ChatCompletionStream Google model: %s, error: %v", request.Model, err)
+			return responseChan, err
+		}
 	}
 
 	duration := gtime.TimestampMilli()
