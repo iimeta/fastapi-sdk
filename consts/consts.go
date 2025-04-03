@@ -16,6 +16,7 @@ const (
 	CORP_GCP_CLAUDE     = "GCPClaude"
 	CORP_AWS_CLAUDE     = "AWSClaude"
 	CORP_VOLC_ENGINE    = "VolcEngine"
+	CORP_GCP_GEMINI     = "GCPGemini"
 )
 
 const (
