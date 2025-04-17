@@ -71,7 +71,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		WebSearchOptions:    request.WebSearchOptions,
 	}
 
-	if gstr.HasPrefix(chatCompletionRequest.Model, "o1-") {
+	if gstr.HasPrefix(chatCompletionRequest.Model, "o") {
 		if chatCompletionRequest.MaxCompletionTokens == 0 && chatCompletionRequest.MaxTokens != 0 {
 			chatCompletionRequest.MaxCompletionTokens = chatCompletionRequest.MaxTokens
 		}
@@ -139,7 +139,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
-	if gstr.HasPrefix(request.Model, "o1-") && c.isAzure {
+	if gstr.HasPrefix(request.Model, "o") && c.isAzure {
 		return c.O1ChatCompletionStream(ctx, request)
 	}
 
@@ -199,7 +199,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		WebSearchOptions:    request.WebSearchOptions,
 	}
 
-	if gstr.HasPrefix(chatCompletionRequest.Model, "o1-") {
+	if gstr.HasPrefix(chatCompletionRequest.Model, "o") {
 		if chatCompletionRequest.MaxCompletionTokens == 0 && chatCompletionRequest.MaxTokens != 0 {
 			chatCompletionRequest.MaxCompletionTokens = chatCompletionRequest.MaxTokens
 		}
