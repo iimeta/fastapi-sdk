@@ -7,6 +7,7 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/go-openai"
@@ -35,6 +36,10 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 			ToolCalls:    message.ToolCalls,
 			ToolCallID:   message.ToolCallID,
 			Audio:        message.Audio,
+		}
+
+		if chatCompletionMessage.Role == consts.ROLE_SYSTEM && (gstr.HasPrefix(request.Model, "o1") || gstr.HasPrefix(request.Model, "o3")) {
+			chatCompletionMessage.Role = consts.ROLE_USER
 		}
 
 		messages = append(messages, chatCompletionMessage)
@@ -155,6 +160,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			ToolCalls:    message.ToolCalls,
 			ToolCallID:   message.ToolCallID,
 			Audio:        message.Audio,
+		}
+
+		if chatCompletionMessage.Role == consts.ROLE_SYSTEM && (gstr.HasPrefix(request.Model, "o1") || gstr.HasPrefix(request.Model, "o3")) {
+			chatCompletionMessage.Role = consts.ROLE_DEVELOPER
 		}
 
 		messages = append(messages, chatCompletionMessage)

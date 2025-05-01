@@ -21,6 +21,7 @@ const (
 
 const (
 	ROLE_SYSTEM    = "system"
+	ROLE_DEVELOPER = "developer"
 	ROLE_USER      = "user"
 	ROLE_ASSISTANT = "assistant"
 	ROLE_FUNCTION  = "function"
