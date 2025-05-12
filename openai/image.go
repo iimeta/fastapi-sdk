@@ -19,14 +19,18 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	}()
 
 	response, err := c.client.CreateImage(ctx, openai.ImageRequest{
-		Prompt:         request.Prompt,
-		Model:          request.Model,
-		N:              request.N,
-		Quality:        request.Quality,
-		Size:           request.Size,
-		Style:          request.Style,
-		ResponseFormat: request.ResponseFormat,
-		User:           request.User,
+		Prompt:            request.Prompt,
+		Background:        request.Background,
+		Model:             request.Model,
+		Moderation:        request.Moderation,
+		N:                 request.N,
+		OutputCompression: request.OutputCompression,
+		OutputFormat:      request.OutputFormat,
+		Quality:           request.Quality,
+		ResponseFormat:    request.ResponseFormat,
+		Size:              request.Size,
+		Style:             request.Style,
+		User:              request.User,
 	})
 	if err != nil {
 		logger.Errorf(ctx, "Image OpenAI model: %s, error: %v", request.Model, err)
@@ -45,6 +49,11 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	res = model.ImageResponse{
 		Created: response.Created,
 		Data:    data,
+		Usage: &model.Usage{
+			InputTokens:        response.Usage.InputTokens,
+			OutputTokens:       response.Usage.OutputTokens,
+			InputTokensDetails: response.Usage.InputTokensDetails,
+		},
 	}
 
 	return res, nil
