@@ -12,14 +12,14 @@ import (
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res model.ImageResponse, err error) {
+func (c *Client) ImageGeneration(ctx context.Context, request model.ImageGenerationRequest) (res model.ImageResponse, err error) {
 
-	logger.Infof(ctx, "Image Xfyun model: %s start", request.Model)
+	logger.Infof(ctx, "ImageGeneration Xfyun model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "Image Xfyun model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+		logger.Infof(ctx, "ImageGeneration Xfyun model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
 	}()
 
 	width := 512
@@ -75,7 +75,7 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 
 	imageRes := new(model.XfyunChatCompletionRes)
 	if _, err = util.HttpPost(ctx, c.getHttpUrl(ctx), nil, imageReq, &imageRes, c.proxyURL); err != nil {
-		logger.Errorf(ctx, "Image Xfyun model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ImageGeneration Xfyun model: %s, error: %v", request.Model, err)
 		return res, err
 	}
 
@@ -87,4 +87,9 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	}
 
 	return res, nil
+}
+
+func (c *Client) ImageEdit(ctx context.Context, request model.ImageEditRequest) (res model.ImageResponse, err error) {
+	//TODO implement me
+	panic("implement me")
 }

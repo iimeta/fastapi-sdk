@@ -20,7 +20,8 @@ import (
 type Client interface {
 	ChatCompletion(ctx context.Context, request model.ChatCompletionRequest) (res model.ChatCompletionResponse, err error)
 	ChatCompletionStream(ctx context.Context, request model.ChatCompletionRequest) (responseChan chan *model.ChatCompletionResponse, err error)
-	Image(ctx context.Context, request model.ImageRequest) (res model.ImageResponse, err error)
+	ImageGeneration(ctx context.Context, request model.ImageGenerationRequest) (res model.ImageResponse, err error)
+	ImageEdit(ctx context.Context, request model.ImageEditRequest) (res model.ImageResponse, err error)
 	Speech(ctx context.Context, request model.SpeechRequest) (res model.SpeechResponse, err error)
 	Transcription(ctx context.Context, request model.AudioRequest) (res model.AudioResponse, err error)
 	Embeddings(ctx context.Context, request model.EmbeddingRequest) (res model.EmbeddingResponse, err error)

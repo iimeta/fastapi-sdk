@@ -1,7 +1,11 @@
 package model
 
-// ImageRequest represents the request structure for the image API.
-type ImageRequest struct {
+import (
+	"mime/multipart"
+)
+
+// ImageGenerationRequest represents the request structure for the image API.
+type ImageGenerationRequest struct {
 	Prompt            string `json:"prompt,omitempty"`
 	Background        string `json:"background,omitempty"`
 	Model             string `json:"model,omitempty"`
@@ -28,4 +32,17 @@ type ImageResponseDataInner struct {
 	URL           string `json:"url,omitempty"`
 	B64JSON       string `json:"b64_json,omitempty"`
 	RevisedPrompt string `json:"revised_prompt,omitempty"`
+}
+
+type ImageEditRequest struct {
+	Image          []*multipart.FileHeader `json:"image,omitempty"`
+	Prompt         string                  `json:"prompt,omitempty"`
+	Background     string                  `json:"background,omitempty"`
+	Mask           *multipart.FileHeader   `json:"mask,omitempty"`
+	Model          string                  `json:"model,omitempty"`
+	N              int                     `json:"n,omitempty"`
+	Quality        string                  `json:"quality,omitempty"`
+	ResponseFormat string                  `json:"response_format,omitempty"`
+	Size           string                  `json:"size,omitempty"`
+	User           string                  `json:"user,omitempty"`
 }

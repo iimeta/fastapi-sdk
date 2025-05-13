@@ -8,14 +8,14 @@ import (
 	"github.com/iimeta/go-openai"
 )
 
-func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res model.ImageResponse, err error) {
+func (c *Client) ImageGeneration(ctx context.Context, request model.ImageGenerationRequest) (res model.ImageResponse, err error) {
 
-	logger.Infof(ctx, "Image 360AI model: %s start", request.Model)
+	logger.Infof(ctx, "ImageGeneration 360AI model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "Image 360AI model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+		logger.Infof(ctx, "ImageGeneration 360AI model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
 	}()
 
 	response, err := c.client.CreateImage(ctx, openai.ImageRequest{
@@ -29,7 +29,7 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 		User:           request.User,
 	})
 	if err != nil {
-		logger.Errorf(ctx, "Image 360AI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ImageGeneration 360AI model: %s, error: %v", request.Model, err)
 		return res, err
 	}
 
@@ -48,4 +48,9 @@ func (c *Client) Image(ctx context.Context, request model.ImageRequest) (res mod
 	}
 
 	return res, nil
+}
+
+func (c *Client) ImageEdit(ctx context.Context, request model.ImageEditRequest) (res model.ImageResponse, err error) {
+	//TODO implement me
+	panic("implement me")
 }
