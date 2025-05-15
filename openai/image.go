@@ -49,7 +49,8 @@ func (c *Client) ImageGeneration(ctx context.Context, request model.ImageGenerat
 	res = model.ImageResponse{
 		Created: response.Created,
 		Data:    data,
-		Usage: &model.Usage{
+		Usage: model.Usage{
+			TotalTokens:        response.Usage.TotalTokens,
 			InputTokens:        response.Usage.InputTokens,
 			OutputTokens:       response.Usage.OutputTokens,
 			InputTokensDetails: response.Usage.InputTokensDetails,
@@ -98,7 +99,8 @@ func (c *Client) ImageEdit(ctx context.Context, request model.ImageEditRequest) 
 	res = model.ImageResponse{
 		Created: response.Created,
 		Data:    data,
-		Usage: &model.Usage{
+		Usage: model.Usage{
+			TotalTokens:        response.Usage.TotalTokens,
 			InputTokens:        response.Usage.InputTokens,
 			OutputTokens:       response.Usage.OutputTokens,
 			InputTokensDetails: response.Usage.InputTokensDetails,

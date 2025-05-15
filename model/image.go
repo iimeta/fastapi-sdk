@@ -23,7 +23,7 @@ type ImageGenerationRequest struct {
 type ImageResponse struct {
 	Created   int64                    `json:"created,omitempty"`
 	Data      []ImageResponseDataInner `json:"data,omitempty"`
-	Usage     *Usage                   `json:"usage,omitempty"`
+	Usage     Usage                    `json:"usage,omitempty"`
 	TotalTime int64                    `json:"-"`
 }
 
