@@ -128,6 +128,7 @@ type Usage struct {
 	InputTokens              int                             `json:"input_tokens"`
 	OutputTokens             int                             `json:"output_tokens"`
 	InputTokensDetails       openai.InputTokensDetails       `json:"input_tokens_details"`
+	OutputTokensDetails      openai.OutputTokensDetails      `json:"output_tokens_details"`
 }
 
 type ChatCompletionStreamChoiceDelta struct {
