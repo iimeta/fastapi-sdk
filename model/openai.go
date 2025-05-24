@@ -1,26 +1,26 @@
 package model
 
 type OpenAIResponsesReq struct {
-	Model              string `json:"model,omitempty"`
-	Input              any    `json:"input"`
-	Stream             bool   `json:"stream,omitempty"`
-	Background         bool   `json:"background,omitempty"`
-	Include            any    `json:"include,omitempty"`
-	Instructions       string `json:"instructions,omitempty"`
-	MaxOutputTokens    int    `json:"max_output_tokens,omitempty"`
-	Metadata           any    `json:"metadata,omitempty"`
-	ParallelToolCalls  bool   `json:"parallel_tool_calls,omitempty"`
-	PreviousResponseId string `json:"previous_response_id,omitempty"`
-	Reasoning          any    `json:"reasoning,omitempty"`
-	Service_tier       string `json:"service_tier,omitempty"`
-	Store              bool   `json:"store,omitempty"`
-	Temperature        int    `json:"temperature,omitempty"`
-	Text               any    `json:"text,omitempty"`
-	ToolChoice         string `json:"tool_choice,omitempty"`
-	Tools              any    `json:"tools,omitempty"`
-	TopP               int    `json:"top_p,omitempty"`
-	Truncation         string `json:"truncation,omitempty"`
-	User               string `json:"user,omitempty"`
+	Model              string                    `json:"model,omitempty"`
+	Input              any                       `json:"input"`
+	Stream             bool                      `json:"stream,omitempty"`
+	Background         bool                      `json:"background,omitempty"`
+	Include            any                       `json:"include,omitempty"`
+	Instructions       string                    `json:"instructions,omitempty"`
+	MaxOutputTokens    int                       `json:"max_output_tokens,omitempty"`
+	Metadata           map[string]string         `json:"metadata,omitempty"`
+	ParallelToolCalls  bool                      `json:"parallel_tool_calls,omitempty"`
+	PreviousResponseId string                    `json:"previous_response_id,omitempty"`
+	Reasoning          *OpenAIResponsesReasoning `json:"reasoning,omitempty"`
+	Service_tier       string                    `json:"service_tier,omitempty"`
+	Store              bool                      `json:"store,omitempty"`
+	Temperature        float32                   `json:"temperature,omitempty"`
+	Text               any                       `json:"text,omitempty"`
+	ToolChoice         string                    `json:"tool_choice,omitempty"`
+	Tools              any                       `json:"tools,omitempty"`
+	TopP               float32                   `json:"top_p,omitempty"`
+	Truncation         string                    `json:"truncation,omitempty"`
+	User               string                    `json:"user,omitempty"`
 }
 
 type OpenAIResponsesRes struct {
@@ -29,7 +29,7 @@ type OpenAIResponsesRes struct {
 	Model              string                  `json:"model"`
 	CreatedAt          int                     `json:"created_at"`
 	Status             string                  `json:"status"`
-	Background         string                  `json:"background"`
+	Background         bool                    `json:"background"`
 	IncompleteDetails  any                     `json:"incomplete_details"`
 	Instructions       any                     `json:"instructions"`
 	MaxOutputTokens    int                     `json:"max_output_tokens"`
@@ -40,11 +40,11 @@ type OpenAIResponsesRes struct {
 	Reasoning          any                     `json:"reasoning"`
 	ServiceTier        string                  `json:"service_tier"`
 	Store              bool                    `json:"store"`
-	Temperature        int                     `json:"temperature"`
+	Temperature        float32                 `json:"temperature"`
 	Text               any                     `json:"text"`
 	ToolChoice         string                  `json:"tool_choice"`
 	Tools              any                     `json:"tools"`
-	TopP               int                     `json:"top_p"`
+	TopP               float32                 `json:"top_p"`
 	Truncation         string                  `json:"truncation"`
 	User               string                  `json:"user"`
 	Usage              *Usage                  `json:"usage"`
@@ -60,6 +60,20 @@ type OpenAIResponsesRes struct {
 	Duration      int64  `json:"-"`
 	TotalTime     int64  `json:"-"`
 	Err           error  `json:"-"`
+}
+
+type OpenAIResponsesInput struct {
+	Role    string `json:"role"`
+	Content []struct {
+		Type     string `json:"type"`
+		Text     string `json:"text,omitempty"`
+		ImageUrl string `json:"image_url,omitempty"`
+	} `json:"content"`
+}
+
+type OpenAIResponsesReasoning struct {
+	Effort  string `json:"effort"`
+	Summary string `json:"summary"`
 }
 
 type OpenAIResponsesOutput struct {
