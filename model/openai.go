@@ -27,7 +27,7 @@ type OpenAIResponsesRes struct {
 	Id                 string                  `json:"id"`
 	Object             string                  `json:"object"`
 	Model              string                  `json:"model"`
-	CreatedAt          int                     `json:"created_at"`
+	CreatedAt          int64                   `json:"created_at"`
 	Status             string                  `json:"status"`
 	Background         bool                    `json:"background"`
 	IncompleteDetails  any                     `json:"incomplete_details"`
@@ -55,11 +55,78 @@ type OpenAIResponsesRes struct {
 		SequenceNumber int    `json:"sequence_number"`
 		Type           string `json:"type"`
 	} `json:"error"`
-	ResponseBytes []byte `json:"-"`
-	ConnTime      int64  `json:"-"`
-	Duration      int64  `json:"-"`
-	TotalTime     int64  `json:"-"`
-	Err           error  `json:"-"`
+	ResponseBytes  []byte `json:"-"`
+	ConnTime       int64  `json:"-"`
+	Duration       int64  `json:"-"`
+	TotalTime      int64  `json:"-"`
+	Err            error  `json:"-"`
+	Type           string `json:"type"`
+	SequenceNumber int    `json:"sequence_number"`
+	Response       struct {
+		Id                string      `json:"id"`
+		Object            string      `json:"object"`
+		CreatedAt         int         `json:"created_at"`
+		Status            string      `json:"status"`
+		Background        bool        `json:"background"`
+		Error             interface{} `json:"error"`
+		IncompleteDetails interface{} `json:"incomplete_details"`
+		Instructions      interface{} `json:"instructions"`
+		MaxOutputTokens   interface{} `json:"max_output_tokens"`
+		Model             string      `json:"model"`
+		Output            []struct {
+			Id      string `json:"id"`
+			Type    string `json:"type"`
+			Status  string `json:"status"`
+			Content []struct {
+				Type        string        `json:"type"`
+				Annotations []interface{} `json:"annotations"`
+				Text        string        `json:"text"`
+			} `json:"content"`
+			Role string `json:"role"`
+		} `json:"output"`
+		ParallelToolCalls  bool        `json:"parallel_tool_calls"`
+		PreviousResponseId interface{} `json:"previous_response_id"`
+		Reasoning          struct {
+			Effort  interface{} `json:"effort"`
+			Summary interface{} `json:"summary"`
+		} `json:"reasoning"`
+		ServiceTier string  `json:"service_tier"`
+		Store       bool    `json:"store"`
+		Temperature float64 `json:"temperature"`
+		Text        struct {
+			Format struct {
+				Type string `json:"type"`
+			} `json:"format"`
+		} `json:"text"`
+		ToolChoice string        `json:"tool_choice"`
+		Tools      []interface{} `json:"tools"`
+		TopP       float64       `json:"top_p"`
+		Truncation string        `json:"truncation"`
+		Usage      *Usage        `json:"usage"`
+		User       interface{}   `json:"user"`
+		Metadata   struct {
+		} `json:"metadata"`
+	} `json:"response"`
+	OutputIndex int `json:"output_index"`
+	Item        struct {
+		Id      string `json:"id"`
+		Type    string `json:"type"`
+		Status  string `json:"status"`
+		Content []struct {
+			Type        string        `json:"type"`
+			Annotations []interface{} `json:"annotations"`
+			Text        string        `json:"text"`
+		} `json:"content"`
+		Role string `json:"role"`
+	} `json:"item"`
+	ItemId       string `json:"item_id"`
+	ContentIndex int    `json:"content_index"`
+	Delta        string `json:"delta"`
+	Part         struct {
+		Type        string        `json:"type"`
+		Annotations []interface{} `json:"annotations"`
+		Text        string        `json:"text"`
+	} `json:"part"`
 }
 
 type OpenAIResponsesInput struct {
