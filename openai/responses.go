@@ -9,6 +9,7 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/iimeta/fastapi-sdk/util"
 	"io"
 )
@@ -31,8 +32,7 @@ func (c *Client) Responses(ctx context.Context, data []byte) (res model.OpenAIRe
 	if res.Error != nil {
 		logger.Errorf(ctx, "Responses OpenAI model: %s, responsesRes: %s", c.model, gjson.MustEncodeString(res))
 
-		// todo
-		//err = c.apiErrorHandler(&res)
+		err = c.responsesErrorHandler(res.Error)
 		logger.Errorf(ctx, "Responses OpenAI model: %s, error: %v", c.model, err)
 
 		return res, err
@@ -41,7 +41,7 @@ func (c *Client) Responses(ctx context.Context, data []byte) (res model.OpenAIRe
 	return res, nil
 }
 
-func (c *Client) ResponsesStream(ctx context.Context, data []byte) (responseChan chan *model.OpenAIResponsesRes, err error) {
+func (c *Client) ResponsesStream(ctx context.Context, data []byte) (responseChan chan *model.OpenAIResponsesStreamRes, err error) {
 
 	logger.Infof(ctx, "ResponsesStream OpenAI model: %s start", c.model)
 
@@ -60,7 +60,7 @@ func (c *Client) ResponsesStream(ctx context.Context, data []byte) (responseChan
 
 	duration := gtime.TimestampMilli()
 
-	responseChan = make(chan *model.OpenAIResponsesRes)
+	responseChan = make(chan *model.OpenAIResponsesStreamRes)
 
 	if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
 
@@ -83,7 +83,7 @@ func (c *Client) ResponsesStream(ctx context.Context, data []byte) (responseChan
 				}
 
 				end := gtime.TimestampMilli()
-				responseChan <- &model.OpenAIResponsesRes{
+				responseChan <- &model.OpenAIResponsesStreamRes{
 					ConnTime:  duration - now,
 					Duration:  end - duration,
 					TotalTime: end - now,
@@ -97,7 +97,7 @@ func (c *Client) ResponsesStream(ctx context.Context, data []byte) (responseChan
 				logger.Infof(ctx, "ResponsesStream OpenAI model: %s finished", c.model)
 
 				end := gtime.TimestampMilli()
-				responseChan <- &model.OpenAIResponsesRes{
+				responseChan <- &model.OpenAIResponsesStreamRes{
 					ConnTime:  duration - now,
 					Duration:  end - duration,
 					TotalTime: end - now,
@@ -107,12 +107,12 @@ func (c *Client) ResponsesStream(ctx context.Context, data []byte) (responseChan
 				return
 			}
 
-			responsesRes := new(model.OpenAIResponsesRes)
+			responsesRes := new(model.OpenAIResponsesStreamRes)
 			if err := gjson.Unmarshal(streamResponse, &responsesRes); err != nil {
 				logger.Errorf(ctx, "ResponsesStream OpenAI model: %s, streamResponse: %s, error: %v", c.model, streamResponse, err)
 
 				end := gtime.TimestampMilli()
-				responseChan <- &model.OpenAIResponsesRes{
+				responseChan <- &model.OpenAIResponsesStreamRes{
 					ConnTime:  duration - now,
 					Duration:  end - duration,
 					TotalTime: end - now,
@@ -122,15 +122,14 @@ func (c *Client) ResponsesStream(ctx context.Context, data []byte) (responseChan
 				return
 			}
 
-			if responsesRes.Error != nil {
+			if responsesRes.Response.Error != nil {
 				logger.Errorf(ctx, "ResponsesStream OpenAI model: %s, responsesRes: %s", c.model, gjson.MustEncodeString(responsesRes))
 
-				// todo
-				//err = c.apiErrorHandler(responsesRes.Error)
+				err = c.responsesErrorHandler(responsesRes.Response.Error)
 				logger.Errorf(ctx, "ResponsesStream OpenAI model: %s, error: %v", c.model, err)
 
 				end := gtime.TimestampMilli()
-				responseChan <- &model.OpenAIResponsesRes{
+				responseChan <- &model.OpenAIResponsesStreamRes{
 					ConnTime:  duration - now,
 					Duration:  end - duration,
 					TotalTime: end - now,
@@ -140,8 +139,7 @@ func (c *Client) ResponsesStream(ctx context.Context, data []byte) (responseChan
 				return
 			}
 
-			response := &model.OpenAIResponsesRes{
-				Error:         responsesRes.Error,
+			response := &model.OpenAIResponsesStreamRes{
 				ResponseBytes: streamResponse,
 				ConnTime:      duration - now,
 			}
@@ -158,4 +156,8 @@ func (c *Client) ResponsesStream(ctx context.Context, data []byte) (responseChan
 	}
 
 	return responseChan, nil
+}
+
+func (c *Client) responsesErrorHandler(err *model.OpenAIResponsesError) error {
+	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %s, error: %s", err.Code, gjson.MustEncodeString(err))))
 }
