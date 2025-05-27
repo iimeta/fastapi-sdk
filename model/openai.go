@@ -66,6 +66,7 @@ type OpenAIResponsesStreamRes struct {
 	Item           OpenAIResponsesItem     `json:"item"`
 	Delta          string                  `json:"delta"`
 	Part           OpenAIResponsesPart     `json:"part"`
+	Arguments      string                  `json:"arguments"`
 	ResponseBytes  []byte                  `json:"-"`
 	ConnTime       int64                   `json:"-"`
 	Duration       int64                   `json:"-"`
@@ -112,11 +113,15 @@ type OpenAIResponsesReasoning struct {
 }
 
 type OpenAIResponsesOutput struct {
-	Type    string                   `json:"type"`
-	Id      string                   `json:"id"`
-	Status  string                   `json:"status"`
-	Role    string                   `json:"role"`
-	Content []OpenAIResponsesContent `json:"content"`
+	Type      string                   `json:"type"`
+	Id        string                   `json:"id"`
+	Status    string                   `json:"status,omitempty"`
+	Role      string                   `json:"role,omitempty"`
+	Content   []OpenAIResponsesContent `json:"content,omitempty"`
+	Summary   []OpenAIResponsesSummary `json:"summary,omitempty"`
+	Arguments string                   `json:"arguments,omitempty"`
+	CallId    string                   `json:"call_id,omitempty"`
+	Name      string                   `json:"name,omitempty"`
 }
 
 type OpenAIResponsesContent struct {
@@ -127,11 +132,15 @@ type OpenAIResponsesContent struct {
 }
 
 type OpenAIResponsesItem struct {
-	Id      string                   `json:"id"`
-	Type    string                   `json:"type"`
-	Status  string                   `json:"status"`
-	Content []OpenAIResponsesContent `json:"content"`
-	Role    string                   `json:"role"`
+	Id        string                   `json:"id"`
+	Type      string                   `json:"type"`
+	Status    string                   `json:"status"`
+	Content   []OpenAIResponsesContent `json:"content"`
+	Role      string                   `json:"role"`
+	Arguments string                   `json:"arguments"`
+	CallId    string                   `json:"call_id"`
+	Name      string                   `json:"name"`
+	Summary   []OpenAIResponsesSummary `json:"summary"`
 }
 
 type OpenAIResponsesPart struct {
@@ -146,6 +155,11 @@ type OpenAIResponsesText struct {
 
 type OpenAIResponsesFormat struct {
 	Type string `json:"type"`
+}
+
+type OpenAIResponsesSummary struct {
+	Type string `json:"type"`
+	Text string `json:"text"`
 }
 
 type OpenAIResponsesError struct {
