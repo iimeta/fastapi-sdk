@@ -22,7 +22,7 @@ type Client struct {
 	isGcp               bool
 }
 
-func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
+func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewClient Google model: %s, key: %s", model, key)
 
@@ -52,7 +52,7 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 	return client
 }
 
-func NewGcpClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
+func NewGcpClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewGcpClient Google model: %s, key: %s", model, key)
 

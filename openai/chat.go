@@ -102,6 +102,10 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 			TotalTokens:             response.Usage.TotalTokens,
 			PromptTokensDetails:     response.Usage.PromptTokensDetails,
 			CompletionTokensDetails: response.Usage.CompletionTokensDetails,
+			InputTokens:             response.Usage.InputTokens,
+			OutputTokens:            response.Usage.OutputTokens,
+			InputTokensDetails:      response.Usage.InputTokensDetails,
+			OutputTokensDetails:     response.Usage.OutputTokensDetails,
 		},
 		SystemFingerprint: response.SystemFingerprint,
 	}
@@ -144,8 +148,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}()
 
-	if gstr.HasPrefix(request.Model, "o") && c.isAzure {
-		return c.O1ChatCompletionStream(ctx, request)
+	if (c.isSupportStream != nil && !*c.isSupportStream) || (gstr.HasPrefix(request.Model, "o") && c.isAzure) {
+		return c.ChatCompletionStreamToNonStream(ctx, request)
 	}
 
 	messages := make([]openai.ChatCompletionMessage, 0)
@@ -291,6 +295,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 					TotalTokens:             streamResponse.Usage.TotalTokens,
 					PromptTokensDetails:     streamResponse.Usage.PromptTokensDetails,
 					CompletionTokensDetails: streamResponse.Usage.CompletionTokensDetails,
+					InputTokens:             streamResponse.Usage.InputTokens,
+					OutputTokens:            streamResponse.Usage.OutputTokens,
+					InputTokensDetails:      streamResponse.Usage.InputTokensDetails,
+					OutputTokensDetails:     streamResponse.Usage.OutputTokensDetails,
 				}
 
 				if len(response.Choices) == 0 {
@@ -327,7 +335,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	return responseChan, nil
 }
 
-func (c *Client) O1ChatCompletionStream(ctx context.Context, request model.ChatCompletionRequest) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (c *Client) ChatCompletionStreamToNonStream(ctx context.Context, request model.ChatCompletionRequest) (responseChan chan *model.ChatCompletionResponse, err error) {
 
 	responseChan = make(chan *model.ChatCompletionResponse)
 
@@ -338,7 +346,7 @@ func (c *Client) O1ChatCompletionStream(ctx context.Context, request model.ChatC
 
 		defer func() {
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "O1ChatCompletionStream OpenAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionStreamToNonStream OpenAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 		}()
 
 		request.Stream = false
@@ -347,7 +355,7 @@ func (c *Client) O1ChatCompletionStream(ctx context.Context, request model.ChatC
 		if err != nil {
 
 			if !errors.Is(err, context.Canceled) {
-				logger.Errorf(ctx, "O1ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionStreamToNonStream OpenAI model: %s, error: %v", request.Model, err)
 			}
 
 			end := gtime.TimestampMilli()
@@ -394,6 +402,10 @@ func (c *Client) O1ChatCompletionStream(ctx context.Context, request model.ChatC
 			CompletionTokens:        streamResponse.Usage.CompletionTokens,
 			TotalTokens:             streamResponse.Usage.TotalTokens,
 			CompletionTokensDetails: streamResponse.Usage.CompletionTokensDetails,
+			InputTokens:             streamResponse.Usage.InputTokens,
+			OutputTokens:            streamResponse.Usage.OutputTokens,
+			InputTokensDetails:      streamResponse.Usage.InputTokensDetails,
+			OutputTokensDetails:     streamResponse.Usage.OutputTokensDetails,
 		}
 
 		end := gtime.TimestampMilli()
@@ -410,7 +422,7 @@ func (c *Client) O1ChatCompletionStream(ctx context.Context, request model.ChatC
 		responseChan <- response
 
 	}, nil); err != nil {
-		logger.Errorf(ctx, "O1ChatCompletionStream OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionStreamToNonStream OpenAI model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 

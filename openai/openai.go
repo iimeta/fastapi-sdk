@@ -22,10 +22,11 @@ type Client struct {
 	proxyURL            string
 	header              map[string]string
 	isSupportSystemRole *bool
+	isSupportStream     *bool
 	isAzure             bool
 }
 
-func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
+func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewClient OpenAI model: %s, key: %s", model, key)
 
@@ -35,6 +36,7 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 		baseURL:             "https://api.openai.com/v1",
 		path:                "/chat/completions",
 		isSupportSystemRole: isSupportSystemRole,
+		isSupportStream:     isSupportStream,
 	}
 
 	config := openai.DefaultConfig(key)
@@ -76,7 +78,7 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 	return client
 }
 
-func NewAzureClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
+func NewAzureClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewAzureClient OpenAI model: %s, baseURL: %s, key: %s", model, baseURL, key)
 
@@ -110,6 +112,7 @@ func NewAzureClient(ctx context.Context, model, key, baseURL, path string, isSup
 	return &Client{
 		client:              openai.NewClientWithConfig(config),
 		isSupportSystemRole: isSupportSystemRole,
+		isSupportStream:     isSupportStream,
 		isAzure:             true,
 	}
 }

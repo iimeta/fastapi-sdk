@@ -41,7 +41,7 @@ var AwsModelIDMap = map[string]string{
 	"claude-instant-1.2":         "anthropic.claude-instant-v1",
 }
 
-func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
+func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewClient Anthropic model: %s, key: %s", model, key)
 
@@ -76,7 +76,7 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 	return client
 }
 
-func NewGcpClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
+func NewGcpClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewGcpClient Anthropic model: %s, key: %s", model, key)
 
@@ -110,7 +110,7 @@ func NewGcpClient(ctx context.Context, model, key, baseURL, path string, isSuppo
 	return client
 }
 
-func NewAwsClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
+func NewAwsClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewAwsClient Anthropic model: %s, key: %s", model, key)
 

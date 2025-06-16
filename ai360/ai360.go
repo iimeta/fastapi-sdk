@@ -15,7 +15,7 @@ type Client struct {
 	isSupportSystemRole *bool
 }
 
-func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole *bool, proxyURL ...string) *Client {
+func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Client {
 
 	logger.Infof(ctx, "NewClient 360AI model: %s, key: %s", model, key)
 
