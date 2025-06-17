@@ -33,7 +33,7 @@ type OpenAIResponsesRes struct {
 	IncompleteDetails  any                      `json:"incomplete_details"`
 	Instructions       any                      `json:"instructions"`
 	MaxOutputTokens    int                      `json:"max_output_tokens"`
-	Metadata           any                      `json:"metadata"`
+	Metadata           map[string]string        `json:"metadata"`
 	Output             []OpenAIResponsesOutput  `json:"output"`
 	ParallelToolCalls  bool                     `json:"parallel_tool_calls"`
 	PreviousResponseId string                   `json:"previous_response_id"`
@@ -41,7 +41,7 @@ type OpenAIResponsesRes struct {
 	ServiceTier        string                   `json:"service_tier"`
 	Store              bool                     `json:"store"`
 	Temperature        float32                  `json:"temperature"`
-	Text               any                      `json:"text"`
+	Text               OpenAIResponsesText      `json:"text"`
 	Tools              any                      `json:"tools"`
 	ToolChoice         string                   `json:"tool_choice"`
 	TopP               float32                  `json:"top_p"`

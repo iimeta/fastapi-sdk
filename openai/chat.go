@@ -360,14 +360,16 @@ func (c *Client) ChatCompletionStreamToNonStream(ctx context.Context, request mo
 
 			end := gtime.TimestampMilli()
 			responseChan <- &model.ChatCompletionResponse{
-				ConnTime:  duration - now,
-				Duration:  end - duration,
+				ConnTime:  gtime.TimestampMilli() - now,
+				Duration:  end - gtime.TimestampMilli(),
 				TotalTime: end - now,
 				Error:     err,
 			}
 
 			return
 		}
+
+		duration = gtime.TimestampMilli()
 
 		response := &model.ChatCompletionResponse{
 			ID:                streamResponse.ID,
@@ -414,12 +416,12 @@ func (c *Client) ChatCompletionStreamToNonStream(ctx context.Context, request mo
 
 		responseChan <- response
 
-		response = &model.ChatCompletionResponse{}
 		end = gtime.TimestampMilli()
-		response.Duration = end - duration
-		response.TotalTime = end - now
-		response.Error = io.EOF
-		responseChan <- response
+		responseChan <- &model.ChatCompletionResponse{
+			Duration:  end - duration,
+			TotalTime: end - now,
+			Error:     io.EOF,
+		}
 
 	}, nil); err != nil {
 		logger.Errorf(ctx, "ChatCompletionStreamToNonStream OpenAI model: %s, error: %v", request.Model, err)
