@@ -285,8 +285,12 @@ func (c *Client) ResponsesStreamToNonStream(ctx context.Context, data []byte) (r
 
 		delta := ""
 		for _, output := range responsesRes.Output {
-			if len(output.Content) > 0 {
-				delta += output.Content[0].Text
+			if output.Status == "completed" {
+				if output.Type == "function_call" {
+					delta += output.Arguments
+				} else if len(output.Content) > 0 {
+					delta += output.Content[0].Text
+				}
 			}
 		}
 
