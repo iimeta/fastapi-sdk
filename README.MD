@@ -39,16 +39,16 @@
 
 ## 项目预览
 
+- 管理端: <https://demo.fastapi.ai/admin>
 - 用户端: <https://demo.fastapi.ai/login>
 - 代理商: <https://demo.fastapi.ai/reseller>
-- 管理端: <https://demo.fastapi.ai/admin>
 - 账号/密码均是: demo/123456
 
 ## 专业版预览
 
+- 管理端: <https://demo.fastapi.pro/admin>
 - 用户端: <https://demo.fastapi.pro/login>
 - 代理商: <https://demo.fastapi.pro/reseller>
-- 管理端: <https://demo.fastapi.pro/admin>
 - 账号/密码均是: demo/123456
 
 ## 部署支持
@@ -134,6 +134,6 @@
 
 ## 交流群
 
-<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20250615" width="320" alt="交流群"/>
+<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20250622" width="320" alt="交流群"/>
 
 ![Star History Chart](https://api.star-history.com/svg?repos=iimeta/fastapi-sdk&type=Date)
