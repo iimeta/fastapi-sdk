@@ -3,6 +3,8 @@ package openai
 import (
 	"context"
 	"errors"
+	"io"
+
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
@@ -11,7 +13,6 @@ import (
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/go-openai"
-	"io"
 )
 
 func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletionRequest) (res model.ChatCompletionResponse, err error) {
@@ -76,7 +77,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		WebSearchOptions:    request.WebSearchOptions,
 	}
 
-	if gstr.HasPrefix(chatCompletionRequest.Model, "o") {
+	if gstr.HasPrefix(chatCompletionRequest.Model, "o") || gstr.HasPrefix(chatCompletionRequest.Model, "gpt-5") {
 		if chatCompletionRequest.MaxCompletionTokens == 0 && chatCompletionRequest.MaxTokens != 0 {
 			chatCompletionRequest.MaxCompletionTokens = chatCompletionRequest.MaxTokens
 		}
@@ -212,7 +213,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		WebSearchOptions:    request.WebSearchOptions,
 	}
 
-	if gstr.HasPrefix(chatCompletionRequest.Model, "o") {
+	if gstr.HasPrefix(chatCompletionRequest.Model, "o") || gstr.HasPrefix(chatCompletionRequest.Model, "gpt-5") {
 		if chatCompletionRequest.MaxCompletionTokens == 0 && chatCompletionRequest.MaxTokens != 0 {
 			chatCompletionRequest.MaxCompletionTokens = chatCompletionRequest.MaxTokens
 		}
