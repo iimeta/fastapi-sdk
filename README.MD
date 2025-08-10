@@ -37,7 +37,7 @@
 | 豆包         | ✔️         |       |       |           |          |           |            |
 | 火山引擎     | ✔️         |       |       |           |          |           |            |
 
-## 项目预览
+## 社区版预览
 
 - 管理端: <https://demo.fastapi.ai/admin>
 - 用户端: <https://demo.fastapi.ai/login>
@@ -53,20 +53,20 @@
 
 ## 部署支持
 
+✔️ [Docker部署](https://www.fastapi.ai/guide/#docker%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B)
 ✔️ 集群部署  
 ✔️ 多地部署  
-✔️ 跨区部署
 
 ## 部署教程
 
-### [传送门](https://www.fastapi.ai/guide/)
+### [快速开始](<https://www.fastapi.ai/guide/>)
 
 ## 公益站点
 
 - 用户端: <https://free.fastapi.pro/login>
 - 代理商: <https://free.fastapi.pro/reseller>
 - API接口: <https://api.free.fastapi.pro>
-- 支持注册代理商, 注册就送1,000,000刀额度
+- 注册就送 **$1,000,000** 额度, 支持注册代理商
 
 ## 项目截图
 
@@ -125,6 +125,6 @@
 
 ## 交流群
 
-<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20250803" width="320" alt="交流群"/>
+<img src="https://iim.ai/public/images/WeChatGroup.jpg?t=20250810" width="320" alt="交流群"/>
 
 ![Star History Chart](https://api.star-history.com/svg?repos=iimeta/fastapi-sdk&type=Date)
