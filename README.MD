@@ -53,13 +53,13 @@
 
 ## 部署支持
 
-✔️ [Docker部署](https://www.fastapi.ai/guide/#docker%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B)
+✔️ [Docker部署](https://www.fastapi.ai/guide/#docker%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B)  
 ✔️ 集群部署  
 ✔️ 多地部署  
 
 ## 部署教程
 
-### [快速开始](<https://www.fastapi.ai/guide/>)
+### [快速开始](https://www.fastapi.ai/guide/)
 
 ## 公益站点
 
