@@ -2,23 +2,24 @@ package openai
 
 import (
 	"context"
+
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/go-openai"
 )
 
-func (c *Client) ImageGeneration(ctx context.Context, request model.ImageGenerationRequest) (res model.ImageResponse, err error) {
+func (o *OpenAI) ImageGenerations(ctx context.Context, request model.ImageGenerationRequest) (res model.ImageResponse, err error) {
 
-	logger.Infof(ctx, "ImageGeneration OpenAI model: %s start", request.Model)
+	logger.Infof(ctx, "ImageGenerations OpenAI model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ImageGeneration OpenAI model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+		logger.Infof(ctx, "ImageGenerations OpenAI model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
 	}()
 
-	response, err := c.client.CreateImage(ctx, openai.ImageRequest{
+	response, err := o.client.CreateImage(ctx, openai.ImageRequest{
 		Prompt:            request.Prompt,
 		Background:        request.Background,
 		Model:             request.Model,
@@ -33,7 +34,7 @@ func (c *Client) ImageGeneration(ctx context.Context, request model.ImageGenerat
 		User:              request.User,
 	})
 	if err != nil {
-		logger.Errorf(ctx, "ImageGeneration OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ImageGenerations OpenAI model: %s, error: %v", request.Model, err)
 		return res, err
 	}
 
@@ -60,17 +61,17 @@ func (c *Client) ImageGeneration(ctx context.Context, request model.ImageGenerat
 	return res, nil
 }
 
-func (c *Client) ImageEdit(ctx context.Context, request model.ImageEditRequest) (res model.ImageResponse, err error) {
+func (o *OpenAI) ImageEdits(ctx context.Context, request model.ImageEditRequest) (res model.ImageResponse, err error) {
 
-	logger.Infof(ctx, "ImageEdit OpenAI model: %s start", request.Model)
+	logger.Infof(ctx, "ImageEdits OpenAI model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ImageEdit OpenAI model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+		logger.Infof(ctx, "ImageEdits OpenAI model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
 	}()
 
-	response, err := c.client.CreateEditImage(ctx, openai.ImageEditRequest{
+	response, err := o.client.CreateEditImage(ctx, openai.ImageEditRequest{
 		Image:          request.Image,
 		Prompt:         request.Prompt,
 		Background:     request.Background,
@@ -83,7 +84,7 @@ func (c *Client) ImageEdit(ctx context.Context, request model.ImageEditRequest) 
 		User:           request.User,
 	})
 	if err != nil {
-		logger.Errorf(ctx, "ImageEdit OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ImageEdits OpenAI model: %s, error: %v", request.Model, err)
 		return res, err
 	}
 

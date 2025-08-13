@@ -1,8 +1,9 @@
 package model
 
 import (
-	"github.com/iimeta/go-openai"
 	"io"
+
+	"github.com/iimeta/go-openai"
 )
 
 type SpeechRequest struct {

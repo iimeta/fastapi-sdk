@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -15,22 +17,27 @@ import (
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"
 	"github.com/iimeta/go-openai"
-	"io"
 )
 
-func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletionRequest) (res model.ChatCompletionResponse, err error) {
+func (g *Google) ChatCompletions(ctx context.Context, data []byte) (res model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletion Google model: %s start", request.Model)
+	request, err := g.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletions Google ConvChatCompletionsRequest error: %v", err)
+		return res, err
+	}
+
+	logger.Infof(ctx, "ChatCompletions Google model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletion Google model: %s totalTime: %d ms", request.Model, res.TotalTime)
+		logger.Infof(ctx, "ChatCompletions Google model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
 	var messages []model.ChatCompletionMessage
-	if c.isSupportSystemRole != nil {
-		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	if g.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *g.isSupportSystemRole)
 	} else {
 		messages = common.HandleMessages(request.Messages, false)
 	}
@@ -110,23 +117,23 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	chatCompletionRes := new(model.GoogleChatCompletionRes)
-	if c.isGcp {
-		if _, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent", c.baseURL+c.path), c.header, chatCompletionReq, &chatCompletionRes, c.proxyURL); err != nil {
-			logger.Errorf(ctx, "ChatCompletion Google model: %s, error: %v", request.Model, err)
+	if g.isGcp {
+		if _, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent", g.baseURL+g.path), g.header, chatCompletionReq, &chatCompletionRes, g.proxyURL); err != nil {
+			logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", request.Model, err)
 			return
 		}
 	} else {
-		if _, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", c.baseURL+c.path, c.key), nil, chatCompletionReq, &chatCompletionRes, c.proxyURL); err != nil {
-			logger.Errorf(ctx, "ChatCompletion Google model: %s, error: %v", request.Model, err)
+		if _, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", g.baseURL+g.path, g.key), nil, chatCompletionReq, &chatCompletionRes, g.proxyURL); err != nil {
+			logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", request.Model, err)
 			return
 		}
 	}
 
 	if chatCompletionRes.Error.Code != 0 || (chatCompletionRes.Candidates[0].FinishReason != "STOP" && chatCompletionRes.Candidates[0].FinishReason != "MAX_TOKENS") {
-		logger.Errorf(ctx, "ChatCompletion Google model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
+		logger.Errorf(ctx, "ChatCompletions Google model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
-		err = c.apiErrorHandler(chatCompletionRes)
-		logger.Errorf(ctx, "ChatCompletion Google model: %s, error: %v", request.Model, err)
+		err = g.apiErrorHandler(chatCompletionRes)
+		logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", request.Model, err)
 
 		return
 	}
@@ -157,20 +164,26 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	return res, nil
 }
 
-func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCompletionRequest) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (g *Google) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletionStream Google model: %s start", request.Model)
+	request, err := g.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletionsStream Google ConvChatCompletionsRequest error: %v", err)
+		return nil, err
+	}
+
+	logger.Infof(ctx, "ChatCompletionsStream Google model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionStream Google model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStream Google model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
 		}
 	}()
 
 	var messages []model.ChatCompletionMessage
-	if c.isSupportSystemRole != nil {
-		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	if g.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *g.isSupportSystemRole)
 	} else {
 		messages = common.HandleMessages(request.Messages, false)
 	}
@@ -250,16 +263,16 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}
 
 	var stream *util.StreamReader
-	if c.isGcp {
-		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse", c.baseURL+c.path), c.header, chatCompletionReq, c.proxyURL, c.requestErrorHandler)
+	if g.isGcp {
+		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse", g.baseURL+g.path), g.header, chatCompletionReq, g.proxyURL, g.requestErrorHandler)
 		if err != nil {
-			logger.Errorf(ctx, "ChatCompletionStream Google model: %s, error: %v", request.Model, err)
+			logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", request.Model, err)
 			return responseChan, err
 		}
 	} else {
-		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", c.baseURL+c.path, c.key), nil, chatCompletionReq, c.proxyURL, c.requestErrorHandler)
+		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", g.baseURL+g.path, g.key), nil, chatCompletionReq, g.proxyURL, g.requestErrorHandler)
 		if err != nil {
-			logger.Errorf(ctx, "ChatCompletionStream Google model: %s, error: %v", request.Model, err)
+			logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", request.Model, err)
 			return responseChan, err
 		}
 	}
@@ -272,10 +285,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 		defer func() {
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionStream Google model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStream Google model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream Google model: %s, stream.Close error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, stream.Close error: %v", request.Model, err)
 			}
 		}()
 
@@ -291,7 +304,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if err != nil && !errors.Is(err, io.EOF) {
 
 				if !errors.Is(err, context.Canceled) {
-					logger.Errorf(ctx, "ChatCompletionStream Google model: %s, error: %v", request.Model, err)
+					logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", request.Model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -306,7 +319,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			if errors.Is(err, io.EOF) {
-				logger.Infof(ctx, "ChatCompletionStream Google model: %s finished", request.Model)
+				logger.Infof(ctx, "ChatCompletionsStream Google model: %s finished", request.Model)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{
@@ -336,7 +349,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			chatCompletionRes := new(model.GoogleChatCompletionRes)
 			if err := gjson.Unmarshal(streamResponse, &chatCompletionRes); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream Google model: %s, streamResponse: %s, error: %v", request.Model, streamResponse, err)
+				logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, streamResponse: %s, error: %v", request.Model, streamResponse, err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{
@@ -350,10 +363,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			if chatCompletionRes.Error.Code != 0 {
-				logger.Errorf(ctx, "ChatCompletionStream Google model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
+				logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
-				err = c.apiErrorHandler(chatCompletionRes)
-				logger.Errorf(ctx, "ChatCompletionStream Google model: %s, error: %v", request.Model, err)
+				err = g.apiErrorHandler(chatCompletionRes)
+				logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", request.Model, err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{
@@ -401,7 +414,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			responseChan <- response
 		}
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream Google model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 

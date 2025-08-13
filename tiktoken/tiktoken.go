@@ -2,6 +2,7 @@ package tiktoken
 
 import (
 	"encoding/json"
+
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/model"

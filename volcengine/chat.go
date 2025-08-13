@@ -3,6 +3,8 @@ package volcengine
 import (
 	"context"
 	"errors"
+	"io"
+
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -11,22 +13,27 @@ import (
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/go-openai"
-	"io"
 )
 
-func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletionRequest) (res model.ChatCompletionResponse, err error) {
+func (v *VolcEngine) ChatCompletions(ctx context.Context, data []byte) (res model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletion VolcEngine model: %s start", request.Model)
+	request, err := v.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletions VolcEngine ConvChatCompletionsRequest error: %v", err)
+		return res, err
+	}
+
+	logger.Infof(ctx, "ChatCompletions VolcEngine model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletion VolcEngine model: %s totalTime: %d ms", request.Model, res.TotalTime)
+		logger.Infof(ctx, "ChatCompletions VolcEngine model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
 	var newMessages []model.ChatCompletionMessage
-	if c.isSupportSystemRole != nil {
-		newMessages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	if v.isSupportSystemRole != nil {
+		newMessages = common.HandleMessages(request.Messages, *v.isSupportSystemRole)
 	} else {
 		newMessages = common.HandleMessages(request.Messages, true)
 	}
@@ -46,8 +53,8 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		messages = append(messages, chatCompletionMessage)
 	}
 
-	response, err := c.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model:               c.model,
+	response, err := v.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
+		Model:               v.model,
 		Messages:            messages,
 		MaxTokens:           request.MaxTokens,
 		MaxCompletionTokens: request.MaxCompletionTokens,
@@ -77,11 +84,11 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		Audio:               request.Audio,
 	})
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletion VolcEngine model: %s, error: %v", request.Model, err)
-		return res, c.apiErrorHandler(err)
+		logger.Errorf(ctx, "ChatCompletions VolcEngine model: %s, error: %v", request.Model, err)
+		return res, v.apiErrorHandler(err)
 	}
 
-	logger.Infof(ctx, "ChatCompletion VolcEngine model: %s finished", request.Model)
+	logger.Infof(ctx, "ChatCompletions VolcEngine model: %s finished", request.Model)
 
 	res = model.ChatCompletionResponse{
 		ID:      consts.COMPLETION_ID_PREFIX + response.ID,
@@ -121,20 +128,26 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	return res, nil
 }
 
-func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCompletionRequest) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletionStream VolcEngine model: %s start", request.Model)
+	request, err := v.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletionsStream VolcEngine ConvChatCompletionsRequest error: %v", err)
+		return nil, err
+	}
+
+	logger.Infof(ctx, "ChatCompletionsStream VolcEngine model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionStream VolcEngine model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStream VolcEngine model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
 		}
 	}()
 
 	var newMessages []model.ChatCompletionMessage
-	if c.isSupportSystemRole != nil {
-		newMessages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	if v.isSupportSystemRole != nil {
+		newMessages = common.HandleMessages(request.Messages, *v.isSupportSystemRole)
 	} else {
 		newMessages = common.HandleMessages(request.Messages, true)
 	}
@@ -161,8 +174,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		}
 	}
 
-	stream, err := c.client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
-		Model:               c.model,
+	stream, err := v.client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
+		Model:               v.model,
 		Messages:            messages,
 		MaxTokens:           request.MaxTokens,
 		MaxCompletionTokens: request.MaxCompletionTokens,
@@ -192,8 +205,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		Audio:               request.Audio,
 	})
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream VolcEngine model: %s, error: %v", request.Model, err)
-		return responseChan, c.apiErrorHandler(err)
+		logger.Errorf(ctx, "ChatCompletionsStream VolcEngine model: %s, error: %v", request.Model, err)
+		return responseChan, v.apiErrorHandler(err)
 	}
 
 	duration := gtime.TimestampMilli()
@@ -204,11 +217,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 		defer func() {
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream VolcEngine model: %s, stream.Close error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionsStream VolcEngine model: %s, stream.Close error: %v", request.Model, err)
 			}
 
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionStream VolcEngine model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStream VolcEngine model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 		}()
 
 		for {
@@ -217,7 +230,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if err != nil && !errors.Is(err, io.EOF) {
 
 				if !errors.Is(err, context.Canceled) {
-					logger.Errorf(ctx, "ChatCompletionStream VolcEngine model: %s, error: %v", request.Model, err)
+					logger.Errorf(ctx, "ChatCompletionsStream VolcEngine model: %s, error: %v", request.Model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -276,7 +289,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			if errors.Is(err, io.EOF) {
-				logger.Infof(ctx, "ChatCompletionStream VolcEngine model: %s finished", request.Model)
+				logger.Infof(ctx, "ChatCompletionsStream VolcEngine model: %s finished", request.Model)
 
 				end := gtime.TimestampMilli()
 				response.Duration = end - duration
@@ -294,7 +307,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			responseChan <- response
 		}
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream VolcEngine model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream VolcEngine model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 

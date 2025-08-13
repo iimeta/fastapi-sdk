@@ -4,16 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
+
 	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/iimeta/go-openai"
-	"net/http"
-	"net/url"
 )
 
-type Client struct {
+type OpenAI struct {
 	client              *openai.Client
 	model               string
 	key                 string
@@ -26,11 +27,11 @@ type Client struct {
 	isAzure             bool
 }
 
-func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Client {
+func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *OpenAI {
 
-	logger.Infof(ctx, "NewClient OpenAI model: %s, key: %s", model, key)
+	logger.Infof(ctx, "NewAdapter OpenAI model: %s, key: %s", model, key)
 
-	client := &Client{
+	client := &OpenAI{
 		model:               model,
 		key:                 key,
 		baseURL:             "https://api.openai.com/v1",
@@ -42,18 +43,18 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 	config := openai.DefaultConfig(key)
 
 	if baseURL != "" {
-		logger.Infof(ctx, "NewClient OpenAI model: %s, baseURL: %s", model, baseURL)
+		logger.Infof(ctx, "NewAdapter OpenAI model: %s, baseURL: %s", model, baseURL)
 		config.BaseURL = baseURL
 		client.baseURL = baseURL
 	}
 
 	if path != "" {
-		logger.Infof(ctx, "NewClient OpenAI model: %s, path: %s", model, path)
+		logger.Infof(ctx, "NewAdapter OpenAI model: %s, path: %s", model, path)
 		client.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewClient OpenAI model: %s, proxyURL: %s", model, proxyURL[0])
+		logger.Infof(ctx, "NewAdapter OpenAI model: %s, proxyURL: %s", model, proxyURL[0])
 
 		proxyUrl, err := url.Parse(proxyURL[0])
 		if err != nil {
@@ -78,14 +79,14 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 	return client
 }
 
-func NewAzureClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Client {
+func NewAzureAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *OpenAI {
 
-	logger.Infof(ctx, "NewAzureClient OpenAI model: %s, baseURL: %s, key: %s", model, baseURL, key)
+	logger.Infof(ctx, "NewAzureAdapter OpenAI model: %s, baseURL: %s, key: %s", model, baseURL, key)
 
 	config := openai.DefaultAzureConfig(key, baseURL)
 
 	if path != "" {
-		logger.Infof(ctx, "NewAzureClient OpenAI model: %s, path: %s", model, path)
+		logger.Infof(ctx, "NewAzureAdapter OpenAI model: %s, path: %s", model, path)
 
 		split := gstr.Split(path, "?api-version=")
 
@@ -95,7 +96,7 @@ func NewAzureClient(ctx context.Context, model, key, baseURL, path string, isSup
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewAzureClient OpenAI model: %s, proxyURL: %s", model, proxyURL[0])
+		logger.Infof(ctx, "NewAzureAdapter OpenAI model: %s, proxyURL: %s", model, proxyURL[0])
 
 		proxyUrl, err := url.Parse(proxyURL[0])
 		if err != nil {
@@ -109,7 +110,7 @@ func NewAzureClient(ctx context.Context, model, key, baseURL, path string, isSup
 		}
 	}
 
-	return &Client{
+	return &OpenAI{
 		client:              openai.NewClientWithConfig(config),
 		isSupportSystemRole: isSupportSystemRole,
 		isSupportStream:     isSupportStream,
@@ -117,11 +118,11 @@ func NewAzureClient(ctx context.Context, model, key, baseURL, path string, isSup
 	}
 }
 
-func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Response) (err error) {
+func (o *OpenAI) requestErrorHandler(ctx context.Context, response *gclient.Response) (err error) {
 	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, response.ReadAllString())))
 }
 
-func (c *Client) apiErrorHandler(err error) error {
+func (o *OpenAI) apiErrorHandler(err error) error {
 
 	//apiError := &openai.APIError{}
 	//if errors.As(err, &apiError) {

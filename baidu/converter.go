@@ -1,0 +1,117 @@
+package baidu
+
+import (
+	"context"
+
+	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/iimeta/fastapi-sdk/logger"
+	"github.com/iimeta/fastapi-sdk/model"
+)
+
+func (b *Baidu) ConvChatCompletionsRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
+
+	chatCompletionRequest := model.ChatCompletionRequest{}
+	if err := gjson.Unmarshal(data, &chatCompletionRequest); err != nil {
+		logger.Error(ctx, err)
+		return chatCompletionRequest, err
+	}
+
+	return chatCompletionRequest, nil
+}
+
+func (b *Baidu) ConvChatCompletionsResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+
+	chatCompletionResponse := model.ChatCompletionResponse{}
+	if err := gjson.Unmarshal(data, &chatCompletionResponse); err != nil {
+		logger.Error(ctx, err)
+		return chatCompletionResponse, err
+	}
+
+	return chatCompletionResponse, nil
+}
+
+func (b *Baidu) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+
+	chatCompletionResponse := model.ChatCompletionResponse{}
+	if err := gjson.Unmarshal(data, &chatCompletionResponse); err != nil {
+		logger.Error(ctx, err)
+		return chatCompletionResponse, err
+	}
+
+	return chatCompletionResponse, nil
+}
+
+func (b *Baidu) ConvChatResponsesRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvChatResponsesResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvImageGenerationsRequest(ctx context.Context, data []byte) (model.ImageGenerationRequest, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvImageGenerationsResponse(ctx context.Context, data []byte) (model.ImageResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvImageEditsRequest(ctx context.Context, data []byte) (model.ImageEditRequest, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvImageEditsResponse(ctx context.Context, data []byte) (model.ImageResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvAudioSpeechRequest(ctx context.Context, data []byte) (model.SpeechRequest, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvAudioSpeechResponse(ctx context.Context, data []byte) (model.SpeechResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvAudioTranscriptionsRequest(ctx context.Context, data []byte) (model.AudioRequest, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvAudioTranscriptionsResponse(ctx context.Context, data []byte) (model.AudioResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (model.EmbeddingRequest, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (model.EmbeddingResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvTextModerationsRequest(ctx context.Context, data []byte) (model.ModerationRequest, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvTextModerationsResponse(ctx context.Context, data []byte) (model.ModerationResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

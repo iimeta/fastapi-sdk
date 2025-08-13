@@ -2,13 +2,14 @@ package sdk
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
-	"net/http"
 )
 
 type MidjourneyClient struct {

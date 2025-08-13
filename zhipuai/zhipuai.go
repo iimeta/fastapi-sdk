@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -12,11 +15,9 @@ import (
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
-	"strings"
-	"time"
 )
 
-type Client struct {
+type ZhipuAI struct {
 	key                 string
 	baseURL             string
 	path                string
@@ -24,11 +25,11 @@ type Client struct {
 	isSupportSystemRole *bool
 }
 
-func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Client {
+func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *ZhipuAI {
 
-	logger.Infof(ctx, "NewClient ZhipuAI model: %s, key: %s", model, key)
+	logger.Infof(ctx, "NewAdapter ZhipuAI model: %s, key: %s", model, key)
 
-	client := &Client{
+	client := &ZhipuAI{
 		key:                 key,
 		baseURL:             "https://open.bigmodel.cn/api/paas/v4",
 		path:                "/chat/completions",
@@ -36,28 +37,28 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 	}
 
 	if baseURL != "" {
-		logger.Infof(ctx, "NewClient ZhipuAI model: %s, baseURL: %s", model, baseURL)
+		logger.Infof(ctx, "NewAdapter ZhipuAI model: %s, baseURL: %s", model, baseURL)
 		client.baseURL = baseURL
 	}
 
 	if path != "" {
-		logger.Infof(ctx, "NewClient ZhipuAI model: %s, path: %s", model, path)
+		logger.Infof(ctx, "NewAdapter ZhipuAI model: %s, path: %s", model, path)
 		client.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewClient ZhipuAI model: %s, proxyURL: %s", model, proxyURL[0])
+		logger.Infof(ctx, "NewAdapter ZhipuAI model: %s, proxyURL: %s", model, proxyURL[0])
 		client.proxyURL = proxyURL[0]
 	}
 
 	return client
 }
 
-func (c *Client) generateToken(ctx context.Context) string {
+func (z *ZhipuAI) generateToken(ctx context.Context) string {
 
-	split := strings.Split(c.key, ".")
+	split := strings.Split(z.key, ".")
 	if len(split) != 2 {
-		return c.key
+		return z.key
 	}
 
 	now := gtime.Now()
@@ -81,7 +82,7 @@ func (c *Client) generateToken(ctx context.Context) string {
 	return sign
 }
 
-func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Response) error {
+func (z *ZhipuAI) requestErrorHandler(ctx context.Context, response *gclient.Response) error {
 
 	errRes := model.ZhipuAIErrorResponse{}
 	if err := json.NewDecoder(response.Body).Decode(&errRes); err != nil || errRes.Error == nil {
@@ -108,7 +109,7 @@ func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Resp
 	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, gjson.MustEncodeString(errRes.Error))))
 }
 
-func (c *Client) apiErrorHandler(response *model.ZhipuAIChatCompletionRes) error {
+func (z *ZhipuAI) apiErrorHandler(response *model.ZhipuAIChatCompletionRes) error {
 
 	switch response.Error.Code {
 	case "1261":

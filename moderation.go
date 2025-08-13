@@ -3,6 +3,7 @@ package sdk
 import (
 	"context"
 	"errors"
+
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
@@ -49,12 +50,12 @@ func NewModerationClient(ctx context.Context, model, key, baseURL, path string, 
 
 func (c *ModerationClient) Moderations(ctx context.Context, request model.ModerationRequest) (res model.ModerationResponse, err error) {
 
-	logger.Infof(ctx, "Moderations OpenAI model: %s start", request.Model)
+	logger.Infof(ctx, "TextModerations OpenAI model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "Moderations OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
+		logger.Infof(ctx, "TextModerations OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
 	header := make(map[string]string)
@@ -63,11 +64,11 @@ func (c *ModerationClient) Moderations(ctx context.Context, request model.Modera
 	response := new(model.ModerationResponse)
 
 	if _, err = util.HttpPost(ctx, c.baseURL+c.path, header, request, &response, c.proxyURL); err != nil {
-		logger.Errorf(ctx, "Moderations OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "TextModerations OpenAI model: %s, error: %v", request.Model, err)
 		return res, err
 	}
 
-	logger.Infof(ctx, "Moderations OpenAI model: %s finished", request.Model)
+	logger.Infof(ctx, "TextModerations OpenAI model: %s finished", request.Model)
 
 	if response.Error != nil {
 		return res, errors.New(gjson.MustEncodeString(response.Error))

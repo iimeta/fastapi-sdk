@@ -2,23 +2,24 @@ package openai
 
 import (
 	"context"
+
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/go-openai"
 )
 
-func (c *Client) Speech(ctx context.Context, request model.SpeechRequest) (res model.SpeechResponse, err error) {
+func (o *OpenAI) AudioSpeech(ctx context.Context, request model.SpeechRequest) (res model.SpeechResponse, err error) {
 
-	logger.Infof(ctx, "Speech OpenAI model: %s start", request.Model)
+	logger.Infof(ctx, "AudioSpeech OpenAI model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "Speech OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
+		logger.Infof(ctx, "AudioSpeech OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
-	response, err := c.client.CreateSpeech(ctx, openai.CreateSpeechRequest{
+	response, err := o.client.CreateSpeech(ctx, openai.CreateSpeechRequest{
 		Model:          request.Model,
 		Input:          request.Input,
 		Voice:          request.Voice,
@@ -27,11 +28,11 @@ func (c *Client) Speech(ctx context.Context, request model.SpeechRequest) (res m
 	})
 
 	if err != nil {
-		logger.Errorf(ctx, "Speech OpenAI model: %s, error: %v", request.Model, err)
-		return res, c.apiErrorHandler(err)
+		logger.Errorf(ctx, "AudioSpeech OpenAI model: %s, error: %v", request.Model, err)
+		return res, o.apiErrorHandler(err)
 	}
 
-	logger.Infof(ctx, "Speech OpenAI model: %s finished", request.Model)
+	logger.Infof(ctx, "AudioSpeech OpenAI model: %s finished", request.Model)
 
 	res = model.SpeechResponse{
 		ReadCloser: response.ReadCloser,
@@ -40,17 +41,17 @@ func (c *Client) Speech(ctx context.Context, request model.SpeechRequest) (res m
 	return res, nil
 }
 
-func (c *Client) Transcription(ctx context.Context, request model.AudioRequest) (res model.AudioResponse, err error) {
+func (o *OpenAI) AudioTranscriptions(ctx context.Context, request model.AudioRequest) (res model.AudioResponse, err error) {
 
-	logger.Infof(ctx, "Transcription OpenAI model: %s start", request.Model)
+	logger.Infof(ctx, "AudioTranscriptions OpenAI model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "Transcription OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
+		logger.Infof(ctx, "AudioTranscriptions OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
-	response, err := c.client.CreateTranscription(ctx, openai.AudioRequest{
+	response, err := o.client.CreateTranscription(ctx, openai.AudioRequest{
 		Model:                  request.Model,
 		FilePath:               request.FilePath,
 		Reader:                 request.Reader,
@@ -62,11 +63,11 @@ func (c *Client) Transcription(ctx context.Context, request model.AudioRequest) 
 	})
 
 	if err != nil {
-		logger.Errorf(ctx, "Transcription OpenAI model: %s, error: %v", request.Model, err)
-		return res, c.apiErrorHandler(err)
+		logger.Errorf(ctx, "AudioTranscriptions OpenAI model: %s, error: %v", request.Model, err)
+		return res, o.apiErrorHandler(err)
 	}
 
-	logger.Infof(ctx, "Transcription OpenAI model: %s finished", request.Model)
+	logger.Infof(ctx, "AudioTranscriptions OpenAI model: %s finished", request.Model)
 
 	res = model.AudioResponse{
 		Task:     response.Task,

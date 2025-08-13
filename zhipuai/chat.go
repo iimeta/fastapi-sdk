@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -13,22 +15,27 @@ import (
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"
 	"github.com/iimeta/go-openai"
-	"io"
 )
 
-func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletionRequest) (res model.ChatCompletionResponse, err error) {
+func (z *ZhipuAI) ChatCompletions(ctx context.Context, data []byte) (res model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletion ZhipuAI model: %s start", request.Model)
+	request, err := z.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletions ZhipuAI ConvChatCompletionsRequest error: %v", err)
+		return res, err
+	}
+
+	logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletion ZhipuAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
+		logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
 	var messages []model.ChatCompletionMessage
-	if c.isSupportSystemRole != nil {
-		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	if z.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *z.isSupportSystemRole)
 	} else {
 		messages = common.HandleMessages(request.Messages, true)
 	}
@@ -63,19 +70,19 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	header := make(map[string]string)
-	header["Authorization"] = "Bearer " + c.generateToken(ctx)
+	header["Authorization"] = "Bearer " + z.generateToken(ctx)
 
 	chatCompletionRes := new(model.ZhipuAIChatCompletionRes)
-	if _, err = util.HttpPost(ctx, c.baseURL+c.path, header, chatCompletionReq, &chatCompletionRes, c.proxyURL); err != nil {
-		logger.Errorf(ctx, "ChatCompletion ZhipuAI model: %s, error: %v", request.Model, err)
+	if _, err = util.HttpPost(ctx, z.baseURL+z.path, header, chatCompletionReq, &chatCompletionRes, z.proxyURL); err != nil {
+		logger.Errorf(ctx, "ChatCompletions ZhipuAI model: %s, error: %v", request.Model, err)
 		return
 	}
 
 	if chatCompletionRes.Error.Code != "" && chatCompletionRes.Error.Code != "200" {
-		logger.Errorf(ctx, "ChatCompletion ZhipuAI model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
+		logger.Errorf(ctx, "ChatCompletions ZhipuAI model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
-		err = c.apiErrorHandler(chatCompletionRes)
-		logger.Errorf(ctx, "ChatCompletion ZhipuAI model: %s, error: %v", request.Model, err)
+		err = z.apiErrorHandler(chatCompletionRes)
+		logger.Errorf(ctx, "ChatCompletions ZhipuAI model: %s, error: %v", request.Model, err)
 
 		return
 	}
@@ -109,20 +116,26 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	return res, nil
 }
 
-func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCompletionRequest) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletionStream ZhipuAI model: %s start", request.Model)
+	request, err := z.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI ConvChatCompletionsRequest error: %v", err)
+		return nil, err
+	}
+
+	logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionStream ZhipuAI model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
 		}
 	}()
 
 	var messages []model.ChatCompletionMessage
-	if c.isSupportSystemRole != nil {
-		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	if z.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *z.isSupportSystemRole)
 	} else {
 		messages = common.HandleMessages(request.Messages, true)
 	}
@@ -157,11 +170,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}
 
 	header := make(map[string]string)
-	header["Authorization"] = "Bearer " + c.generateToken(ctx)
+	header["Authorization"] = "Bearer " + z.generateToken(ctx)
 
-	stream, err := util.SSEClient(ctx, c.baseURL+c.path, header, chatCompletionReq, c.proxyURL, c.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, z.baseURL+z.path, header, chatCompletionReq, z.proxyURL, z.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 
@@ -173,11 +186,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 		defer func() {
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, stream.Close error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, stream.Close error: %v", request.Model, err)
 			}
 
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionStream ZhipuAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 		}()
 
 		for {
@@ -186,7 +199,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if err != nil && !errors.Is(err, io.EOF) {
 
 				if !errors.Is(err, context.Canceled) {
-					logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, error: %v", request.Model, err)
+					logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", request.Model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -202,7 +215,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			chatCompletionRes := new(model.ZhipuAIChatCompletionRes)
 			if err := gjson.Unmarshal(streamResponse, &chatCompletionRes); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, streamResponse: %s, error: %v", request.Model, streamResponse, err)
+				logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, streamResponse: %s, error: %v", request.Model, streamResponse, err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{
@@ -216,10 +229,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			if chatCompletionRes.Error.Code != "" && chatCompletionRes.Error.Code != "200" {
-				logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
+				logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
-				err = c.apiErrorHandler(chatCompletionRes)
-				logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, error: %v", request.Model, err)
+				err = z.apiErrorHandler(chatCompletionRes)
+				logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", request.Model, err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{
@@ -257,7 +270,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			if errors.Is(err, io.EOF) || response.Choices[0].FinishReason != "" {
-				logger.Infof(ctx, "ChatCompletionStream ZhipuAI model: %s finished", request.Model)
+				logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s finished", request.Model)
 
 				if len(response.Choices) == 0 {
 					response.Choices = append(response.Choices, model.ChatCompletionChoice{
@@ -288,7 +301,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			responseChan <- response
 		}
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream ZhipuAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 

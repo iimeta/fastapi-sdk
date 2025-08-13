@@ -2,12 +2,13 @@ package util
 
 import (
 	"context"
-	"github.com/gogf/gf/v2/net/gclient"
-	"github.com/gorilla/websocket"
-	"github.com/iimeta/fastapi-sdk/logger"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/gogf/gf/v2/net/gclient"
+	"github.com/gorilla/websocket"
+	"github.com/iimeta/fastapi-sdk/logger"
 )
 
 type WebSocketConn struct {

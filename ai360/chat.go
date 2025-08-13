@@ -3,6 +3,8 @@ package ai360
 import (
 	"context"
 	"errors"
+	"io"
+
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -10,22 +12,27 @@ import (
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/go-openai"
-	"io"
 )
 
-func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletionRequest) (res model.ChatCompletionResponse, err error) {
+func (a *AI360) ChatCompletions(ctx context.Context, data []byte) (res model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletion 360AI model: %s start", request.Model)
+	request, err := a.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletions 360AI ConvChatCompletionsRequest error: %v", err)
+		return res, err
+	}
+
+	logger.Infof(ctx, "ChatCompletions 360AI model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletion 360AI model: %s totalTime: %d ms", request.Model, res.TotalTime)
+		logger.Infof(ctx, "ChatCompletions 360AI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
 	var newMessages []model.ChatCompletionMessage
-	if c.isSupportSystemRole != nil {
-		newMessages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	if a.isSupportSystemRole != nil {
+		newMessages = common.HandleMessages(request.Messages, *a.isSupportSystemRole)
 	} else {
 		newMessages = common.HandleMessages(request.Messages, true)
 	}
@@ -45,7 +52,7 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		messages = append(messages, chatCompletionMessage)
 	}
 
-	response, err := c.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
+	response, err := a.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
 		Model:            request.Model,
 		Messages:         messages,
 		MaxTokens:        request.MaxTokens,
@@ -68,11 +75,11 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		ToolChoice:       request.ToolChoice,
 	})
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletion 360AI model: %s, error: %v", request.Model, err)
-		return res, c.apiErrorHandler(err)
+		logger.Errorf(ctx, "ChatCompletions 360AI model: %s, error: %v", request.Model, err)
+		return res, a.apiErrorHandler(err)
 	}
 
-	logger.Infof(ctx, "ChatCompletion 360AI model: %s finished", request.Model)
+	logger.Infof(ctx, "ChatCompletions 360AI model: %s finished", request.Model)
 
 	res = model.ChatCompletionResponse{
 		ID:      response.ID,
@@ -109,20 +116,26 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	return res, nil
 }
 
-func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCompletionRequest) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (a *AI360) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletionStream 360AI model: %s start", request.Model)
+	request, err := a.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletionsStream 360AI ConvChatCompletionsRequest error: %v", err)
+		return nil, err
+	}
+
+	logger.Infof(ctx, "ChatCompletionsStream 360AI model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionStream 360AI model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStream 360AI model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
 		}
 	}()
 
 	var newMessages []model.ChatCompletionMessage
-	if c.isSupportSystemRole != nil {
-		newMessages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	if a.isSupportSystemRole != nil {
+		newMessages = common.HandleMessages(request.Messages, *a.isSupportSystemRole)
 	} else {
 		newMessages = common.HandleMessages(request.Messages, true)
 	}
@@ -142,7 +155,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		messages = append(messages, chatCompletionMessage)
 	}
 
-	stream, err := c.client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
+	stream, err := a.client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
 		Model:            request.Model,
 		Messages:         messages,
 		MaxTokens:        request.MaxTokens,
@@ -165,8 +178,8 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		ToolChoice:       request.ToolChoice,
 	})
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream 360AI model: %s, error: %v", request.Model, err)
-		return responseChan, c.apiErrorHandler(err)
+		logger.Errorf(ctx, "ChatCompletionsStream 360AI model: %s, error: %v", request.Model, err)
+		return responseChan, a.apiErrorHandler(err)
 	}
 
 	duration := gtime.TimestampMilli()
@@ -177,11 +190,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 		defer func() {
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream 360AI model: %s, stream.Close error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionsStream 360AI model: %s, stream.Close error: %v", request.Model, err)
 			}
 
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionStream 360AI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStream 360AI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 		}()
 
 		for {
@@ -190,7 +203,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if err != nil && !errors.Is(err, io.EOF) {
 
 				if !errors.Is(err, context.Canceled) {
-					logger.Errorf(ctx, "ChatCompletionStream 360AI model: %s, error: %v", request.Model, err)
+					logger.Errorf(ctx, "ChatCompletionsStream 360AI model: %s, error: %v", request.Model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -239,7 +252,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			if errors.Is(err, io.EOF) || response.Choices[0].FinishReason == openai.FinishReasonStop {
-				logger.Infof(ctx, "ChatCompletionStream 360AI model: %s finished", request.Model)
+				logger.Infof(ctx, "ChatCompletionsStream 360AI model: %s finished", request.Model)
 
 				if len(response.Choices) == 0 {
 					response.Choices = append(response.Choices, model.ChatCompletionChoice{
@@ -270,7 +283,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			responseChan <- response
 		}
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream 360AI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream 360AI model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
@@ -15,7 +16,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/sdkerr"
 )
 
-type Client struct {
+type Anthropic struct {
 	model               string
 	key                 string
 	baseURL             string
@@ -41,11 +42,11 @@ var AwsModelIDMap = map[string]string{
 	"claude-instant-1.2":         "anthropic.claude-instant-v1",
 }
 
-func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Client {
+func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Anthropic {
 
-	logger.Infof(ctx, "NewClient Anthropic model: %s, key: %s", model, key)
+	logger.Infof(ctx, "NewAdapter Anthropic model: %s, key: %s", model, key)
 
-	client := &Client{
+	client := &Anthropic{
 		model:               model,
 		key:                 key,
 		baseURL:             "https://api.anthropic.com/v1",
@@ -54,17 +55,17 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 	}
 
 	if baseURL != "" {
-		logger.Infof(ctx, "NewClient Anthropic model: %s, baseURL: %s", model, baseURL)
+		logger.Infof(ctx, "NewAdapter Anthropic model: %s, baseURL: %s", model, baseURL)
 		client.baseURL = baseURL
 	}
 
 	if path != "" {
-		logger.Infof(ctx, "NewClient Anthropic model: %s, path: %s", model, path)
+		logger.Infof(ctx, "NewAdapter Anthropic model: %s, path: %s", model, path)
 		client.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewClient Anthropic model: %s, proxyURL: %s", model, proxyURL[0])
+		logger.Infof(ctx, "NewAdapter Anthropic model: %s, proxyURL: %s", model, proxyURL[0])
 		client.proxyURL = proxyURL[0]
 	}
 
@@ -76,11 +77,11 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 	return client
 }
 
-func NewGcpClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Client {
+func NewGcpAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Anthropic {
 
-	logger.Infof(ctx, "NewGcpClient Anthropic model: %s, key: %s", model, key)
+	logger.Infof(ctx, "NewGcpAdapter Anthropic model: %s, key: %s", model, key)
 
-	client := &Client{
+	client := &Anthropic{
 		model:               model,
 		key:                 key,
 		baseURL:             "https://us-east5-aiplatform.googleapis.com/v1",
@@ -90,17 +91,17 @@ func NewGcpClient(ctx context.Context, model, key, baseURL, path string, isSuppo
 	}
 
 	if baseURL != "" {
-		logger.Infof(ctx, "NewGcpClient Anthropic model: %s, baseURL: %s", model, baseURL)
+		logger.Infof(ctx, "NewGcpAdapter Anthropic model: %s, baseURL: %s", model, baseURL)
 		client.baseURL = baseURL
 	}
 
 	if path != "" {
-		logger.Infof(ctx, "NewGcpClient Anthropic model: %s, path: %s", model, path)
+		logger.Infof(ctx, "NewGcpAdapter Anthropic model: %s, path: %s", model, path)
 		client.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewGcpClient Anthropic model: %s, proxyURL: %s", model, proxyURL[0])
+		logger.Infof(ctx, "NewGcpAdapter Anthropic model: %s, proxyURL: %s", model, proxyURL[0])
 		client.proxyURL = proxyURL[0]
 	}
 
@@ -110,13 +111,13 @@ func NewGcpClient(ctx context.Context, model, key, baseURL, path string, isSuppo
 	return client
 }
 
-func NewAwsClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Client {
+func NewAwsAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Anthropic {
 
-	logger.Infof(ctx, "NewAwsClient Anthropic model: %s, key: %s", model, key)
+	logger.Infof(ctx, "NewAwsAdapter Anthropic model: %s, key: %s", model, key)
 
 	result := gstr.Split(key, "|")
 
-	client := &Client{
+	client := &Anthropic{
 		model:               model,
 		isSupportSystemRole: isSupportSystemRole,
 		isAws:               true,
@@ -127,24 +128,24 @@ func NewAwsClient(ctx context.Context, model, key, baseURL, path string, isSuppo
 	}
 
 	if baseURL != "" {
-		logger.Infof(ctx, "NewAwsClient Anthropic model: %s, baseURL: %s", model, baseURL)
+		logger.Infof(ctx, "NewAwsAdapter Anthropic model: %s, baseURL: %s", model, baseURL)
 		client.baseURL = baseURL
 	}
 
 	if path != "" {
-		logger.Infof(ctx, "NewAwsClient Anthropic model: %s, path: %s", model, path)
+		logger.Infof(ctx, "NewAwsAdapter Anthropic model: %s, path: %s", model, path)
 		client.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewAwsClient Anthropic model: %s, proxyURL: %s", model, proxyURL[0])
+		logger.Infof(ctx, "NewAwsAdapter Anthropic model: %s, proxyURL: %s", model, proxyURL[0])
 		client.proxyURL = proxyURL[0]
 	}
 
 	return client
 }
 
-func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Response) error {
+func (a *Anthropic) requestErrorHandler(ctx context.Context, response *gclient.Response) error {
 
 	bytes := response.ReadAll()
 
@@ -169,7 +170,7 @@ func (c *Client) requestErrorHandler(ctx context.Context, response *gclient.Resp
 	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, gjson.MustEncodeString(errRes.Error))))
 }
 
-func (c *Client) apiErrorHandler(response *model.AnthropicChatCompletionRes) error {
+func (a *Anthropic) apiErrorHandler(response *model.AnthropicChatCompletionRes) error {
 
 	switch response.Error.Type {
 	}

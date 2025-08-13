@@ -2,23 +2,24 @@ package openai
 
 import (
 	"context"
+
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/go-openai"
 )
 
-func (c *Client) Embeddings(ctx context.Context, request model.EmbeddingRequest) (res model.EmbeddingResponse, err error) {
+func (o *OpenAI) TextEmbeddings(ctx context.Context, request model.EmbeddingRequest) (res model.EmbeddingResponse, err error) {
 
-	logger.Infof(ctx, "Embeddings OpenAI model: %s start", request.Model)
+	logger.Infof(ctx, "TextEmbeddings OpenAI model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "Embeddings OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
+		logger.Infof(ctx, "TextEmbeddings OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
-	response, err := c.client.CreateEmbeddings(ctx, openai.EmbeddingRequest{
+	response, err := o.client.CreateEmbeddings(ctx, openai.EmbeddingRequest{
 		Input:          request.Input,
 		Model:          request.Model,
 		User:           request.User,
@@ -26,11 +27,11 @@ func (c *Client) Embeddings(ctx context.Context, request model.EmbeddingRequest)
 		Dimensions:     request.Dimensions,
 	})
 	if err != nil {
-		logger.Errorf(ctx, "Embeddings OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "TextEmbeddings OpenAI model: %s, error: %v", request.Model, err)
 		return res, err
 	}
 
-	logger.Infof(ctx, "Embeddings OpenAI model: %s finished", request.Model)
+	logger.Infof(ctx, "TextEmbeddings OpenAI model: %s finished", request.Model)
 
 	res = model.EmbeddingResponse{
 		Object: response.Object,

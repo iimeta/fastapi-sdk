@@ -1,8 +1,6 @@
 package model
 
-import (
-	"mime/multipart"
-)
+import "mime/multipart"
 
 // ImageGenerationRequest represents the request structure for the image API.
 type ImageGenerationRequest struct {

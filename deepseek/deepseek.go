@@ -3,34 +3,35 @@ package deepseek
 import (
 	"context"
 	"errors"
+	"net/http"
+	"net/url"
+
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/iimeta/go-openai"
-	"net/http"
-	"net/url"
 )
 
-type Client struct {
+type DeepSeek struct {
 	client              *openai.Client
 	isSupportSystemRole *bool
 }
 
-func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Client {
+func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *DeepSeek {
 
-	logger.Infof(ctx, "NewClient DeepSeek model: %s, key: %s", model, key)
+	logger.Infof(ctx, "NewAdapter DeepSeek model: %s, key: %s", model, key)
 
 	config := openai.DefaultConfig(key)
 
 	if baseURL != "" {
-		logger.Infof(ctx, "NewClient DeepSeek model: %s, baseURL: %s", model, baseURL)
+		logger.Infof(ctx, "NewAdapter DeepSeek model: %s, baseURL: %s", model, baseURL)
 		config.BaseURL = baseURL
 	} else {
 		config.BaseURL = "https://api.deepseek.com/v1"
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewClient DeepSeek model: %s, proxyURL: %s", model, proxyURL[0])
+		logger.Infof(ctx, "NewAdapter DeepSeek model: %s, proxyURL: %s", model, proxyURL[0])
 
 		proxyUrl, err := url.Parse(proxyURL[0])
 		if err != nil {
@@ -44,29 +45,29 @@ func NewClient(ctx context.Context, model, key, baseURL, path string, isSupportS
 		}
 	}
 
-	return &Client{
+	return &DeepSeek{
 		client:              openai.NewClientWithConfig(config),
 		isSupportSystemRole: isSupportSystemRole,
 	}
 }
 
-func NewClientBaidu(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Client {
+func NewAdapterBaidu(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *DeepSeek {
 
-	logger.Infof(ctx, "NewClient DeepSeek model: %s, key: %s", model, key)
+	logger.Infof(ctx, "NewAdapter DeepSeek model: %s, key: %s", model, key)
 
 	split := gstr.Split(key, "|")
 
 	config := openai.DefaultConfig(split[1])
 
 	if baseURL != "" {
-		logger.Infof(ctx, "NewClient DeepSeek model: %s, baseURL: %s", model, baseURL)
+		logger.Infof(ctx, "NewAdapter DeepSeek model: %s, baseURL: %s", model, baseURL)
 		config.BaseURL = baseURL
 	} else {
 		config.BaseURL = "https://qianfan.baidubce.com/v2"
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewClient DeepSeek model: %s, proxyURL: %s", model, proxyURL[0])
+		logger.Infof(ctx, "NewAdapter DeepSeek model: %s, proxyURL: %s", model, proxyURL[0])
 
 		proxyUrl, err := url.Parse(proxyURL[0])
 		if err != nil {
@@ -85,13 +86,13 @@ func NewClientBaidu(ctx context.Context, model, key, baseURL, path string, isSup
 		"appid": []string{split[0]},
 	}
 
-	return &Client{
+	return &DeepSeek{
 		client:              client,
 		isSupportSystemRole: isSupportSystemRole,
 	}
 }
 
-func (c *Client) apiErrorHandler(err error) error {
+func (d *DeepSeek) apiErrorHandler(err error) error {
 
 	apiError := &openai.APIError{}
 	if errors.As(err, &apiError) {

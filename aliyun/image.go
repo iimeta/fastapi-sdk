@@ -2,15 +2,16 @@ package aliyun
 
 import (
 	"context"
+
 	"github.com/iimeta/fastapi-sdk/model"
 )
 
-func (c *Client) ImageGeneration(ctx context.Context, request model.ImageGenerationRequest) (res model.ImageResponse, err error) {
+func (a *Aliyun) ImageGenerations(ctx context.Context, request model.ImageGenerationRequest) (res model.ImageResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (c *Client) ImageEdit(ctx context.Context, request model.ImageEditRequest) (res model.ImageResponse, err error) {
+func (a *Aliyun) ImageEdits(ctx context.Context, request model.ImageEditRequest) (res model.ImageResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

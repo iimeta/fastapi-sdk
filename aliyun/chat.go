@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -15,22 +17,27 @@ import (
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"
 	"github.com/iimeta/go-openai"
-	"io"
 )
 
-func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletionRequest) (res model.ChatCompletionResponse, err error) {
+func (a *Aliyun) ChatCompletions(ctx context.Context, data []byte) (res model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletion Aliyun model: %s start", request.Model)
+	request, err := a.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletions Aliyun ConvChatCompletionsRequest error: %v", err)
+		return res, err
+	}
+
+	logger.Infof(ctx, "ChatCompletions Aliyun model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletion Aliyun model: %s totalTime: %d ms", request.Model, res.TotalTime)
+		logger.Infof(ctx, "ChatCompletions Aliyun model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
 	var messages []model.ChatCompletionMessage
-	if c.isSupportSystemRole != nil {
-		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	if a.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *a.isSupportSystemRole)
 	} else {
 		messages = common.HandleMessages(request.Messages, true)
 	}
@@ -57,19 +64,19 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	}
 
 	header := make(map[string]string)
-	header["Authorization"] = "Bearer " + c.key
+	header["Authorization"] = "Bearer " + a.key
 
 	chatCompletionRes := new(model.AliyunChatCompletionRes)
-	if _, err = util.HttpPost(ctx, c.baseURL+c.path, header, chatCompletionReq, &chatCompletionRes, c.proxyURL); err != nil {
-		logger.Errorf(ctx, "ChatCompletion Aliyun model: %s, error: %v", request.Model, err)
+	if _, err = util.HttpPost(ctx, a.baseURL+a.path, header, chatCompletionReq, &chatCompletionRes, a.proxyURL); err != nil {
+		logger.Errorf(ctx, "ChatCompletions Aliyun model: %s, error: %v", request.Model, err)
 		return
 	}
 
 	if chatCompletionRes.Code != "" {
-		logger.Errorf(ctx, "ChatCompletion Aliyun model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
+		logger.Errorf(ctx, "ChatCompletions Aliyun model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
-		err = c.apiErrorHandler(chatCompletionRes)
-		logger.Errorf(ctx, "ChatCompletion Aliyun model: %s, error: %v", request.Model, err)
+		err = a.apiErrorHandler(chatCompletionRes)
+		logger.Errorf(ctx, "ChatCompletions Aliyun model: %s, error: %v", request.Model, err)
 
 		return
 	}
@@ -95,20 +102,26 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	return res, nil
 }
 
-func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCompletionRequest) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (a *Aliyun) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletionStream Aliyun model: %s start", request.Model)
+	request, err := a.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletionsStream Aliyun ConvChatCompletionsRequest error: %v", err)
+		return nil, err
+	}
+
+	logger.Infof(ctx, "ChatCompletionsStream Aliyun model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionStream Aliyun model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStream Aliyun model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
 		}
 	}()
 
 	var messages []model.ChatCompletionMessage
-	if c.isSupportSystemRole != nil {
-		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	if a.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *a.isSupportSystemRole)
 	} else {
 		messages = common.HandleMessages(request.Messages, true)
 	}
@@ -137,11 +150,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 	}
 
 	header := make(map[string]string)
-	header["Authorization"] = "Bearer " + c.key
+	header["Authorization"] = "Bearer " + a.key
 
-	stream, err := util.SSEClient(ctx, c.baseURL+c.path, header, chatCompletionReq, c.proxyURL, c.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, a.baseURL+a.path, header, chatCompletionReq, a.proxyURL, a.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream Aliyun model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 
@@ -153,11 +166,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 		defer func() {
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, stream.Close error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionsStream Aliyun model: %s, stream.Close error: %v", request.Model, err)
 			}
 
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionStream Aliyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStream Aliyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 		}()
 
 		var (
@@ -172,7 +185,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if err != nil && !errors.Is(err, io.EOF) {
 
 				if !errors.Is(err, context.Canceled) {
-					logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
+					logger.Errorf(ctx, "ChatCompletionsStream Aliyun model: %s, error: %v", request.Model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -187,7 +200,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			if errors.Is(err, io.EOF) {
-				logger.Infof(ctx, "ChatCompletionStream Aliyun model: %s finished", request.Model)
+				logger.Infof(ctx, "ChatCompletionsStream Aliyun model: %s finished", request.Model)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{
@@ -217,7 +230,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			chatCompletionRes := new(model.AliyunChatCompletionRes)
 			if err := gjson.Unmarshal(streamResponse, &chatCompletionRes); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, streamResponse: %s, error: %v", request.Model, streamResponse, err)
+				logger.Errorf(ctx, "ChatCompletionsStream Aliyun model: %s, streamResponse: %s, error: %v", request.Model, streamResponse, err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{
@@ -231,10 +244,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			if chatCompletionRes.Code != "" {
-				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
+				logger.Errorf(ctx, "ChatCompletionsStream Aliyun model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
-				err = c.apiErrorHandler(chatCompletionRes)
-				logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
+				err = a.apiErrorHandler(chatCompletionRes)
+				logger.Errorf(ctx, "ChatCompletionsStream Aliyun model: %s, error: %v", request.Model, err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{
@@ -276,7 +289,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			responseChan <- response
 		}
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream Aliyun model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream Aliyun model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 

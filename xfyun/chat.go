@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -15,22 +17,27 @@ import (
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"
 	"github.com/iimeta/go-openai"
-	"io"
 )
 
-func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletionRequest) (res model.ChatCompletionResponse, err error) {
+func (x *Xfyun) ChatCompletions(ctx context.Context, data []byte) (res model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletion Xfyun model: %s start", request.Model)
+	request, err := x.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletions Xfyun ConvChatCompletionsRequest error: %v", err)
+		return res, err
+	}
+
+	logger.Infof(ctx, "ChatCompletions Xfyun model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletion Xfyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, res.ConnTime, res.Duration, res.TotalTime)
+		logger.Infof(ctx, "ChatCompletions Xfyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, res.ConnTime, res.Duration, res.TotalTime)
 	}()
 
 	var messages []model.ChatCompletionMessage
-	if c.isSupportSystemRole != nil {
-		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	if x.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *x.isSupportSystemRole)
 	} else {
 		messages = common.HandleMessages(request.Messages, true)
 	}
@@ -46,12 +53,12 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 	chatCompletionReq := model.XfyunChatCompletionReq{
 		Header: model.Header{
-			AppId: c.appId,
+			AppId: x.appId,
 			Uid:   grand.Digits(10),
 		},
 		Parameter: model.Parameter{
 			Chat: &model.Chat{
-				Domain:      c.domain,
+				Domain:      x.domain,
 				MaxTokens:   maxTokens,
 				Temperature: request.Temperature,
 				TopK:        request.N,
@@ -70,21 +77,21 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 		chatCompletionReq.Payload.Functions.Text = append(chatCompletionReq.Payload.Functions.Text, request.Functions...)
 	}
 
-	data, err := gjson.Marshal(chatCompletionReq)
+	data, err = gjson.Marshal(chatCompletionReq)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, error: %v", request.Model, err)
 		return res, err
 	}
 
-	conn, err := util.WebSocketClient(ctx, c.getWebSocketUrl(ctx), nil, websocket.TextMessage, data, c.proxyURL)
+	conn, err := util.WebSocketClient(ctx, x.getWebSocketUrl(ctx), nil, websocket.TextMessage, data, x.proxyURL)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, error: %v", request.Model, err)
 		return res, err
 	}
 
 	defer func() {
 		if err := conn.Close(); err != nil {
-			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, conn.Close error: %v", request.Model, err)
+			logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, conn.Close error: %v", request.Model, err)
 		}
 	}()
 
@@ -97,20 +104,20 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 
 		_, message, err := conn.ReadMessage(ctx)
 		if err != nil && !errors.Is(err, io.EOF) {
-			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
+			logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, error: %v", request.Model, err)
 			return res, err
 		}
 
 		if err = gjson.Unmarshal(message, &chatCompletionRes); err != nil {
-			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, message: %s, error: %v", request.Model, message, err)
+			logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, message: %s, error: %v", request.Model, message, err)
 			return res, errors.New(fmt.Sprintf("message: %s, error: %v", message, err))
 		}
 
 		if chatCompletionRes.Header.Code != 0 {
-			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
+			logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
-			err = c.apiErrorHandler(chatCompletionRes)
-			logger.Errorf(ctx, "ChatCompletion Xfyun model: %s, error: %v", request.Model, err)
+			err = x.apiErrorHandler(chatCompletionRes)
+			logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, error: %v", request.Model, err)
 
 			return res, err
 		}
@@ -147,20 +154,26 @@ func (c *Client) ChatCompletion(ctx context.Context, request model.ChatCompletio
 	return res, nil
 }
 
-func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCompletionRequest) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (x *Xfyun) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletionStream Xfyun model: %s start", request.Model)
+	request, err := x.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletionsStream Xfyun ConvChatCompletionsRequest error: %v", err)
+		return nil, err
+	}
+
+	logger.Infof(ctx, "ChatCompletionsStream Xfyun model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionStream Xfyun model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStream Xfyun model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
 		}
 	}()
 
 	var messages []model.ChatCompletionMessage
-	if c.isSupportSystemRole != nil {
-		messages = common.HandleMessages(request.Messages, *c.isSupportSystemRole)
+	if x.isSupportSystemRole != nil {
+		messages = common.HandleMessages(request.Messages, *x.isSupportSystemRole)
 	} else {
 		messages = common.HandleMessages(request.Messages, true)
 	}
@@ -176,12 +189,12 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 	chatCompletionReq := model.XfyunChatCompletionReq{
 		Header: model.Header{
-			AppId: c.appId,
+			AppId: x.appId,
 			Uid:   grand.Digits(10),
 		},
 		Parameter: model.Parameter{
 			Chat: &model.Chat{
-				Domain:      c.domain,
+				Domain:      x.domain,
 				MaxTokens:   maxTokens,
 				Temperature: request.Temperature,
 				TopK:        request.N,
@@ -200,15 +213,15 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 		chatCompletionReq.Payload.Functions.Text = append(chatCompletionReq.Payload.Functions.Text, request.Functions...)
 	}
 
-	data, err := gjson.Marshal(chatCompletionReq)
+	data, err = gjson.Marshal(chatCompletionReq)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 
-	conn, err := util.WebSocketClient(ctx, c.getWebSocketUrl(ctx), nil, websocket.TextMessage, data, c.proxyURL)
+	conn, err := util.WebSocketClient(ctx, x.getWebSocketUrl(ctx), nil, websocket.TextMessage, data, x.proxyURL)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 
@@ -220,11 +233,11 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 		defer func() {
 			if err := conn.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, conn.Close error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, conn.Close error: %v", request.Model, err)
 			}
 
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionStream Xfyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStream Xfyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
 		}()
 
 		var created = gtime.Timestamp()
@@ -235,7 +248,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			if err != nil && !errors.Is(err, io.EOF) {
 
 				if !errors.Is(err, context.Canceled) {
-					logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
+					logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, error: %v", request.Model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -251,7 +264,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			chatCompletionRes := new(model.XfyunChatCompletionRes)
 			if err := gjson.Unmarshal(message, &chatCompletionRes); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, message: %s, error: %v", request.Model, message, err)
+				logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, message: %s, error: %v", request.Model, message, err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{
@@ -265,10 +278,10 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			}
 
 			if chatCompletionRes.Header.Code != 0 {
-				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
+				logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
 
-				err = c.apiErrorHandler(chatCompletionRes)
-				logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
+				err = x.apiErrorHandler(chatCompletionRes)
+				logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, error: %v", request.Model, err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{
@@ -307,7 +320,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 
 			if chatCompletionRes.Header.Status == 2 {
 
-				logger.Infof(ctx, "ChatCompletionStream Xfyun model: %s finished", request.Model)
+				logger.Infof(ctx, "ChatCompletionsStream Xfyun model: %s finished", request.Model)
 
 				response.Choices[0].FinishReason = openai.FinishReasonStop
 
@@ -333,7 +346,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, request model.ChatCom
 			responseChan <- response
 		}
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionStream Xfyun model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, error: %v", request.Model, err)
 		return responseChan, err
 	}
 
