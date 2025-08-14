@@ -79,6 +79,8 @@ type ChatCompletionResponse struct {
 	Duration          int64                     `json:"-"`
 	TotalTime         int64                     `json:"-"`
 	Error             error                     `json:"-"`
+	ResTime           string                    `json:"res_time,omitempty"`
+	ResTotalTime      int64                     `json:"res_total_time,omitempty"`
 }
 
 type ChatCompletionMessage struct {
@@ -117,18 +119,18 @@ type ChatCompletionChoice struct {
 
 // Usage Represents the total token usage per request to OpenAI.
 type Usage struct {
-	PromptTokens             int                             `json:"prompt_tokens"`
-	CompletionTokens         int                             `json:"completion_tokens"`
-	TotalTokens              int                             `json:"total_tokens"`
+	PromptTokens             int                            `json:"prompt_tokens"`
+	CompletionTokens         int                            `json:"completion_tokens"`
+	TotalTokens              int                            `json:"total_tokens"`
 	PromptTokensDetails      openai.PromptTokensDetails     `json:"prompt_tokens_details"`
 	CompletionTokensDetails  openai.CompletionTokensDetails `json:"completion_tokens_details"`
-	SearchTokens             int                             `json:"search_tokens,omitempty"`
-	CacheCreationInputTokens int                             `json:"cache_creation_input_tokens,omitempty"`
-	CacheReadInputTokens     int                             `json:"cache_read_input_tokens,omitempty"`
-	InputTokens              int                             `json:"input_tokens"`
-	OutputTokens             int                             `json:"output_tokens"`
-	InputTokensDetails       openai.InputTokensDetails       `json:"input_tokens_details"`
-	OutputTokensDetails      openai.OutputTokensDetails      `json:"output_tokens_details"`
+	SearchTokens             int                            `json:"search_tokens,omitempty"`
+	CacheCreationInputTokens int                            `json:"cache_creation_input_tokens,omitempty"`
+	CacheReadInputTokens     int                            `json:"cache_read_input_tokens,omitempty"`
+	InputTokens              int                            `json:"input_tokens"`
+	OutputTokens             int                            `json:"output_tokens"`
+	InputTokensDetails       openai.InputTokensDetails      `json:"input_tokens_details"`
+	OutputTokensDetails      openai.OutputTokensDetails     `json:"output_tokens_details"`
 }
 
 type ChatCompletionStreamChoiceDelta struct {

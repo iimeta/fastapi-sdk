@@ -3,12 +3,14 @@ package openai
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"
@@ -95,7 +97,7 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 			responseBytes, err := stream.Recv()
 			if err != nil {
 
-				if !errors.Is(err, context.Canceled) {
+				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
 					logger.Errorf(ctx, "ChatCompletionsStream OpenAI model: %s, error: %v", request.Model, err)
 				}
 
@@ -135,6 +137,8 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 						FinishReason: openai.FinishReasonStop,
 					})
 				}
+				end := gtime.TimestampMilli()
+				fmt.Println(stream.ReqTime, response.ResTime, end, end-gconv.Int64(response.ResTime), end-gconv.Int64(stream.ReqTime)-response.ResTotalTime, "end")
 			}
 
 			end := gtime.TimestampMilli()
@@ -177,7 +181,7 @@ func (o *OpenAI) ChatCompletionStreamToNonStream(ctx context.Context, data []byt
 		response, err := o.ChatCompletions(ctx, gjson.MustEncode(request))
 		if err != nil {
 
-			if !errors.Is(err, context.Canceled) {
+			if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
 				logger.Errorf(ctx, "ChatCompletionStreamToNonStream OpenAI model: %s, error: %v", request.Model, err)
 			}
 

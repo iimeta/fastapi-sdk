@@ -7,6 +7,8 @@ import (
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/logger"
 )
 
@@ -65,6 +67,10 @@ func HttpPost(ctx context.Context, url string, header map[string]string, data, r
 		client.SetProxy(proxyURL)
 	}
 
+	reqTime := gtime.TimestampMilliStr()
+
+	client.SetHeader("x-request-time", reqTime)
+
 	response, err := client.ContentJson().Post(ctx, url, data)
 	if response != nil {
 		defer func() {
@@ -88,6 +94,11 @@ func HttpPost(ctx context.Context, url string, header map[string]string, data, r
 			return bytes, errors.New(fmt.Sprintf("response: %s, error: %v", bytes, err))
 		}
 	}
+
+	end := gtime.TimestampMilli()
+	resTime := response.Header.Get("x-response-time")
+	resTotalTime := response.Header.Get("x-response-total-time")
+	fmt.Println(reqTime, resTime, end, end-gconv.Int64(resTime), end-gconv.Int64(reqTime)-gconv.Int64(resTotalTime), "end")
 
 	return bytes, nil
 }
