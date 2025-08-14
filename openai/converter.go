@@ -5,7 +5,9 @@ import (
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/go-openai"
@@ -292,6 +294,28 @@ func (o *OpenAI) ConvChatCompletionsRequest(ctx context.Context, data []byte) (m
 		return chatCompletionRequest, err
 	}
 
+	for _, message := range chatCompletionRequest.Messages {
+		if message.Role == consts.ROLE_SYSTEM && (gstr.HasPrefix(chatCompletionRequest.Model, "o1") || gstr.HasPrefix(chatCompletionRequest.Model, "o3")) {
+			message.Role = consts.ROLE_DEVELOPER
+		}
+	}
+
+	if chatCompletionRequest.Stream {
+		// 默认让流式返回usage
+		if chatCompletionRequest.StreamOptions == nil { // request.Tools == nil &&
+			chatCompletionRequest.StreamOptions = &openai.StreamOptions{
+				IncludeUsage: true,
+			}
+		}
+	}
+
+	if gstr.HasPrefix(chatCompletionRequest.Model, "o") || gstr.HasPrefix(chatCompletionRequest.Model, "gpt-5") {
+		if chatCompletionRequest.MaxCompletionTokens == 0 && chatCompletionRequest.MaxTokens != 0 {
+			chatCompletionRequest.MaxCompletionTokens = chatCompletionRequest.MaxTokens
+		}
+		chatCompletionRequest.MaxTokens = 0
+	}
+
 	return chatCompletionRequest, nil
 }
 
@@ -301,6 +325,12 @@ func (o *OpenAI) ConvChatCompletionsResponse(ctx context.Context, data []byte) (
 	if err := gjson.Unmarshal(data, &chatCompletionResponse); err != nil {
 		logger.Error(ctx, err)
 		return chatCompletionResponse, err
+	}
+
+	for _, choice := range chatCompletionResponse.Choices {
+		if choice.Message.Annotations == nil {
+			choice.Message.Annotations = []any{}
+		}
 	}
 
 	return chatCompletionResponse, nil

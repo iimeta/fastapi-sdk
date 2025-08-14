@@ -82,7 +82,7 @@ func HttpPost(ctx context.Context, url string, header map[string]string, data, r
 	bytes := response.ReadAll()
 	logger.Debugf(ctx, "HttpPost url: %s, statusCode: %d, header: %+v, data: %s, proxyURL: %s, response: %s", url, response.StatusCode, header, gjson.MustEncodeString(data), proxyURL, string(bytes))
 
-	if bytes != nil && len(bytes) > 0 {
+	if bytes != nil && len(bytes) > 0 && result != nil {
 		if err = gjson.Unmarshal(bytes, result); err != nil {
 			logger.Errorf(ctx, "HttpPost url: %s, statusCode: %d, header: %+v, data: %s, proxyURL: %s, response: %s, error: %v", url, response.StatusCode, header, gjson.MustEncodeString(data), proxyURL, string(bytes), err)
 			return bytes, errors.New(fmt.Sprintf("response: %s, error: %v", bytes, err))
