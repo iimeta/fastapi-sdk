@@ -33,7 +33,8 @@ func (o *OpenAI) ChatCompletions(ctx context.Context, data []byte) (res model.Ch
 		logger.Infof(ctx, "ChatCompletions OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
-	bytes, err := util.HttpPost(ctx, o.baseURL+o.path, o.header, request, nil, o.proxyURL)
+	//bytes, err := util.HttpPost(ctx, o.baseURL+o.path, o.header, request, nil, o.proxyURL)
+	bytes, err := util.HttpPostNew(ctx, o.baseURL+o.path, o.header, gjson.MustEncode(request), nil, o.proxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions OpenAI model: %s, error: %v", request.Model, err)
 		return
