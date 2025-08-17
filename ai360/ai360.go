@@ -3,51 +3,56 @@ package ai360
 import (
 	"context"
 	"errors"
-	"net/http"
-	"net/url"
 
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/iimeta/go-openai"
 )
 
 type AI360 struct {
-	client              *openai.Client
+	model               string
+	key                 string
+	baseURL             string
+	path                string
+	proxyURL            string
+	header              map[string]string
 	isSupportSystemRole *bool
+	isSupportStream     *bool
 }
 
 func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *AI360 {
 
 	logger.Infof(ctx, "NewAdapter 360AI model: %s, key: %s", model, key)
 
-	config := openai.DefaultConfig(key)
+	ai360 := &AI360{
+		model:   model,
+		key:     key,
+		baseURL: "https://api.360.cn/v1",
+		path:    "/chat/completions",
+		header: g.MapStrStr{
+			"Authorization": "Bearer " + key,
+		},
+		isSupportSystemRole: isSupportSystemRole,
+		isSupportStream:     isSupportStream,
+	}
 
 	if baseURL != "" {
 		logger.Infof(ctx, "NewAdapter 360AI model: %s, baseURL: %s", model, baseURL)
-		config.BaseURL = baseURL
-	} else {
-		config.BaseURL = "https://api.360.cn/v1"
+		ai360.baseURL = baseURL
+	}
+
+	if path != "" {
+		logger.Infof(ctx, "NewAdapter 360AI model: %s, path: %s", model, path)
+		ai360.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
 		logger.Infof(ctx, "NewAdapter 360AI model: %s, proxyURL: %s", model, proxyURL[0])
-
-		proxyUrl, err := url.Parse(proxyURL[0])
-		if err != nil {
-			panic(err)
-		}
-
-		config.HTTPClient = &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxyUrl),
-			},
-		}
+		ai360.proxyURL = proxyURL[0]
 	}
 
-	return &AI360{
-		client:              openai.NewClientWithConfig(config),
-		isSupportSystemRole: isSupportSystemRole,
-	}
+	return ai360
 }
 
 func (a *AI360) apiErrorHandler(err error) error {

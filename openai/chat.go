@@ -11,10 +11,10 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"
-	"github.com/iimeta/go-openai"
 )
 
 func (o *OpenAI) ChatCompletions(ctx context.Context, data []byte) (res model.ChatCompletionResponse, err error) {
@@ -72,7 +72,7 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 		return o.ChatCompletionStreamToNonStream(ctx, data)
 	}
 
-	stream, err := util.SSEClient(ctx, o.baseURL+o.path, o.header, request, o.proxyURL, nil)
+	stream, err := util.SSEClient(ctx, o.baseURL+o.path, o.header, gjson.MustEncode(request), o.proxyURL, nil)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream OpenAI model: %s, error: %v", request.Model, err)
 		return responseChan, err
@@ -135,7 +135,7 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 				if len(response.Choices) == 0 {
 					response.Choices = append(response.Choices, model.ChatCompletionChoice{
 						Delta:        new(model.ChatCompletionStreamChoiceDelta),
-						FinishReason: openai.FinishReasonStop,
+						FinishReason: consts.FinishReasonStop,
 					})
 				}
 				end := gtime.TimestampMilli()

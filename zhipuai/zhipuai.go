@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
-	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/iimeta/fastapi-sdk/logger"
@@ -18,40 +18,45 @@ import (
 )
 
 type ZhipuAI struct {
+	model               string
 	key                 string
 	baseURL             string
 	path                string
 	proxyURL            string
+	header              map[string]string
 	isSupportSystemRole *bool
+	isSupportStream     *bool
 }
 
 func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *ZhipuAI {
 
 	logger.Infof(ctx, "NewAdapter ZhipuAI model: %s, key: %s", model, key)
 
-	client := &ZhipuAI{
+	zhipuai := &ZhipuAI{
+		model:               model,
 		key:                 key,
 		baseURL:             "https://open.bigmodel.cn/api/paas/v4",
 		path:                "/chat/completions",
 		isSupportSystemRole: isSupportSystemRole,
+		isSupportStream:     isSupportStream,
 	}
 
 	if baseURL != "" {
 		logger.Infof(ctx, "NewAdapter ZhipuAI model: %s, baseURL: %s", model, baseURL)
-		client.baseURL = baseURL
+		zhipuai.baseURL = baseURL
 	}
 
 	if path != "" {
 		logger.Infof(ctx, "NewAdapter ZhipuAI model: %s, path: %s", model, path)
-		client.path = path
+		zhipuai.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
 		logger.Infof(ctx, "NewAdapter ZhipuAI model: %s, proxyURL: %s", model, proxyURL[0])
-		client.proxyURL = proxyURL[0]
+		zhipuai.proxyURL = proxyURL[0]
 	}
 
-	return client
+	return zhipuai
 }
 
 func (z *ZhipuAI) generateToken(ctx context.Context) string {
@@ -82,7 +87,7 @@ func (z *ZhipuAI) generateToken(ctx context.Context) string {
 	return sign
 }
 
-func (z *ZhipuAI) requestErrorHandler(ctx context.Context, response *gclient.Response) error {
+func (z *ZhipuAI) requestErrorHandler(ctx context.Context, response *http.Response) error {
 
 	errRes := model.ZhipuAIErrorResponse{}
 	if err := json.NewDecoder(response.Body).Decode(&errRes); err != nil || errRes.Error == nil {

@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
-	"github.com/gogf/gf/v2/net/gclient"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -14,44 +16,56 @@ import (
 )
 
 type Aliyun struct {
+	model               string
 	key                 string
 	baseURL             string
 	path                string
 	proxyURL            string
+	header              map[string]string
 	isSupportSystemRole *bool
+	isSupportStream     *bool
 }
 
 func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Aliyun {
 
 	logger.Infof(ctx, "NewAdapter Aliyun model: %s, key: %s", model, key)
 
-	client := &Aliyun{
-		key:                 key,
-		baseURL:             "https://dashscope.aliyuncs.com/api/v1",
-		path:                "/services/aigc/text-generation/generation",
+	aliyun := &Aliyun{
+		model:   model,
+		key:     key,
+		baseURL: "https://dashscope.aliyuncs.com/api/v1",
+		path:    "/services/aigc/text-generation/generation",
+		header: g.MapStrStr{
+			"Authorization": "Bearer " + key,
+		},
 		isSupportSystemRole: isSupportSystemRole,
+		isSupportStream:     isSupportStream,
 	}
 
 	if baseURL != "" {
 		logger.Infof(ctx, "NewAdapter Aliyun model: %s, baseURL: %s", model, baseURL)
-		client.baseURL = baseURL
+		aliyun.baseURL = baseURL
 	}
 
 	if path != "" {
 		logger.Infof(ctx, "NewAdapter Aliyun model: %s, path: %s", model, path)
-		client.path = path
+		aliyun.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
 		logger.Infof(ctx, "NewAdapter Aliyun model: %s, proxyURL: %s", model, proxyURL[0])
-		client.proxyURL = proxyURL[0]
+		aliyun.proxyURL = proxyURL[0]
 	}
 
-	return client
+	return aliyun
 }
 
-func (a *Aliyun) requestErrorHandler(ctx context.Context, response *gclient.Response) (err error) {
-	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, response.ReadAllString())))
+func (a *Aliyun) requestErrorHandler(ctx context.Context, response *http.Response) (err error) {
+	bytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
 }
 
 func (a *Aliyun) apiErrorHandler(response *model.AliyunChatCompletionRes) error {

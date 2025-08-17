@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
-	"net/url"
 
-	"github.com/gogf/gf/v2/net/gclient"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
@@ -25,65 +25,60 @@ type OpenAI struct {
 	isSupportSystemRole *bool
 	isSupportStream     *bool
 	isAzure             bool
+	apiVersion          string
 }
 
 func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *OpenAI {
 
 	logger.Infof(ctx, "NewAdapter OpenAI model: %s, key: %s", model, key)
 
-	client := &OpenAI{
-		model:               model,
-		key:                 key,
-		baseURL:             "https://api.openai.com/v1",
-		path:                "/chat/completions",
+	openai := &OpenAI{
+		model:   model,
+		key:     key,
+		baseURL: "https://api.openai.com/v1",
+		path:    "/chat/completions",
+		header: g.MapStrStr{
+			"Authorization": "Bearer " + key,
+		},
 		isSupportSystemRole: isSupportSystemRole,
 		isSupportStream:     isSupportStream,
 	}
 
-	config := openai.DefaultConfig(key)
-
 	if baseURL != "" {
 		logger.Infof(ctx, "NewAdapter OpenAI model: %s, baseURL: %s", model, baseURL)
-		config.BaseURL = baseURL
-		client.baseURL = baseURL
+		openai.baseURL = baseURL
 	}
 
 	if path != "" {
 		logger.Infof(ctx, "NewAdapter OpenAI model: %s, path: %s", model, path)
-		client.path = path
+		openai.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
 		logger.Infof(ctx, "NewAdapter OpenAI model: %s, proxyURL: %s", model, proxyURL[0])
-
-		proxyUrl, err := url.Parse(proxyURL[0])
-		if err != nil {
-			panic(err)
-		}
-
-		config.HTTPClient = &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxyUrl),
-			},
-		}
-
-		client.proxyURL = proxyURL[0]
+		openai.proxyURL = proxyURL[0]
 	}
 
-	header := make(map[string]string)
-	header["Authorization"] = fmt.Sprintf("Bearer %s", key)
-
-	client.header = header
-	client.client = openai.NewClientWithConfig(config)
-
-	return client
+	return openai
 }
 
 func NewAzureAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *OpenAI {
 
 	logger.Infof(ctx, "NewAzureAdapter OpenAI model: %s, baseURL: %s, key: %s", model, baseURL, key)
 
-	config := openai.DefaultAzureConfig(key, baseURL)
+	azure := &OpenAI{
+		model:   model,
+		key:     key,
+		baseURL: baseURL,
+		path:    "/chat/completions",
+		header: g.MapStrStr{
+			"api-key": key,
+		},
+		isSupportSystemRole: isSupportSystemRole,
+		isSupportStream:     isSupportStream,
+		isAzure:             true,
+		apiVersion:          "2024-10-01-preview",
+	}
 
 	if path != "" {
 		logger.Infof(ctx, "NewAzureAdapter OpenAI model: %s, path: %s", model, path)
@@ -91,35 +86,24 @@ func NewAzureAdapter(ctx context.Context, model, key, baseURL, path string, isSu
 		split := gstr.Split(path, "?api-version=")
 
 		if len(split) > 1 && split[1] != "" {
-			config.APIVersion = split[1]
+			azure.apiVersion = split[1]
 		}
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
 		logger.Infof(ctx, "NewAzureAdapter OpenAI model: %s, proxyURL: %s", model, proxyURL[0])
-
-		proxyUrl, err := url.Parse(proxyURL[0])
-		if err != nil {
-			panic(err)
-		}
-
-		config.HTTPClient = &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxyUrl),
-			},
-		}
+		azure.proxyURL = proxyURL[0]
 	}
 
-	return &OpenAI{
-		client:              openai.NewClientWithConfig(config),
-		isSupportSystemRole: isSupportSystemRole,
-		isSupportStream:     isSupportStream,
-		isAzure:             true,
-	}
+	return azure
 }
 
-func (o *OpenAI) requestErrorHandler(ctx context.Context, response *gclient.Response) (err error) {
-	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, response.ReadAllString())))
+func (o *OpenAI) requestErrorHandler(ctx context.Context, response *http.Response) (err error) {
+	bytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
 }
 
 func (o *OpenAI) apiErrorHandler(err error) error {

@@ -23,15 +23,18 @@ import (
 )
 
 type Xfyun struct {
-	appId               string
-	secret              string
+	model               string
 	key                 string
-	originalURL         string
 	baseURL             string
 	path                string
 	proxyURL            string
-	domain              string
+	header              map[string]string
 	isSupportSystemRole *bool
+	isSupportStream     *bool
+	appId               string
+	secret              string
+	originalURL         string
+	domain              string
 }
 
 func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Xfyun {
@@ -40,56 +43,58 @@ func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupport
 
 	result := gstr.Split(key, "|")
 
-	client := &Xfyun{
-		appId:               result[0],
-		secret:              result[1],
+	xfyun := &Xfyun{
+		model:               model,
 		key:                 result[2],
-		originalURL:         "https://spark-api.xf-yun.com",
 		baseURL:             "https://spark-api.xf-yun.com/v4.0",
 		path:                "/chat",
-		domain:              "4.0Ultra",
 		isSupportSystemRole: isSupportSystemRole,
+		isSupportStream:     isSupportStream,
+		appId:               result[0],
+		secret:              result[1],
+		originalURL:         "https://spark-api.xf-yun.com",
+		domain:              "4.0Ultra",
 	}
 
 	if baseURL != "" {
 		logger.Infof(ctx, "NewAdapter Xfyun model: %s, baseURL: %s", model, baseURL)
 
-		client.baseURL = baseURL
+		xfyun.baseURL = baseURL
 
 		version := baseURL[strings.LastIndex(baseURL, "/")+1:]
 
 		switch version {
 		case "v4.0":
-			client.domain = "4.0Ultra"
+			xfyun.domain = "4.0Ultra"
 		case "v3.5":
-			client.domain = "generalv3.5"
+			xfyun.domain = "generalv3.5"
 		case "v3.1":
-			client.domain = "generalv3"
+			xfyun.domain = "generalv3"
 		case "v2.1":
-			client.domain = "generalv2"
+			xfyun.domain = "generalv2"
 		case "v1.1":
-			client.domain = "general"
+			xfyun.domain = "general"
 		default:
 			v := gconv.Float64(version[1:])
 			if math.Round(v) > v {
-				client.domain = fmt.Sprintf("general%s", version)
+				xfyun.domain = fmt.Sprintf("general%s", version)
 			} else {
-				client.domain = fmt.Sprintf("generalv%0.f", math.Round(v))
+				xfyun.domain = fmt.Sprintf("generalv%0.f", math.Round(v))
 			}
 		}
 	}
 
 	if path != "" {
 		logger.Infof(ctx, "NewAdapter Xfyun model: %s, path: %s", model, path)
-		client.path = path
+		xfyun.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
 		logger.Infof(ctx, "NewAdapter Xfyun model: %s, proxyURL: %s", model, proxyURL[0])
-		client.proxyURL = proxyURL[0]
+		xfyun.proxyURL = proxyURL[0]
 	}
 
-	return client
+	return xfyun
 }
 
 func (x *Xfyun) getWebSocketUrl(ctx context.Context) string {

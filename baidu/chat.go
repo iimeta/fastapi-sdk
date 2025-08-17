@@ -145,7 +145,7 @@ func (b *Baidu) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 		chatCompletionReq.ResponseFormat = gconv.String(request.ResponseFormat.Type)
 	}
 
-	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s?access_token=%s", b.baseURL+b.path, b.accessToken), nil, chatCompletionReq, b.proxyURL, b.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s?access_token=%s", b.baseURL+b.path, b.accessToken), nil, gjson.MustEncode(chatCompletionReq), b.proxyURL, b.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream Baidu model: %s, error: %v", request.Model, err)
 		return responseChan, err

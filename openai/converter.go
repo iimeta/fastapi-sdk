@@ -10,7 +10,6 @@ import (
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
-	"github.com/iimeta/go-openai"
 )
 
 func ConvResponsesToChatCompletionsRequest(request *ghttp.Request, isChatCompletions bool) model.ChatCompletionRequest {
@@ -132,11 +131,11 @@ func ConvResponsesToChatCompletionsResponse(ctx context.Context, res model.OpenA
 			PromptTokens:     responsesRes.Usage.InputTokens,
 			CompletionTokens: responsesRes.Usage.OutputTokens,
 			TotalTokens:      responsesRes.Usage.TotalTokens,
-			PromptTokensDetails: openai.PromptTokensDetails{
+			PromptTokensDetails: model.PromptTokensDetails{
 				CachedTokens: responsesRes.Usage.InputTokensDetails.CachedTokens,
 				TextTokens:   responsesRes.Usage.InputTokensDetails.TextTokens,
 			},
-			CompletionTokensDetails: openai.CompletionTokensDetails{
+			CompletionTokensDetails: model.CompletionTokensDetails{
 				ReasoningTokens: responsesRes.Usage.OutputTokensDetails.ReasoningTokens,
 			},
 		}
@@ -198,11 +197,11 @@ func ConvResponsesStreamToChatCompletionsResponse(ctx context.Context, res model
 			PromptTokens:     responsesStreamRes.Response.Usage.InputTokens,
 			CompletionTokens: responsesStreamRes.Response.Usage.OutputTokens,
 			TotalTokens:      responsesStreamRes.Response.Usage.TotalTokens,
-			PromptTokensDetails: openai.PromptTokensDetails{
+			PromptTokensDetails: model.PromptTokensDetails{
 				CachedTokens: responsesStreamRes.Response.Usage.InputTokensDetails.CachedTokens,
 				TextTokens:   responsesStreamRes.Response.Usage.InputTokensDetails.TextTokens,
 			},
-			CompletionTokensDetails: openai.CompletionTokensDetails{
+			CompletionTokensDetails: model.CompletionTokensDetails{
 				ReasoningTokens: responsesStreamRes.Response.Usage.OutputTokensDetails.ReasoningTokens,
 			},
 		}
@@ -303,7 +302,7 @@ func (o *OpenAI) ConvChatCompletionsRequest(ctx context.Context, data []byte) (m
 	if chatCompletionRequest.Stream {
 		// 默认让流式返回usage
 		if chatCompletionRequest.StreamOptions == nil { // request.Tools == nil &&
-			chatCompletionRequest.StreamOptions = &openai.StreamOptions{
+			chatCompletionRequest.StreamOptions = &model.StreamOptions{
 				IncludeUsage: true,
 			}
 		}

@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
@@ -111,7 +112,9 @@ func HttpPostNew(ctx context.Context, rawURL string, header map[string]string, d
 
 	logger.Debugf(ctx, "HttpPostNew url: %s, header: %+v, data: %s, proxyURL: %s", rawURL, header, gjson.MustEncodeString(data), proxyURL)
 
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: 600 * time.Second,
+	}
 
 	request, err := http.NewRequest("POST", rawURL, bytes.NewBuffer(data))
 	if err != nil {

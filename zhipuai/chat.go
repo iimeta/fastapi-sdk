@@ -172,7 +172,7 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (respo
 	header := make(map[string]string)
 	header["Authorization"] = "Bearer " + z.generateToken(ctx)
 
-	stream, err := util.SSEClient(ctx, z.baseURL+z.path, header, chatCompletionReq, z.proxyURL, z.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, z.baseURL+z.path, header, gjson.MustEncode(chatCompletionReq), z.proxyURL, z.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", request.Model, err)
 		return responseChan, err

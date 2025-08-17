@@ -5,12 +5,14 @@ import (
 	"errors"
 	"io"
 
+	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/util"
 	"github.com/iimeta/go-openai"
 )
 
@@ -30,90 +32,27 @@ func (a *AI360) ChatCompletions(ctx context.Context, data []byte) (res model.Cha
 		logger.Infof(ctx, "ChatCompletions 360AI model: %s totalTime: %d ms", request.Model, res.TotalTime)
 	}()
 
-	var newMessages []model.ChatCompletionMessage
 	if a.isSupportSystemRole != nil {
-		newMessages = common.HandleMessages(request.Messages, *a.isSupportSystemRole)
+		request.Messages = common.HandleMessages(request.Messages, *a.isSupportSystemRole)
 	} else {
-		newMessages = common.HandleMessages(request.Messages, true)
+		request.Messages = common.HandleMessages(request.Messages, true)
 	}
 
-	messages := make([]openai.ChatCompletionMessage, 0)
-	for _, message := range newMessages {
-
-		chatCompletionMessage := openai.ChatCompletionMessage{
-			Role:         message.Role,
-			Name:         message.Name,
-			Content:      gconv.String(message.Content),
-			FunctionCall: message.FunctionCall,
-			ToolCalls:    message.ToolCalls,
-			ToolCallID:   message.ToolCallID,
-		}
-
-		messages = append(messages, chatCompletionMessage)
-	}
-
-	response, err := a.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model:            request.Model,
-		Messages:         messages,
-		MaxTokens:        request.MaxTokens,
-		Temperature:      request.Temperature,
-		TopP:             request.TopP,
-		N:                request.N,
-		Stream:           request.Stream,
-		Stop:             request.Stop,
-		PresencePenalty:  request.PresencePenalty,
-		ResponseFormat:   request.ResponseFormat,
-		Seed:             request.Seed,
-		FrequencyPenalty: request.FrequencyPenalty,
-		LogitBias:        request.LogitBias,
-		LogProbs:         request.LogProbs,
-		TopLogProbs:      request.TopLogProbs,
-		User:             request.User,
-		Functions:        request.Functions,
-		FunctionCall:     request.FunctionCall,
-		Tools:            request.Tools,
-		ToolChoice:       request.ToolChoice,
-	})
+	bytes, err := util.HttpPostNew(ctx, a.baseURL+a.path, a.header, gjson.MustEncode(request), nil, a.proxyURL)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions 360AI model: %s, error: %v", request.Model, err)
-		return res, a.apiErrorHandler(err)
+		logger.Errorf(ctx, "ChatCompletions OpenAI model: %s, error: %v", request.Model, err)
+		return
+	}
+
+	response, err := a.ConvChatCompletionsResponse(ctx, bytes)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletions OpenAI ConvChatCompletionsResponse error: %v", err)
+		return res, err
 	}
 
 	logger.Infof(ctx, "ChatCompletions 360AI model: %s finished", request.Model)
 
-	res = model.ChatCompletionResponse{
-		ID:      response.ID,
-		Object:  response.Object,
-		Created: response.Created,
-		Model:   response.Model,
-		Usage: &model.Usage{
-			PromptTokens:     response.Usage.PromptTokens,
-			CompletionTokens: response.Usage.CompletionTokens,
-			TotalTokens:      response.Usage.TotalTokens,
-		},
-		SystemFingerprint: response.SystemFingerprint,
-	}
-
-	for _, choice := range response.Choices {
-		res.Choices = append(res.Choices, model.ChatCompletionChoice{
-			Index: choice.Index,
-			Message: &model.ChatCompletionMessage{
-				Role:         choice.Message.Role,
-				Content:      choice.Message.Content,
-				Refusal:      choice.Message.Refusal,
-				MultiContent: choice.Message.MultiContent,
-				Name:         choice.Message.Name,
-				FunctionCall: choice.Message.FunctionCall,
-				ToolCalls:    choice.Message.ToolCalls,
-				ToolCallID:   choice.Message.ToolCallID,
-				Audio:        choice.Message.Audio,
-			},
-			FinishReason: choice.FinishReason,
-			LogProbs:     choice.LogProbs,
-		})
-	}
-
-	return res, nil
+	return response, nil
 }
 
 func (a *AI360) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {

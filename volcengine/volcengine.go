@@ -3,9 +3,8 @@ package volcengine
 import (
 	"context"
 	"errors"
-	"net/http"
-	"net/url"
 
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
@@ -13,9 +12,14 @@ import (
 )
 
 type VolcEngine struct {
-	client              *openai.Client
 	model               string
+	key                 string
+	baseURL             string
+	path                string
+	proxyURL            string
+	header              map[string]string
 	isSupportSystemRole *bool
+	isSupportStream     *bool
 }
 
 func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *VolcEngine {
@@ -24,35 +28,34 @@ func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupport
 
 	split := gstr.Split(key, "|")
 
-	config := openai.DefaultConfig(split[1])
+	volcengine := &VolcEngine{
+		model:   split[0],
+		key:     split[1],
+		baseURL: "https://ark.cn-beijing.volces.com/api/v3",
+		path:    "/chat/completions",
+		header: g.MapStrStr{
+			"Authorization": "Bearer " + split[1],
+		},
+		isSupportSystemRole: isSupportSystemRole,
+		isSupportStream:     isSupportStream,
+	}
 
 	if baseURL != "" {
 		logger.Infof(ctx, "NewAdapter VolcEngine model: %s, baseURL: %s", model, baseURL)
-		config.BaseURL = baseURL
-	} else {
-		config.BaseURL = "https://ark.cn-beijing.volces.com/api/v3"
+		volcengine.baseURL = baseURL
+	}
+
+	if path != "" {
+		logger.Infof(ctx, "NewAdapter VolcEngine model: %s, path: %s", model, path)
+		volcengine.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
 		logger.Infof(ctx, "NewAdapter VolcEngine model: %s, proxyURL: %s", model, proxyURL[0])
-
-		proxyUrl, err := url.Parse(proxyURL[0])
-		if err != nil {
-			panic(err)
-		}
-
-		config.HTTPClient = &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxyUrl),
-			},
-		}
+		volcengine.proxyURL = proxyURL[0]
 	}
 
-	return &VolcEngine{
-		client:              openai.NewClientWithConfig(config),
-		model:               split[0],
-		isSupportSystemRole: isSupportSystemRole,
-	}
+	return volcengine
 }
 
 func (v *VolcEngine) apiErrorHandler(err error) error {

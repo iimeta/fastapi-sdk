@@ -8,11 +8,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
-	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
 )
@@ -27,43 +26,60 @@ var (
 	ErrTooManyEmptyStreamMessages = errors.New("stream has sent too many empty messages")
 )
 
-type RequestErrorHandler func(ctx context.Context, response *gclient.Response) (err error)
+type RequestErrorHandler func(ctx context.Context, response *http.Response) (err error)
 
 type StreamReader struct {
 	reader             *bufio.Reader
-	response           *gclient.Response
+	response           *http.Response
 	emptyMessagesLimit uint
 	isFinished         bool
 	ReqTime            string
 }
 
-func SSEClient(ctx context.Context, url string, header map[string]string, data interface{}, proxyURL string, requestErrorHandler RequestErrorHandler) (stream *StreamReader, err error) {
+func SSEClient(ctx context.Context, rawURL string, header map[string]string, data []byte, proxyURL string, requestErrorHandler RequestErrorHandler) (stream *StreamReader, err error) {
 
-	logger.Debugf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s", url, header, gjson.MustEncodeString(data), proxyURL)
+	logger.Debugf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s", rawURL, header, gjson.MustEncodeString(data), proxyURL)
 
-	client := g.Client().Timeout(600 * time.Second)
-
-	if header != nil {
-		client.SetHeaderMap(header)
+	client := &http.Client{
+		Timeout: 600 * time.Second,
 	}
 
-	if proxyURL != "" {
-		client.SetProxy(proxyURL)
+	request, err := http.NewRequest("POST", rawURL, bytes.NewBuffer(data))
+	if err != nil {
+		logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
+		return nil, err
 	}
 
 	reqTime := gtime.TimestampMilliStr()
 
-	client.SetHeader("Accept", "text/event-stream")
-	client.SetHeader("Cache-Control", "no-cache")
-	client.SetHeader("Connection", "keep-alive")
-	client.SetHeader("Content-Type", "application/json")
-	client.SetHeader("x-request-time", reqTime)
+	request.Header.Set("Accept", "text/event-stream")
+	request.Header.Set("Cache-Control", "no-cache")
+	request.Header.Set("Connection", "keep-alive")
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("x-request-time", reqTime)
 
-	response, err := client.Post(ctx, url, data)
+	if header != nil {
+		for k, v := range header {
+			request.Header.Set(k, v)
+		}
+	}
+
+	if proxyURL != "" {
+		if proxyUrl, err := url.Parse(proxyURL); err != nil {
+			logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
+			return nil, err
+		} else {
+			client.Transport = &http.Transport{
+				Proxy: http.ProxyURL(proxyUrl),
+			}
+		}
+	}
+
+	response, err := client.Do(request)
 	if err != nil {
-		logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", url, header, gjson.MustEncodeString(data), proxyURL, err)
+		logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
 		if response != nil {
-			if err := response.Close(); err != nil {
+			if err := response.Body.Close(); err != nil {
 				logger.Error(ctx, err)
 			}
 		}
@@ -73,7 +89,7 @@ func SSEClient(ctx context.Context, url string, header map[string]string, data i
 	if isFailureStatusCode(response) {
 
 		defer func() {
-			if err := response.Close(); err != nil {
+			if err := response.Body.Close(); err != nil {
 				logger.Error(ctx, err)
 			}
 		}()
@@ -82,7 +98,13 @@ func SSEClient(ctx context.Context, url string, header map[string]string, data i
 			return nil, requestErrorHandler(ctx, response)
 		}
 
-		return nil, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, response.ReadAllString()))
+		bytes, err := io.ReadAll(response.Body)
+		if err != nil {
+			logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
+			return nil, err
+		}
+
+		return nil, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes))
 	}
 
 	stream = &StreamReader{
@@ -147,6 +169,6 @@ func (stream *StreamReader) Close() error {
 	return stream.response.Body.Close()
 }
 
-func isFailureStatusCode(resp *gclient.Response) bool {
+func isFailureStatusCode(resp *http.Response) bool {
 	return resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusBadRequest
 }

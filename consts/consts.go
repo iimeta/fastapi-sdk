@@ -56,3 +56,12 @@ var MIME_TYPE_MAP = map[string]string{
 	"xml":  "text/xml",
 	"rtf":  "text/rtf",
 }
+
+const (
+	FinishReasonStop          = "stop"
+	FinishReasonLength        = "length"
+	FinishReasonFunctionCall  = "function_call"
+	FinishReasonToolCalls     = "tool_calls"
+	FinishReasonContentFilter = "content_filter"
+	FinishReasonNull          = "null"
+)

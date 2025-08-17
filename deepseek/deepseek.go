@@ -3,9 +3,8 @@ package deepseek
 import (
 	"context"
 	"errors"
-	"net/http"
-	"net/url"
 
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
@@ -13,83 +12,84 @@ import (
 )
 
 type DeepSeek struct {
-	client              *openai.Client
+	model               string
+	key                 string
+	baseURL             string
+	path                string
+	proxyURL            string
+	header              map[string]string
 	isSupportSystemRole *bool
+	isSupportStream     *bool
 }
 
 func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *DeepSeek {
 
 	logger.Infof(ctx, "NewAdapter DeepSeek model: %s, key: %s", model, key)
 
-	config := openai.DefaultConfig(key)
+	deepseek := &DeepSeek{
+		model:   model,
+		key:     key,
+		baseURL: "https://api.deepseek.com/v1",
+		path:    "/chat/completions",
+		header: g.MapStrStr{
+			"Authorization": "Bearer " + key,
+		},
+		isSupportSystemRole: isSupportSystemRole,
+		isSupportStream:     isSupportStream,
+	}
 
 	if baseURL != "" {
 		logger.Infof(ctx, "NewAdapter DeepSeek model: %s, baseURL: %s", model, baseURL)
-		config.BaseURL = baseURL
-	} else {
-		config.BaseURL = "https://api.deepseek.com/v1"
+		deepseek.baseURL = baseURL
+	}
+
+	if path != "" {
+		logger.Infof(ctx, "NewAdapter DeepSeek model: %s, path: %s", model, path)
+		deepseek.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
 		logger.Infof(ctx, "NewAdapter DeepSeek model: %s, proxyURL: %s", model, proxyURL[0])
-
-		proxyUrl, err := url.Parse(proxyURL[0])
-		if err != nil {
-			panic(err)
-		}
-
-		config.HTTPClient = &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxyUrl),
-			},
-		}
+		deepseek.proxyURL = proxyURL[0]
 	}
 
-	return &DeepSeek{
-		client:              openai.NewClientWithConfig(config),
-		isSupportSystemRole: isSupportSystemRole,
-	}
+	return deepseek
 }
 
 func NewAdapterBaidu(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *DeepSeek {
 
-	logger.Infof(ctx, "NewAdapter DeepSeek model: %s, key: %s", model, key)
+	logger.Infof(ctx, "NewAdapterBaidu DeepSeek model: %s, key: %s", model, key)
 
 	split := gstr.Split(key, "|")
 
-	config := openai.DefaultConfig(split[1])
+	baidu := &DeepSeek{
+		model:   model,
+		key:     split[1],
+		baseURL: "https://qianfan.baidubce.com/v2",
+		path:    "/chat/completions",
+		header: g.MapStrStr{
+			"appid": split[0],
+		},
+		isSupportSystemRole: isSupportSystemRole,
+		isSupportStream:     isSupportStream,
+	}
 
 	if baseURL != "" {
-		logger.Infof(ctx, "NewAdapter DeepSeek model: %s, baseURL: %s", model, baseURL)
-		config.BaseURL = baseURL
-	} else {
-		config.BaseURL = "https://qianfan.baidubce.com/v2"
+		logger.Infof(ctx, "NewAdapterBaidu DeepSeek model: %s, baseURL: %s", model, baseURL)
+		baidu.baseURL = baseURL
+	}
+
+	if path != "" {
+		logger.Infof(ctx, "NewAdapterBaidu DeepSeek model: %s, path: %s", model, path)
+		baidu.path = path
 	}
 
 	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewAdapter DeepSeek model: %s, proxyURL: %s", model, proxyURL[0])
-
-		proxyUrl, err := url.Parse(proxyURL[0])
-		if err != nil {
-			panic(err)
-		}
-
-		config.HTTPClient = &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxyUrl),
-			},
-		}
+		logger.Infof(ctx, "NewAdapterBaidu DeepSeek model: %s, proxyURL: %s", model, proxyURL[0])
+		baidu.proxyURL = proxyURL[0]
 	}
 
-	client := openai.NewClientWithConfig(config)
-	client.Header = http.Header{
-		"appid": []string{split[0]},
-	}
-
-	return &DeepSeek{
-		client:              client,
-		isSupportSystemRole: isSupportSystemRole,
-	}
+	return baidu
 }
 
 func (d *DeepSeek) apiErrorHandler(err error) error {

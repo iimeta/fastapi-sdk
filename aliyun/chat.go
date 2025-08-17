@@ -152,7 +152,7 @@ func (a *Aliyun) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 	header := make(map[string]string)
 	header["Authorization"] = "Bearer " + a.key
 
-	stream, err := util.SSEClient(ctx, a.baseURL+a.path, header, chatCompletionReq, a.proxyURL, a.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, a.baseURL+a.path, header, gjson.MustEncode(chatCompletionReq), a.proxyURL, a.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream Aliyun model: %s, error: %v", request.Model, err)
 		return responseChan, err

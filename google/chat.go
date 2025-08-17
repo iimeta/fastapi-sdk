@@ -264,13 +264,13 @@ func (g *Google) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 
 	var stream *util.StreamReader
 	if g.isGcp {
-		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse", g.baseURL+g.path), g.header, chatCompletionReq, g.proxyURL, g.requestErrorHandler)
+		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse", g.baseURL+g.path), g.header, gjson.MustEncode(chatCompletionReq), g.proxyURL, g.requestErrorHandler)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", request.Model, err)
 			return responseChan, err
 		}
 	} else {
-		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", g.baseURL+g.path, g.key), nil, chatCompletionReq, g.proxyURL, g.requestErrorHandler)
+		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", g.baseURL+g.path, g.key), nil, gjson.MustEncode(chatCompletionReq), g.proxyURL, g.requestErrorHandler)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", request.Model, err)
 			return responseChan, err

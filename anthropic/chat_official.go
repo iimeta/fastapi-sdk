@@ -277,7 +277,7 @@ func (a *Anthropic) ChatCompletionStreamOfficial(ctx context.Context, data []byt
 
 	} else {
 
-		stream, err := util.SSEClient(ctx, a.baseURL+a.path, a.header, request, a.proxyURL, a.requestErrorHandler)
+		stream, err := util.SSEClient(ctx, a.baseURL+a.path, a.header, gjson.MustEncode(request), a.proxyURL, a.requestErrorHandler)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletionStreamOfficial Anthropic model: %s, error: %v", a.model, err)
 			return responseChan, err
