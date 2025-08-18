@@ -130,7 +130,7 @@ func (x *Xfyun) ChatCompletions(ctx context.Context, data []byte) (res model.Cha
 	}
 
 	res = model.ChatCompletionResponse{
-		ID:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Header.Sid,
+		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Header.Sid,
 		Object:  consts.COMPLETION_OBJECT,
 		Created: gtime.Timestamp(),
 		Model:   request.Model,
@@ -295,7 +295,7 @@ func (x *Xfyun) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 			}
 
 			response := &model.ChatCompletionResponse{
-				ID:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Header.Sid,
+				Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Header.Sid,
 				Object:  consts.COMPLETION_STREAM_OBJECT,
 				Created: created,
 				Model:   request.Model,

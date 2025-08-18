@@ -34,7 +34,7 @@ type ChatCompletionRequest struct {
 }
 
 type ChatCompletionResponse struct {
-	ID                string                 `json:"id"`
+	Id                string                 `json:"id"`
 	Object            string                 `json:"object"`
 	Created           int64                  `json:"created"`
 	Model             string                 `json:"model"`
@@ -192,6 +192,13 @@ type ContentFilterResults struct {
 type FunctionCall struct {
 	Name      string `json:"name"`
 	Arguments string `json:"arguments"`
+}
+
+type ToolCall struct {
+	Index    *int         `json:"index,omitempty"`
+	ID       string       `json:"id,omitempty"`
+	Type     string       `json:"type"`
+	Function FunctionCall `json:"function"`
 }
 
 type TopLogProbs struct {

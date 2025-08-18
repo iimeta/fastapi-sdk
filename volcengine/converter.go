@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 )
@@ -14,6 +15,12 @@ func (v *VolcEngine) ConvChatCompletionsRequest(ctx context.Context, data []byte
 	if err := gjson.Unmarshal(data, &chatCompletionRequest); err != nil {
 		logger.Error(ctx, err)
 		return chatCompletionRequest, err
+	}
+
+	if v.isSupportSystemRole != nil {
+		chatCompletionRequest.Messages = common.HandleMessages(chatCompletionRequest.Messages, *v.isSupportSystemRole)
+	} else {
+		chatCompletionRequest.Messages = common.HandleMessages(chatCompletionRequest.Messages, true)
 	}
 
 	return chatCompletionRequest, nil

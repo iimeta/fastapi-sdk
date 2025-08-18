@@ -22,6 +22,11 @@ type Converter interface {
 	ConvChatCompletionsRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error)
 	ConvChatCompletionsResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error)
 	ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error)
+
+	ConvChatCompletionsRequestOfficial(ctx context.Context, data []byte) ([]byte, error)
+	ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error)
+	ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error)
+
 	ConvChatResponsesRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error)
 	ConvChatResponsesResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error)
 	ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error)

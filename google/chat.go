@@ -6,273 +6,80 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
-	"github.com/gogf/gf/v2/util/gconv"
-	"github.com/gogf/gf/v2/util/grand"
-	"github.com/iimeta/fastapi-sdk/common"
-	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"
-	"github.com/iimeta/go-openai"
 )
 
-func (g *Google) ChatCompletions(ctx context.Context, data []byte) (res model.ChatCompletionResponse, err error) {
+func (g *Google) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	request, err := g.ConvChatCompletionsRequest(ctx, data)
+	request, err := g.ConvChatCompletionsRequestOfficial(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions Google ConvChatCompletionsRequest error: %v", err)
-		return res, err
+		return response, err
 	}
 
-	logger.Infof(ctx, "ChatCompletions Google model: %s start", request.Model)
+	logger.Infof(ctx, "ChatCompletions Google model: %s start", g.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
-		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletions Google model: %s totalTime: %d ms", request.Model, res.TotalTime)
+		response.TotalTime = gtime.TimestampMilli() - now
+		logger.Infof(ctx, "ChatCompletions Google model: %s totalTime: %d ms", g.model, response.TotalTime)
 	}()
 
-	var messages []model.ChatCompletionMessage
-	if g.isSupportSystemRole != nil {
-		messages = common.HandleMessages(request.Messages, *g.isSupportSystemRole)
-	} else {
-		messages = common.HandleMessages(request.Messages, false)
-	}
+	var bytes []byte
 
-	contents := make([]model.Content, 0)
-	for _, message := range messages {
-
-		role := message.Role
-
-		if role == consts.ROLE_ASSISTANT {
-			role = consts.ROLE_MODEL
-		}
-
-		parts := make([]model.Part, 0)
-
-		if contents, ok := message.Content.([]interface{}); ok {
-
-			for _, value := range contents {
-
-				if content, ok := value.(map[string]interface{}); ok {
-
-					if content["type"] == "image_url" {
-
-						if imageUrl, ok := content["image_url"].(map[string]interface{}); ok {
-
-							mimeType, data := common.GetMime(gconv.String(imageUrl["url"]))
-
-							parts = append(parts, model.Part{
-								InlineData: &model.InlineData{
-									MimeType: mimeType,
-									Data:     data,
-								},
-							})
-						}
-
-					} else if content["type"] == "video_url" {
-						if videoUrl, ok := content["video_url"].(map[string]interface{}); ok {
-
-							url := gconv.String(videoUrl["url"])
-							format := gconv.String(videoUrl["format"])
-
-							parts = append(parts, model.Part{
-								FileData: &model.FileData{
-									MimeType: "video/" + format,
-									FileUri:  url,
-								},
-							})
-						}
-					} else {
-						parts = append(parts, model.Part{
-							Text: gconv.String(content["text"]),
-						})
-					}
-				}
-			}
-
-		} else {
-			parts = append(parts, model.Part{
-				Text: gconv.String(message.Content),
-			})
-		}
-
-		contents = append(contents, model.Content{
-			Role:  role,
-			Parts: parts,
-		})
-	}
-
-	chatCompletionReq := model.GoogleChatCompletionReq{
-		Contents: contents,
-		GenerationConfig: model.GenerationConfig{
-			MaxOutputTokens: request.MaxTokens,
-			Temperature:     request.Temperature,
-			TopP:            request.TopP,
-		},
-		Tools: request.Tools,
-	}
-
-	chatCompletionRes := new(model.GoogleChatCompletionRes)
 	if g.isGcp {
-		if _, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent", g.baseURL+g.path), g.header, chatCompletionReq, &chatCompletionRes, g.proxyURL); err != nil {
-			logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", request.Model, err)
-			return
+		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent", g.baseURL+g.path), g.header, request, nil, g.proxyURL); err != nil {
+			logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", g.model, err)
+			return response, err
 		}
 	} else {
-		if _, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", g.baseURL+g.path, g.key), nil, chatCompletionReq, &chatCompletionRes, g.proxyURL); err != nil {
-			logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", request.Model, err)
-			return
+		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", g.baseURL+g.path, g.key), nil, request, nil, g.proxyURL); err != nil {
+			logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", g.model, err)
+			return response, err
 		}
 	}
 
-	if chatCompletionRes.Error.Code != 0 || (chatCompletionRes.Candidates[0].FinishReason != "STOP" && chatCompletionRes.Candidates[0].FinishReason != "MAX_TOKENS") {
-		logger.Errorf(ctx, "ChatCompletions Google model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
-
-		err = g.apiErrorHandler(chatCompletionRes)
-		logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", request.Model, err)
-
-		return
+	if response, err = g.ConvChatCompletionsResponseOfficial(ctx, bytes); err != nil {
+		logger.Errorf(ctx, "ChatCompletions Google ConvChatCompletionsResponseOfficial error: %v", err)
+		return response, err
 	}
 
-	res = model.ChatCompletionResponse{
-		ID:      consts.COMPLETION_ID_PREFIX + grand.S(29),
-		Object:  consts.COMPLETION_OBJECT,
-		Created: gtime.Timestamp(),
-		Model:   request.Model,
-		Usage: &model.Usage{
-			PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
-			CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
-			TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
-		},
-	}
-
-	for i, part := range chatCompletionRes.Candidates[0].Content.Parts {
-		res.Choices = append(res.Choices, model.ChatCompletionChoice{
-			Index: i,
-			Message: &model.ChatCompletionMessage{
-				Role:    consts.ROLE_ASSISTANT,
-				Content: part.Text,
-			},
-			FinishReason: openai.FinishReasonStop,
-		})
-	}
-
-	return res, nil
+	return response, nil
 }
 
 func (g *Google) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	request, err := g.ConvChatCompletionsRequest(ctx, data)
+	request, err := g.ConvChatCompletionsRequestOfficial(ctx, data)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream Google ConvChatCompletionsRequest error: %v", err)
+		logger.Errorf(ctx, "ChatCompletionsStream Google ConvChatCompletionsRequestOfficial error: %v", err)
 		return nil, err
 	}
 
-	logger.Infof(ctx, "ChatCompletionsStream Google model: %s start", request.Model)
+	logger.Infof(ctx, "ChatCompletionsStream Google model: %s start", g.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionsStream Google model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStream Google model: %s totalTime: %d ms", g.model, gtime.TimestampMilli()-now)
 		}
 	}()
 
-	var messages []model.ChatCompletionMessage
-	if g.isSupportSystemRole != nil {
-		messages = common.HandleMessages(request.Messages, *g.isSupportSystemRole)
-	} else {
-		messages = common.HandleMessages(request.Messages, false)
-	}
-
-	contents := make([]model.Content, 0)
-	for _, message := range messages {
-
-		role := message.Role
-
-		if role == consts.ROLE_ASSISTANT {
-			role = consts.ROLE_MODEL
-		}
-
-		parts := make([]model.Part, 0)
-
-		if contents, ok := message.Content.([]interface{}); ok {
-
-			for _, value := range contents {
-
-				if content, ok := value.(map[string]interface{}); ok {
-
-					if content["type"] == "image_url" {
-
-						if imageUrl, ok := content["image_url"].(map[string]interface{}); ok {
-
-							mimeType, data := common.GetMime(gconv.String(imageUrl["url"]))
-
-							parts = append(parts, model.Part{
-								InlineData: &model.InlineData{
-									MimeType: mimeType,
-									Data:     data,
-								},
-							})
-						}
-
-					} else if content["type"] == "video_url" {
-						if videoUrl, ok := content["video_url"].(map[string]interface{}); ok {
-
-							url := gconv.String(videoUrl["url"])
-							format := gconv.String(videoUrl["format"])
-
-							parts = append(parts, model.Part{
-								FileData: &model.FileData{
-									MimeType: "video/" + format,
-									FileUri:  url,
-								},
-							})
-						}
-					} else {
-						parts = append(parts, model.Part{
-							Text: gconv.String(content["text"]),
-						})
-					}
-				}
-			}
-
-		} else {
-			parts = append(parts, model.Part{
-				Text: gconv.String(message.Content),
-			})
-		}
-
-		contents = append(contents, model.Content{
-			Role:  role,
-			Parts: parts,
-		})
-	}
-
-	chatCompletionReq := model.GoogleChatCompletionReq{
-		Contents: contents,
-		GenerationConfig: model.GenerationConfig{
-			MaxOutputTokens: request.MaxTokens,
-			Temperature:     request.Temperature,
-			TopP:            request.TopP,
-		},
-		Tools: request.Tools,
-	}
-
 	var stream *util.StreamReader
+
 	if g.isGcp {
-		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse", g.baseURL+g.path), g.header, gjson.MustEncode(chatCompletionReq), g.proxyURL, g.requestErrorHandler)
+		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse", g.baseURL+g.path), g.header, request, g.proxyURL, g.requestErrorHandler)
 		if err != nil {
-			logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", request.Model, err)
+			logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.model, err)
 			return responseChan, err
 		}
 	} else {
-		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", g.baseURL+g.path, g.key), nil, gjson.MustEncode(chatCompletionReq), g.proxyURL, g.requestErrorHandler)
+		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", g.baseURL+g.path, g.key), nil, request, g.proxyURL, g.requestErrorHandler)
 		if err != nil {
-			logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", request.Model, err)
+			logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.model, err)
 			return responseChan, err
 		}
 	}
@@ -285,26 +92,24 @@ func (g *Google) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 
 		defer func() {
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionsStream Google model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStream Google model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", g.model, duration-now, end-duration, end-now)
 
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, stream.Close error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, stream.Close error: %v", g.model, err)
 			}
 		}()
 
 		var (
-			usage   *model.Usage
-			created = gtime.Timestamp()
-			id      = consts.COMPLETION_ID_PREFIX + grand.S(29)
+			usage *model.Usage
 		)
 
 		for {
 
-			streamResponse, err := stream.Recv()
-			if err != nil && !errors.Is(err, io.EOF) {
+			responseBytes, err := stream.Recv()
+			if err != nil {
 
-				if !errors.Is(err, context.Canceled) {
-					logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", request.Model, err)
+				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
+					logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -318,55 +123,9 @@ func (g *Google) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 				return
 			}
 
-			if errors.Is(err, io.EOF) {
-				logger.Infof(ctx, "ChatCompletionsStream Google model: %s finished", request.Model)
-
-				end := gtime.TimestampMilli()
-				responseChan <- &model.ChatCompletionResponse{
-					ID:      id,
-					Object:  consts.COMPLETION_STREAM_OBJECT,
-					Created: created,
-					Model:   request.Model,
-					Choices: []model.ChatCompletionChoice{{
-						Delta:        &model.ChatCompletionStreamChoiceDelta{},
-						FinishReason: openai.FinishReasonStop,
-					}},
-					Usage:     usage,
-					ConnTime:  duration - now,
-					Duration:  end - duration,
-					TotalTime: end - now,
-				}
-
-				responseChan <- &model.ChatCompletionResponse{
-					ConnTime:  duration - now,
-					Duration:  end - duration,
-					TotalTime: end - now,
-					Error:     io.EOF,
-				}
-
-				return
-			}
-
-			chatCompletionRes := new(model.GoogleChatCompletionRes)
-			if err := gjson.Unmarshal(streamResponse, &chatCompletionRes); err != nil {
-				logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, streamResponse: %s, error: %v", request.Model, streamResponse, err)
-
-				end := gtime.TimestampMilli()
-				responseChan <- &model.ChatCompletionResponse{
-					ConnTime:  duration - now,
-					Duration:  end - duration,
-					TotalTime: end - now,
-					Error:     errors.New(fmt.Sprintf("streamResponse: %s, error: %v", streamResponse, err)),
-				}
-
-				return
-			}
-
-			if chatCompletionRes.Error.Code != 0 {
-				logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
-
-				err = g.apiErrorHandler(chatCompletionRes)
-				logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", request.Model, err)
+			response, err := g.ConvChatCompletionsStreamResponseOfficial(ctx, responseBytes)
+			if err != nil {
+				logger.Errorf(ctx, "ChatCompletionsStream Google ConvChatCompletionsStreamResponseOfficial error: %v", err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{
@@ -379,42 +138,24 @@ func (g *Google) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 				return
 			}
 
-			if chatCompletionRes.UsageMetadata != nil {
-				usage = &model.Usage{
-					PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
-					CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
-					TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
-				}
-			}
-
-			response := &model.ChatCompletionResponse{
-				ID:      id,
-				Object:  consts.COMPLETION_STREAM_OBJECT,
-				Created: created,
-				Model:   request.Model,
-
-				Usage:    usage,
-				ConnTime: duration - now,
-			}
-
-			for _, candidate := range chatCompletionRes.Candidates {
-				response.Choices = append(response.Choices, model.ChatCompletionChoice{
-					Index: candidate.Index,
-					Delta: &model.ChatCompletionStreamChoiceDelta{
-						Role:    consts.ROLE_ASSISTANT,
-						Content: candidate.Content.Parts[0].Text,
-					},
-				})
+			if response.Usage != nil {
+				usage = response.Usage
+			} else {
+				response.Usage = usage
 			}
 
 			end := gtime.TimestampMilli()
+
+			response.ResponseBytes = responseBytes
+			response.ConnTime = duration - now
 			response.Duration = end - duration
 			response.TotalTime = end - now
 
-			responseChan <- response
+			responseChan <- &response
 		}
+
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.model, err)
 		return responseChan, err
 	}
 

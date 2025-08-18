@@ -91,7 +91,7 @@ func (v *VolcEngine) ChatCompletions(ctx context.Context, data []byte) (res mode
 	logger.Infof(ctx, "ChatCompletions VolcEngine model: %s finished", request.Model)
 
 	res = model.ChatCompletionResponse{
-		ID:      consts.COMPLETION_ID_PREFIX + response.ID,
+		Id:      consts.COMPLETION_ID_PREFIX + response.ID,
 		Object:  response.Object,
 		Created: response.Created,
 		Model:   response.Model,
@@ -245,7 +245,7 @@ func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data []byte) (re
 			}
 
 			response := &model.ChatCompletionResponse{
-				ID:                consts.COMPLETION_ID_PREFIX + streamResponse.ID,
+				Id:                consts.COMPLETION_ID_PREFIX + streamResponse.ID,
 				Object:            streamResponse.Object,
 				Created:           streamResponse.Created,
 				Model:             streamResponse.Model,

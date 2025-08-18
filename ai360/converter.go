@@ -4,41 +4,58 @@ import (
 	"context"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/iimeta/fastapi-sdk/common"
+	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 )
 
 func (a *AI360) ConvChatCompletionsRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
 
-	chatCompletionRequest := model.ChatCompletionRequest{}
-	if err := gjson.Unmarshal(data, &chatCompletionRequest); err != nil {
+	request := model.ChatCompletionRequest{}
+	if err := gjson.Unmarshal(data, &request); err != nil {
 		logger.Error(ctx, err)
-		return chatCompletionRequest, err
+		return request, err
 	}
 
-	return chatCompletionRequest, nil
+	if a.isSupportSystemRole != nil {
+		request.Messages = common.HandleMessages(request.Messages, *a.isSupportSystemRole)
+	} else {
+		request.Messages = common.HandleMessages(request.Messages, true)
+	}
+
+	return request, nil
 }
 
 func (a *AI360) ConvChatCompletionsResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
 
-	chatCompletionResponse := model.ChatCompletionResponse{}
-	if err := gjson.Unmarshal(data, &chatCompletionResponse); err != nil {
+	response := model.ChatCompletionResponse{}
+	if err := gjson.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
-		return chatCompletionResponse, err
+		return response, err
 	}
 
-	return chatCompletionResponse, nil
+	return response, nil
 }
 
 func (a *AI360) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
 
-	chatCompletionResponse := model.ChatCompletionResponse{}
-	if err := gjson.Unmarshal(data, &chatCompletionResponse); err != nil {
+	response := model.ChatCompletionResponse{}
+	if err := gjson.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
-		return chatCompletionResponse, err
+		return response, err
 	}
 
-	return chatCompletionResponse, nil
+	if response.Usage != nil {
+		if len(response.Choices) == 0 {
+			response.Choices = append(response.Choices, model.ChatCompletionChoice{
+				Delta:        new(model.ChatCompletionStreamChoiceDelta),
+				FinishReason: consts.FinishReasonStop,
+			})
+		}
+	}
+
+	return response, nil
 }
 
 func (a *AI360) ConvChatResponsesRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {

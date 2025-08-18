@@ -5,127 +5,44 @@ import (
 	"errors"
 	"io"
 
+	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
-	"github.com/gogf/gf/v2/util/gconv"
-	"github.com/iimeta/fastapi-sdk/common"
-	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
-	"github.com/iimeta/go-openai"
+	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (d *DeepSeek) ChatCompletions(ctx context.Context, data []byte) (res model.ChatCompletionResponse, err error) {
+func (d *DeepSeek) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
 	request, err := d.ConvChatCompletionsRequest(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions DeepSeek ConvChatCompletionsRequest error: %v", err)
-		return res, err
+		return response, err
 	}
 
-	logger.Infof(ctx, "ChatCompletions DeepSeek model: %s start", request.Model)
+	logger.Infof(ctx, "ChatCompletions DeepSeek model: %s start", d.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
-		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletions DeepSeek model: %s totalTime: %d ms", request.Model, res.TotalTime)
+		response.TotalTime = gtime.TimestampMilli() - now
+		logger.Infof(ctx, "ChatCompletions DeepSeek model: %s totalTime: %d ms", d.model, response.TotalTime)
 	}()
 
-	var newMessages []model.ChatCompletionMessage
-	if d.isSupportSystemRole != nil {
-		newMessages = common.HandleMessages(request.Messages, *d.isSupportSystemRole)
-	} else {
-		newMessages = common.HandleMessages(request.Messages, true)
-	}
-
-	messages := make([]openai.ChatCompletionMessage, 0)
-	for _, message := range newMessages {
-
-		chatCompletionMessage := openai.ChatCompletionMessage{
-			Role:         message.Role,
-			Name:         message.Name,
-			Content:      gconv.String(message.Content),
-			FunctionCall: message.FunctionCall,
-			ToolCalls:    message.ToolCalls,
-			ToolCallID:   message.ToolCallID,
-		}
-
-		messages = append(messages, chatCompletionMessage)
-	}
-
-	response, err := d.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model:               request.Model,
-		Messages:            messages,
-		MaxTokens:           request.MaxTokens,
-		MaxCompletionTokens: request.MaxCompletionTokens,
-		Temperature:         request.Temperature,
-		TopP:                request.TopP,
-		N:                   request.N,
-		Stream:              request.Stream,
-		Stop:                request.Stop,
-		PresencePenalty:     request.PresencePenalty,
-		ResponseFormat:      request.ResponseFormat,
-		Seed:                request.Seed,
-		FrequencyPenalty:    request.FrequencyPenalty,
-		LogitBias:           request.LogitBias,
-		LogProbs:            request.LogProbs,
-		TopLogProbs:         request.TopLogProbs,
-		User:                request.User,
-		Functions:           request.Functions,
-		FunctionCall:        request.FunctionCall,
-		Tools:               request.Tools,
-		ToolChoice:          request.ToolChoice,
-		StreamOptions:       request.StreamOptions,
-		ParallelToolCalls:   request.ParallelToolCalls,
-		Store:               request.Store,
-		Metadata:            request.Metadata,
-		ReasoningEffort:     request.ReasoningEffort,
-		Modalities:          request.Modalities,
-		Audio:               request.Audio,
-	})
+	bytes, err := util.HttpPost(ctx, d.baseURL+d.path, d.header, gjson.MustEncode(request), nil, d.proxyURL)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions DeepSeek model: %s, error: %v", request.Model, err)
-		return res, d.apiErrorHandler(err)
+		logger.Errorf(ctx, "ChatCompletions DeepSeek model: %s, error: %v", d.model, err)
+		return response, err
 	}
 
-	logger.Infof(ctx, "ChatCompletions DeepSeek model: %s finished", request.Model)
-
-	res = model.ChatCompletionResponse{
-		ID:      consts.COMPLETION_ID_PREFIX + response.ID,
-		Object:  response.Object,
-		Created: response.Created,
-		Model:   response.Model,
-		Usage: &model.Usage{
-			PromptTokens:            response.Usage.PromptTokens,
-			CompletionTokens:        response.Usage.CompletionTokens,
-			TotalTokens:             response.Usage.TotalTokens,
-			PromptTokensDetails:     response.Usage.PromptTokensDetails,
-			CompletionTokensDetails: response.Usage.CompletionTokensDetails,
-		},
-		SystemFingerprint: response.SystemFingerprint,
+	if response, err = d.ConvChatCompletionsResponse(ctx, bytes); err != nil {
+		logger.Errorf(ctx, "ChatCompletions DeepSeek ConvChatCompletionsResponse error: %v", err)
+		return response, err
 	}
 
-	for _, choice := range response.Choices {
-		res.Choices = append(res.Choices, model.ChatCompletionChoice{
-			Index: choice.Index,
-			Message: &model.ChatCompletionMessage{
-				Role:             choice.Message.Role,
-				Content:          choice.Message.Content,
-				ReasoningContent: choice.Message.ReasoningContent,
-				Refusal:          choice.Message.Refusal,
-				MultiContent:     choice.Message.MultiContent,
-				Name:             choice.Message.Name,
-				FunctionCall:     choice.Message.FunctionCall,
-				ToolCalls:        choice.Message.ToolCalls,
-				ToolCallID:       choice.Message.ToolCallID,
-				Audio:            choice.Message.Audio,
-			},
-			FinishReason: choice.FinishReason,
-			LogProbs:     choice.LogProbs,
-		})
-	}
+	logger.Infof(ctx, "ChatCompletions DeepSeek model: %s finished", d.model)
 
-	return res, nil
+	return response, nil
 }
 
 func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
@@ -136,76 +53,18 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data []byte) (resp
 		return nil, err
 	}
 
-	logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s start", request.Model)
+	logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s start", d.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s totalTime: %d ms", d.model, gtime.TimestampMilli()-now)
 		}
 	}()
 
-	var newMessages []model.ChatCompletionMessage
-	if d.isSupportSystemRole != nil {
-		newMessages = common.HandleMessages(request.Messages, *d.isSupportSystemRole)
-	} else {
-		newMessages = common.HandleMessages(request.Messages, true)
-	}
-
-	messages := make([]openai.ChatCompletionMessage, 0)
-	for _, message := range newMessages {
-
-		chatCompletionMessage := openai.ChatCompletionMessage{
-			Role:         message.Role,
-			Name:         message.Name,
-			Content:      gconv.String(message.Content),
-			FunctionCall: message.FunctionCall,
-			ToolCalls:    message.ToolCalls,
-			ToolCallID:   message.ToolCallID,
-		}
-
-		messages = append(messages, chatCompletionMessage)
-	}
-
-	// 默认让流式返回usage
-	if request.StreamOptions == nil { // request.Tools == nil &&
-		request.StreamOptions = &openai.StreamOptions{
-			IncludeUsage: true,
-		}
-	}
-
-	stream, err := d.client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
-		Model:               request.Model,
-		Messages:            messages,
-		MaxTokens:           request.MaxTokens,
-		MaxCompletionTokens: request.MaxCompletionTokens,
-		Temperature:         request.Temperature,
-		TopP:                request.TopP,
-		N:                   request.N,
-		Stream:              request.Stream,
-		Stop:                request.Stop,
-		PresencePenalty:     request.PresencePenalty,
-		ResponseFormat:      request.ResponseFormat,
-		Seed:                request.Seed,
-		FrequencyPenalty:    request.FrequencyPenalty,
-		LogitBias:           request.LogitBias,
-		LogProbs:            request.LogProbs,
-		TopLogProbs:         request.TopLogProbs,
-		User:                request.User,
-		Functions:           request.Functions,
-		FunctionCall:        request.FunctionCall,
-		Tools:               request.Tools,
-		ToolChoice:          request.ToolChoice,
-		StreamOptions:       request.StreamOptions,
-		ParallelToolCalls:   request.ParallelToolCalls,
-		Store:               request.Store,
-		Metadata:            request.Metadata,
-		ReasoningEffort:     request.ReasoningEffort,
-		Modalities:          request.Modalities,
-		Audio:               request.Audio,
-	})
+	stream, err := util.SSEClient(ctx, d.baseURL+d.path, d.header, gjson.MustEncode(request), d.proxyURL, nil)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, error: %v", d.model, err)
 		return responseChan, d.apiErrorHandler(err)
 	}
 
@@ -217,20 +76,20 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data []byte) (resp
 
 		defer func() {
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, stream.Close error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, stream.Close error: %v", d.model, err)
 			}
 
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", d.model, duration-now, end-duration, end-now)
 		}()
 
 		for {
 
-			responseBytes, streamResponse, err := stream.Recv()
-			if err != nil && !errors.Is(err, io.EOF) {
+			responseBytes, err := stream.Recv()
+			if err != nil {
 
-				if !errors.Is(err, context.Canceled) {
-					logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, error: %v", request.Model, err)
+				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
+					logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, error: %v", d.model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -244,70 +103,33 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data []byte) (resp
 				return
 			}
 
-			response := &model.ChatCompletionResponse{
-				ID:                consts.COMPLETION_ID_PREFIX + streamResponse.ID,
-				Object:            streamResponse.Object,
-				Created:           streamResponse.Created,
-				Model:             streamResponse.Model,
-				PromptAnnotations: streamResponse.PromptAnnotations,
-				ResponseBytes:     responseBytes,
-				ConnTime:          duration - now,
-			}
-
-			for _, choice := range streamResponse.Choices {
-				response.Choices = append(response.Choices, model.ChatCompletionChoice{
-					Index: choice.Index,
-					Delta: &model.ChatCompletionStreamChoiceDelta{
-						Content:          choice.Delta.Content,
-						ReasoningContent: choice.Delta.ReasoningContent,
-						Role:             choice.Delta.Role,
-						FunctionCall:     choice.Delta.FunctionCall,
-						ToolCalls:        choice.Delta.ToolCalls,
-						Refusal:          choice.Delta.Refusal,
-						Audio:            choice.Delta.Audio,
-					},
-					FinishReason: choice.FinishReason,
-				})
-			}
-
-			if streamResponse.Usage != nil {
-
-				response.Usage = &model.Usage{
-					PromptTokens:            streamResponse.Usage.PromptTokens,
-					CompletionTokens:        streamResponse.Usage.CompletionTokens,
-					TotalTokens:             streamResponse.Usage.TotalTokens,
-					PromptTokensDetails:     streamResponse.Usage.PromptTokensDetails,
-					CompletionTokensDetails: streamResponse.Usage.CompletionTokensDetails,
-				}
-
-				if len(response.Choices) == 0 {
-					response.Choices = append(response.Choices, model.ChatCompletionChoice{
-						Delta:        new(model.ChatCompletionStreamChoiceDelta),
-						FinishReason: openai.FinishReasonStop,
-					})
-				}
-			}
-
-			if errors.Is(err, io.EOF) {
-				logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s finished", request.Model)
+			response, err := d.ConvChatCompletionsStreamResponse(ctx, responseBytes)
+			if err != nil {
+				logger.Errorf(ctx, "ChatCompletionsStream DeepSeek ConvChatCompletionsStreamResponse error: %v", err)
 
 				end := gtime.TimestampMilli()
-				response.Duration = end - duration
-				response.TotalTime = end - now
-				response.Error = io.EOF
-				responseChan <- response
+				responseChan <- &model.ChatCompletionResponse{
+					ConnTime:  duration - now,
+					Duration:  end - duration,
+					TotalTime: end - now,
+					Error:     err,
+				}
 
 				return
 			}
 
 			end := gtime.TimestampMilli()
+
+			response.ResponseBytes = responseBytes
+			response.ConnTime = duration - now
 			response.Duration = end - duration
 			response.TotalTime = end - now
 
-			responseChan <- response
+			responseChan <- &response
 		}
+
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, error: %v", d.model, err)
 		return responseChan, err
 	}
 

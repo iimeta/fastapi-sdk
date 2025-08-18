@@ -11,42 +11,39 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
-	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (o *OpenAI) ChatCompletions(ctx context.Context, data []byte) (res model.ChatCompletionResponse, err error) {
+func (o *OpenAI) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
 	request, err := o.ConvChatCompletionsRequest(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions OpenAI ConvChatCompletionsRequest error: %v", err)
-		return res, err
+		return response, err
 	}
 
-	logger.Infof(ctx, "ChatCompletions OpenAI model: %s start", request.Model)
+	logger.Infof(ctx, "ChatCompletions OpenAI model: %s start", o.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
-		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletions OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
+		response.TotalTime = gtime.TimestampMilli() - now
+		logger.Infof(ctx, "ChatCompletions OpenAI model: %s totalTime: %d ms", o.model, response.TotalTime)
 	}()
 
-	//bytes, err := util.HttpPost(ctx, o.baseURL+o.path, o.header, request, nil, o.proxyURL)
-	bytes, err := util.HttpPostNew(ctx, o.baseURL+o.path, o.header, gjson.MustEncode(request), nil, o.proxyURL)
+	bytes, err := util.HttpPost(ctx, o.baseURL+o.path, o.header, gjson.MustEncode(request), nil, o.proxyURL)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions OpenAI model: %s, error: %v", request.Model, err)
-		return
+		logger.Errorf(ctx, "ChatCompletions OpenAI model: %s, error: %v", o.model, err)
+		return response, err
 	}
 
-	response, err := o.ConvChatCompletionsResponse(ctx, bytes)
-	if err != nil {
+	if response, err = o.ConvChatCompletionsResponse(ctx, bytes); err != nil {
 		logger.Errorf(ctx, "ChatCompletions OpenAI ConvChatCompletionsResponse error: %v", err)
-		return res, err
+		return response, err
 	}
 
-	logger.Infof(ctx, "ChatCompletions OpenAI model: %s finished", request.Model)
+	logger.Infof(ctx, "ChatCompletions OpenAI model: %s finished", o.model)
 
 	return response, nil
 }
@@ -59,22 +56,22 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 		return nil, err
 	}
 
-	logger.Infof(ctx, "ChatCompletionsStream OpenAI model: %s start", request.Model)
+	logger.Infof(ctx, "ChatCompletionsStream OpenAI model: %s start", o.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionsStream OpenAI model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStream OpenAI model: %s totalTime: %d ms", o.model, gtime.TimestampMilli()-now)
 		}
 	}()
 
-	if (o.isSupportStream != nil && !*o.isSupportStream) || (gstr.HasPrefix(request.Model, "o") && o.isAzure) {
+	if (o.isSupportStream != nil && !*o.isSupportStream) || (gstr.HasPrefix(o.model, "o") && o.isAzure) {
 		return o.ChatCompletionStreamToNonStream(ctx, data)
 	}
 
 	stream, err := util.SSEClient(ctx, o.baseURL+o.path, o.header, gjson.MustEncode(request), o.proxyURL, nil)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream OpenAI model: %s, error: %v", o.model, err)
 		return responseChan, err
 	}
 
@@ -86,11 +83,11 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 
 		defer func() {
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionsStream OpenAI model: %s, stream.Close error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionsStream OpenAI model: %s, stream.Close error: %v", o.model, err)
 			}
 
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionsStream OpenAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStream OpenAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", o.model, duration-now, end-duration, end-now)
 		}()
 
 		for {
@@ -99,7 +96,7 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 			if err != nil {
 
 				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
-					logger.Errorf(ctx, "ChatCompletionsStream OpenAI model: %s, error: %v", request.Model, err)
+					logger.Errorf(ctx, "ChatCompletionsStream OpenAI model: %s, error: %v", o.model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -115,7 +112,7 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 
 			response, err := o.ConvChatCompletionsStreamResponse(ctx, responseBytes)
 			if err != nil {
-				logger.Errorf(ctx, "ChatCompletions OpenAI ConvChatCompletionsStreamResponse error: %v", err)
+				logger.Errorf(ctx, "ChatCompletionsStream OpenAI ConvChatCompletionsStreamResponse error: %v", err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{
@@ -128,21 +125,15 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 				return
 			}
 
-			response.ResponseBytes = responseBytes
-			response.ConnTime = duration - now
+			end := gtime.TimestampMilli()
 
+			// todo
 			if response.Usage != nil {
-				if len(response.Choices) == 0 {
-					response.Choices = append(response.Choices, model.ChatCompletionChoice{
-						Delta:        new(model.ChatCompletionStreamChoiceDelta),
-						FinishReason: consts.FinishReasonStop,
-					})
-				}
-				end := gtime.TimestampMilli()
 				fmt.Println(stream.ReqTime, response.ResTime, end, end-gconv.Int64(response.ResTime), end-gconv.Int64(stream.ReqTime)-response.ResTotalTime, "end")
 			}
 
-			end := gtime.TimestampMilli()
+			response.ResponseBytes = responseBytes
+			response.ConnTime = duration - now
 			response.Duration = end - duration
 			response.TotalTime = end - now
 
@@ -150,7 +141,7 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 		}
 
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream OpenAI model: %s, error: %v", o.model, err)
 		return responseChan, err
 	}
 
@@ -174,7 +165,7 @@ func (o *OpenAI) ChatCompletionStreamToNonStream(ctx context.Context, data []byt
 
 		defer func() {
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionStreamToNonStream OpenAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionStreamToNonStream OpenAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", o.model, duration-now, end-duration, end-now)
 		}()
 
 		request.Stream = false
@@ -183,7 +174,7 @@ func (o *OpenAI) ChatCompletionStreamToNonStream(ctx context.Context, data []byt
 		if err != nil {
 
 			if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
-				logger.Errorf(ctx, "ChatCompletionStreamToNonStream OpenAI model: %s, error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionStreamToNonStream OpenAI model: %s, error: %v", o.model, err)
 			}
 
 			end := gtime.TimestampMilli()
@@ -214,7 +205,7 @@ func (o *OpenAI) ChatCompletionStreamToNonStream(ctx context.Context, data []byt
 		}
 
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionStreamToNonStream OpenAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionStreamToNonStream OpenAI model: %s, error: %v", o.model, err)
 		return responseChan, err
 	}
 

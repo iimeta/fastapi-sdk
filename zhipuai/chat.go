@@ -88,7 +88,7 @@ func (z *ZhipuAI) ChatCompletions(ctx context.Context, data []byte) (res model.C
 	}
 
 	res = model.ChatCompletionResponse{
-		ID:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
+		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
 		Object:  consts.COMPLETION_OBJECT,
 		Created: chatCompletionRes.Created,
 		Model:   request.Model,
@@ -246,7 +246,7 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (respo
 			}
 
 			response := &model.ChatCompletionResponse{
-				ID:       consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
+				Id:       consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
 				Object:   consts.COMPLETION_STREAM_OBJECT,
 				Created:  chatCompletionRes.Created,
 				Model:    request.Model,

@@ -4,41 +4,58 @@ import (
 	"context"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/iimeta/fastapi-sdk/common"
+	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 )
 
 func (d *DeepSeek) ConvChatCompletionsRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
 
-	chatCompletionRequest := model.ChatCompletionRequest{}
-	if err := gjson.Unmarshal(data, &chatCompletionRequest); err != nil {
+	request := model.ChatCompletionRequest{}
+	if err := gjson.Unmarshal(data, &request); err != nil {
 		logger.Error(ctx, err)
-		return chatCompletionRequest, err
+		return request, err
 	}
 
-	return chatCompletionRequest, nil
+	if d.isSupportSystemRole != nil {
+		request.Messages = common.HandleMessages(request.Messages, *d.isSupportSystemRole)
+	} else {
+		request.Messages = common.HandleMessages(request.Messages, true)
+	}
+
+	return request, nil
 }
 
 func (d *DeepSeek) ConvChatCompletionsResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
 
-	chatCompletionResponse := model.ChatCompletionResponse{}
-	if err := gjson.Unmarshal(data, &chatCompletionResponse); err != nil {
+	response := model.ChatCompletionResponse{}
+	if err := gjson.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
-		return chatCompletionResponse, err
+		return response, err
 	}
 
-	return chatCompletionResponse, nil
+	if !gstr.HasPrefix(response.Id, consts.COMPLETION_ID_PREFIX) {
+		response.Id = consts.COMPLETION_ID_PREFIX + response.Id
+	}
+
+	return response, nil
 }
 
 func (d *DeepSeek) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
 
-	chatCompletionResponse := model.ChatCompletionResponse{}
-	if err := gjson.Unmarshal(data, &chatCompletionResponse); err != nil {
+	response := model.ChatCompletionResponse{}
+	if err := gjson.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
-		return chatCompletionResponse, err
+		return response, err
 	}
 
-	return chatCompletionResponse, nil
+	if !gstr.HasPrefix(response.Id, consts.COMPLETION_ID_PREFIX) {
+		response.Id = consts.COMPLETION_ID_PREFIX + response.Id
+	}
+
+	return response, nil
 }
 
 func (d *DeepSeek) ConvChatResponsesRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
