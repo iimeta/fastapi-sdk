@@ -244,13 +244,3 @@ func (a *Aliyun) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (m
 	//TODO implement me
 	panic("implement me")
 }
-
-func (a *Aliyun) ConvTextModerationsRequest(ctx context.Context, data []byte) (model.ModerationRequest, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (a *Aliyun) ConvTextModerationsResponse(ctx context.Context, data []byte) (model.ModerationResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}

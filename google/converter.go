@@ -296,13 +296,3 @@ func (g *Google) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (m
 	//TODO implement me
 	panic("implement me")
 }
-
-func (g *Google) ConvTextModerationsRequest(ctx context.Context, data []byte) (model.ModerationRequest, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (g *Google) ConvTextModerationsResponse(ctx context.Context, data []byte) (model.ModerationResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}

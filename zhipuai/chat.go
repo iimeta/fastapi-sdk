@@ -3,178 +3,65 @@ package zhipuai
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
-	"github.com/iimeta/fastapi-sdk/common"
-	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"
-	"github.com/iimeta/go-openai"
 )
 
-func (z *ZhipuAI) ChatCompletions(ctx context.Context, data []byte) (res model.ChatCompletionResponse, err error) {
+func (z *ZhipuAI) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	request, err := z.ConvChatCompletionsRequest(ctx, data)
+	request, err := z.ConvChatCompletionsRequestOfficial(ctx, data)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions ZhipuAI ConvChatCompletionsRequest error: %v", err)
-		return res, err
+		logger.Errorf(ctx, "ChatCompletions ZhipuAI ConvChatCompletionsRequestOfficial error: %v", err)
+		return response, err
 	}
 
-	logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s start", request.Model)
+	logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s start", z.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
-		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
+		response.TotalTime = gtime.TimestampMilli() - now
+		logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s totalTime: %d ms", z.model, response.TotalTime)
 	}()
 
-	var messages []model.ChatCompletionMessage
-	if z.isSupportSystemRole != nil {
-		messages = common.HandleMessages(request.Messages, *z.isSupportSystemRole)
-	} else {
-		messages = common.HandleMessages(request.Messages, true)
+	bytes, err := util.HttpPost(ctx, z.baseURL+z.path, z.header, request, nil, z.proxyURL)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletions ZhipuAI model: %s, error: %v", z.model, err)
+		return response, err
 	}
 
-	chatCompletionReq := model.ZhipuAIChatCompletionReq{
-		Model:       request.Model,
-		Messages:    messages,
-		MaxTokens:   request.MaxTokens,
-		Temperature: request.Temperature,
-		TopP:        request.TopP,
-		Stream:      request.Stream,
-		Stop:        request.Stop,
-		Tools:       request.Tools,
-		ToolChoice:  request.ToolChoice,
-		UserId:      request.User,
+	if response, err = z.ConvChatCompletionsResponseOfficial(ctx, bytes); err != nil {
+		logger.Errorf(ctx, "ChatCompletions ZhipuAI ConvChatCompletionsResponseOfficial error: %v", err)
+		return response, err
 	}
 
-	if chatCompletionReq.TopP == 1 {
-		chatCompletionReq.TopP -= 0.01
-	} else if chatCompletionReq.TopP == 0 {
-		chatCompletionReq.TopP += 0.01
-	}
-
-	if chatCompletionReq.Temperature == 1 {
-		chatCompletionReq.Temperature -= 0.01
-	} else if chatCompletionReq.Temperature == 0 {
-		chatCompletionReq.Temperature += 0.01
-	}
-
-	if chatCompletionReq.MaxTokens == 1 {
-		chatCompletionReq.MaxTokens = 2
-	}
-
-	header := make(map[string]string)
-	header["Authorization"] = "Bearer " + z.generateToken(ctx)
-
-	chatCompletionRes := new(model.ZhipuAIChatCompletionRes)
-	if _, err = util.HttpPost(ctx, z.baseURL+z.path, header, chatCompletionReq, &chatCompletionRes, z.proxyURL); err != nil {
-		logger.Errorf(ctx, "ChatCompletions ZhipuAI model: %s, error: %v", request.Model, err)
-		return
-	}
-
-	if chatCompletionRes.Error.Code != "" && chatCompletionRes.Error.Code != "200" {
-		logger.Errorf(ctx, "ChatCompletions ZhipuAI model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
-
-		err = z.apiErrorHandler(chatCompletionRes)
-		logger.Errorf(ctx, "ChatCompletions ZhipuAI model: %s, error: %v", request.Model, err)
-
-		return
-	}
-
-	res = model.ChatCompletionResponse{
-		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
-		Object:  consts.COMPLETION_OBJECT,
-		Created: chatCompletionRes.Created,
-		Model:   request.Model,
-		Usage:   chatCompletionRes.Usage,
-	}
-
-	for _, choice := range chatCompletionRes.Choices {
-		res.Choices = append(res.Choices, model.ChatCompletionChoice{
-			Index: choice.Index,
-			Message: &model.ChatCompletionMessage{
-				Role:         choice.Message.Role,
-				Content:      choice.Message.Content,
-				Refusal:      choice.Message.Refusal,
-				MultiContent: choice.Message.MultiContent,
-				Name:         choice.Message.Name,
-				FunctionCall: choice.Message.FunctionCall,
-				ToolCalls:    choice.Message.ToolCalls,
-				ToolCallID:   choice.Message.ToolCallID,
-				Audio:        choice.Message.Audio,
-			},
-			FinishReason: choice.FinishReason,
-		})
-	}
-
-	return res, nil
+	return response, nil
 }
 
 func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	request, err := z.ConvChatCompletionsRequest(ctx, data)
+	request, err := z.ConvChatCompletionsRequestOfficial(ctx, data)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI ConvChatCompletionsRequest error: %v", err)
+		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI ConvChatCompletionsRequestOfficial error: %v", err)
 		return nil, err
 	}
 
-	logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s start", request.Model)
+	logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s start", z.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s totalTime: %d ms", z.model, gtime.TimestampMilli()-now)
 		}
 	}()
 
-	var messages []model.ChatCompletionMessage
-	if z.isSupportSystemRole != nil {
-		messages = common.HandleMessages(request.Messages, *z.isSupportSystemRole)
-	} else {
-		messages = common.HandleMessages(request.Messages, true)
-	}
-
-	chatCompletionReq := model.ZhipuAIChatCompletionReq{
-		Model:       request.Model,
-		Messages:    messages,
-		MaxTokens:   request.MaxTokens,
-		Temperature: request.Temperature,
-		TopP:        request.TopP,
-		Stream:      request.Stream,
-		Stop:        request.Stop,
-		Tools:       request.Tools,
-		ToolChoice:  request.ToolChoice,
-		UserId:      request.User,
-	}
-
-	if chatCompletionReq.TopP == 1 {
-		chatCompletionReq.TopP -= 0.01
-	} else if chatCompletionReq.TopP == 0 {
-		chatCompletionReq.TopP += 0.01
-	}
-
-	if chatCompletionReq.Temperature == 1 {
-		chatCompletionReq.Temperature -= 0.01
-	} else if chatCompletionReq.Temperature == 0 {
-		chatCompletionReq.Temperature += 0.01
-	}
-
-	if chatCompletionReq.MaxTokens == 1 {
-		chatCompletionReq.MaxTokens = 2
-	}
-
-	header := make(map[string]string)
-	header["Authorization"] = "Bearer " + z.generateToken(ctx)
-
-	stream, err := util.SSEClient(ctx, z.baseURL+z.path, header, gjson.MustEncode(chatCompletionReq), z.proxyURL, z.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, z.baseURL+z.path, z.header, request, z.proxyURL, z.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", z.model, err)
 		return responseChan, err
 	}
 
@@ -186,20 +73,20 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (respo
 
 		defer func() {
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, stream.Close error: %v", request.Model, err)
+				logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, stream.Close error: %v", z.model, err)
 			}
 
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", request.Model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", z.model, duration-now, end-duration, end-now)
 		}()
 
 		for {
 
-			streamResponse, err := stream.Recv()
-			if err != nil && !errors.Is(err, io.EOF) {
+			responseBytes, err := stream.Recv()
+			if err != nil {
 
-				if !errors.Is(err, context.Canceled) {
-					logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", request.Model, err)
+				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
+					logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", z.model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -213,26 +100,9 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (respo
 				return
 			}
 
-			chatCompletionRes := new(model.ZhipuAIChatCompletionRes)
-			if err := gjson.Unmarshal(streamResponse, &chatCompletionRes); err != nil {
-				logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, streamResponse: %s, error: %v", request.Model, streamResponse, err)
-
-				end := gtime.TimestampMilli()
-				responseChan <- &model.ChatCompletionResponse{
-					ConnTime:  duration - now,
-					Duration:  end - duration,
-					TotalTime: end - now,
-					Error:     errors.New(fmt.Sprintf("streamResponse: %s, error: %v", streamResponse, err)),
-				}
-
-				return
-			}
-
-			if chatCompletionRes.Error.Code != "" && chatCompletionRes.Error.Code != "200" {
-				logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, chatCompletionRes: %s", request.Model, gjson.MustEncodeString(chatCompletionRes))
-
-				err = z.apiErrorHandler(chatCompletionRes)
-				logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", request.Model, err)
+			response, err := z.ConvChatCompletionsStreamResponseOfficial(ctx, responseBytes)
+			if err != nil {
+				logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI ConvChatCompletionsStreamResponseOfficial error: %v", err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{
@@ -240,68 +110,23 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (respo
 					Duration:  end - duration,
 					TotalTime: end - now,
 					Error:     err,
-				}
-
-				return
-			}
-
-			response := &model.ChatCompletionResponse{
-				Id:       consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
-				Object:   consts.COMPLETION_STREAM_OBJECT,
-				Created:  chatCompletionRes.Created,
-				Model:    request.Model,
-				Usage:    chatCompletionRes.Usage,
-				ConnTime: duration - now,
-			}
-
-			for _, choice := range chatCompletionRes.Choices {
-				response.Choices = append(response.Choices, model.ChatCompletionChoice{
-					Index: choice.Index,
-					Delta: &model.ChatCompletionStreamChoiceDelta{
-						Content:      choice.Delta.Content,
-						Role:         choice.Delta.Role,
-						FunctionCall: choice.Delta.FunctionCall,
-						ToolCalls:    choice.Delta.ToolCalls,
-						Refusal:      choice.Delta.Refusal,
-						Audio:        choice.Delta.Audio,
-					},
-					FinishReason: choice.FinishReason,
-				})
-			}
-
-			if errors.Is(err, io.EOF) || response.Choices[0].FinishReason != "" {
-				logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s finished", request.Model)
-
-				if len(response.Choices) == 0 {
-					response.Choices = append(response.Choices, model.ChatCompletionChoice{
-						Delta:        new(model.ChatCompletionStreamChoiceDelta),
-						FinishReason: openai.FinishReasonStop,
-					})
-				}
-
-				end := gtime.TimestampMilli()
-				response.Duration = end - duration
-				response.TotalTime = end - now
-				responseChan <- response
-
-				responseChan <- &model.ChatCompletionResponse{
-					ConnTime:  duration - now,
-					Duration:  end - duration,
-					TotalTime: end - now,
-					Error:     io.EOF,
 				}
 
 				return
 			}
 
 			end := gtime.TimestampMilli()
+
+			response.ResponseBytes = responseBytes
+			response.ConnTime = duration - now
 			response.Duration = end - duration
 			response.TotalTime = end - now
 
-			responseChan <- response
+			responseChan <- &response
 		}
+
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", z.model, err)
 		return responseChan, err
 	}
 

@@ -317,13 +317,3 @@ func (a *Anthropic) ConvTextEmbeddingsResponse(ctx context.Context, data []byte)
 	//TODO implement me
 	panic("implement me")
 }
-
-func (a *Anthropic) ConvTextModerationsRequest(ctx context.Context, data []byte) (model.ModerationRequest, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (a *Anthropic) ConvTextModerationsResponse(ctx context.Context, data []byte) (model.ModerationResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}

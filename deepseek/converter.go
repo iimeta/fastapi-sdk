@@ -58,6 +58,21 @@ func (d *DeepSeek) ConvChatCompletionsStreamResponse(ctx context.Context, data [
 	return response, nil
 }
 
+func (d *DeepSeek) ConvChatCompletionsRequestOfficial(ctx context.Context, data []byte) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (d *DeepSeek) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (d *DeepSeek) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (d *DeepSeek) ConvChatResponsesRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
 	//TODO implement me
 	panic("implement me")
@@ -119,16 +134,6 @@ func (d *DeepSeek) ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (
 }
 
 func (d *DeepSeek) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (model.EmbeddingResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (d *DeepSeek) ConvTextModerationsRequest(ctx context.Context, data []byte) (model.ModerationRequest, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (d *DeepSeek) ConvTextModerationsResponse(ctx context.Context, data []byte) (model.ModerationResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }

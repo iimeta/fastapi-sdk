@@ -3,6 +3,7 @@ package xfyun
 import (
 	"context"
 
+	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -13,13 +14,13 @@ import (
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (x *Xfyun) ImageGenerations(ctx context.Context, request model.ImageGenerationRequest) (res model.ImageResponse, err error) {
+func (x *Xfyun) ImageGenerations(ctx context.Context, request model.ImageGenerationRequest) (response model.ImageResponse, err error) {
 
 	logger.Infof(ctx, "ImageGenerations Xfyun model: %s start", request.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
-		res.TotalTime = gtime.TimestampMilli() - now
+		response.TotalTime = gtime.TimestampMilli() - now
 		logger.Infof(ctx, "ImageGenerations Xfyun model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
 	}()
 
@@ -75,22 +76,22 @@ func (x *Xfyun) ImageGenerations(ctx context.Context, request model.ImageGenerat
 	}
 
 	imageRes := new(model.XfyunChatCompletionRes)
-	if _, err = util.HttpPost(ctx, x.getHttpUrl(ctx), nil, imageReq, &imageRes, x.proxyURL); err != nil {
+	if _, err = util.HttpPost(ctx, x.getHttpUrl(ctx), nil, gjson.MustEncode(imageReq), &imageRes, x.proxyURL); err != nil {
 		logger.Errorf(ctx, "ImageGenerations Xfyun model: %s, error: %v", request.Model, err)
-		return res, err
+		return response, err
 	}
 
-	res = model.ImageResponse{
+	response = model.ImageResponse{
 		Created: gtime.Timestamp(),
 		Data: []model.ImageResponseDataInner{{
 			B64JSON: imageRes.Payload.Choices.Text[0].Content,
 		}},
 	}
 
-	return res, nil
+	return response, nil
 }
 
-func (x *Xfyun) ImageEdits(ctx context.Context, request model.ImageEditRequest) (res model.ImageResponse, err error) {
+func (x *Xfyun) ImageEdits(ctx context.Context, request model.ImageEditRequest) (response model.ImageResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

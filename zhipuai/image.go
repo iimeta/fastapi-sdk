@@ -6,12 +6,12 @@ import (
 	"github.com/iimeta/fastapi-sdk/model"
 )
 
-func (z *ZhipuAI) ImageGenerations(ctx context.Context, request model.ImageGenerationRequest) (res model.ImageResponse, err error) {
+func (z *ZhipuAI) ImageGenerations(ctx context.Context, request model.ImageGenerationRequest) (response model.ImageResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ImageEdits(ctx context.Context, request model.ImageEditRequest) (res model.ImageResponse, err error) {
+func (z *ZhipuAI) ImageEdits(ctx context.Context, request model.ImageEditRequest) (response model.ImageResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

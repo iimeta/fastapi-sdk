@@ -1,7 +1,5 @@
 package model
 
-import "github.com/iimeta/go-openai"
-
 type XfyunChatCompletionReq struct {
 	Header    Header    `json:"header"`
 	Parameter Parameter `json:"parameter"`
@@ -72,7 +70,7 @@ type Message struct {
 
 type Functions struct {
 	// req
-	Text []openai.FunctionDefinition `json:"text"`
+	Text []FunctionDefinition `json:"text"`
 }
 
 type Text struct {
@@ -85,7 +83,7 @@ type Text struct {
 	// 内容类型
 	ContentType string `json:"content_type,omitempty"`
 	// function call 返回结果
-	FunctionCall *openai.FunctionCall `json:"function_call,omitempty"`
+	FunctionCall *FunctionCall `json:"function_call,omitempty"`
 	// 保留字段，可忽略
 	QuestionTokens int `json:"question_tokens,omitempty"`
 	// 包含历史问题的总tokens大小

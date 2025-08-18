@@ -87,6 +87,21 @@ func (o *OpenAI) ConvChatCompletionsStreamResponse(ctx context.Context, data []b
 	return response, nil
 }
 
+func (o *OpenAI) ConvChatCompletionsRequestOfficial(ctx context.Context, data []byte) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (o *OpenAI) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (o *OpenAI) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (o *OpenAI) ConvChatResponsesRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
 	//TODO implement me
 	panic("implement me")
@@ -148,16 +163,6 @@ func (o *OpenAI) ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (mo
 }
 
 func (o *OpenAI) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (model.EmbeddingResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (o *OpenAI) ConvTextModerationsRequest(ctx context.Context, data []byte) (model.ModerationRequest, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (o *OpenAI) ConvTextModerationsResponse(ctx context.Context, data []byte) (model.ModerationResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }

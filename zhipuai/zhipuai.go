@@ -56,6 +56,11 @@ func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupport
 		zhipuai.proxyURL = proxyURL[0]
 	}
 
+	header := make(map[string]string)
+	header["Authorization"] = "Bearer " + zhipuai.generateToken(ctx)
+
+	zhipuai.header = header
+
 	return zhipuai
 }
 

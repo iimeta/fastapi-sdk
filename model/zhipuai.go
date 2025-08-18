@@ -1,7 +1,5 @@
 package model
 
-import "github.com/iimeta/go-openai"
-
 type ZhipuAIChatCompletionReq struct {
 	// 所要调用的模型编码
 	Model string `json:"model"`
@@ -64,11 +62,11 @@ type Choice struct {
 	// length代表到达 tokens 长度上限。
 	// sensitive 代表模型推理内容被安全审核接口拦截。请注意，针对此类内容，请用户自行判断并决定是否撤回已公开的内容。
 	// network_error 代表模型推理异常。
-	FinishReason openai.FinishReason `json:"finish_reason"`
+	FinishReason string `json:"finish_reason"`
 	// 模型返回的文本信息
-	Message *openai.ChatCompletionMessage `json:"message,omitempty"`
+	Message *ChatCompletionMessage `json:"message,omitempty"`
 	// 模型返回的文本信息-流式
-	Delta *openai.ChatCompletionStreamChoiceDelta `json:"delta,omitempty"`
+	Delta *ChatCompletionStreamChoiceDelta `json:"delta,omitempty"`
 }
 
 type ZhipuAIError struct {

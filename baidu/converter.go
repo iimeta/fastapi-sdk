@@ -218,13 +218,3 @@ func (b *Baidu) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (mo
 	//TODO implement me
 	panic("implement me")
 }
-
-func (b *Baidu) ConvTextModerationsRequest(ctx context.Context, data []byte) (model.ModerationRequest, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (b *Baidu) ConvTextModerationsResponse(ctx context.Context, data []byte) (model.ModerationResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}

@@ -58,6 +58,21 @@ func (a *AI360) ConvChatCompletionsStreamResponse(ctx context.Context, data []by
 	return response, nil
 }
 
+func (a *AI360) ConvChatCompletionsRequestOfficial(ctx context.Context, data []byte) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *AI360) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *AI360) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (a *AI360) ConvChatResponsesRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
 	//TODO implement me
 	panic("implement me")
@@ -119,16 +134,6 @@ func (a *AI360) ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (mod
 }
 
 func (a *AI360) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (model.EmbeddingResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (a *AI360) ConvTextModerationsRequest(ctx context.Context, data []byte) (model.ModerationRequest, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (a *AI360) ConvTextModerationsResponse(ctx context.Context, data []byte) (model.ModerationResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }

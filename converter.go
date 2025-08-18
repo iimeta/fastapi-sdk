@@ -43,8 +43,6 @@ type Converter interface {
 
 	ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (model.EmbeddingRequest, error)
 	ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (model.EmbeddingResponse, error)
-	ConvTextModerationsRequest(ctx context.Context, data []byte) (model.ModerationRequest, error)
-	ConvTextModerationsResponse(ctx context.Context, data []byte) (model.ModerationResponse, error)
 }
 
 func NewConverter(ctx context.Context, corp string) Converter {

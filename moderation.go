@@ -48,7 +48,7 @@ func NewModerationClient(ctx context.Context, model, key, baseURL, path string, 
 	return moderationClient
 }
 
-func (c *ModerationClient) Moderations(ctx context.Context, request model.ModerationRequest) (res model.ModerationResponse, err error) {
+func (c *ModerationClient) TextModerations(ctx context.Context, request model.ModerationRequest) (res model.ModerationResponse, err error) {
 
 	logger.Infof(ctx, "TextModerations OpenAI model: %s start", request.Model)
 
@@ -63,7 +63,7 @@ func (c *ModerationClient) Moderations(ctx context.Context, request model.Modera
 
 	response := new(model.ModerationResponse)
 
-	if _, err = util.HttpPost(ctx, c.baseURL+c.path, header, request, &response, c.proxyURL); err != nil {
+	if _, err = util.HttpPost(ctx, c.baseURL+c.path, header, gjson.MustEncode(request), &response, c.proxyURL); err != nil {
 		logger.Errorf(ctx, "TextModerations OpenAI model: %s, error: %v", request.Model, err)
 		return res, err
 	}

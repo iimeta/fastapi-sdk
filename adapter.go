@@ -29,7 +29,6 @@ type Adapter interface {
 	AudioTranscriptions(ctx context.Context, request model.AudioRequest) (response model.AudioResponse, err error)
 
 	TextEmbeddings(ctx context.Context, request model.EmbeddingRequest) (response model.EmbeddingResponse, err error)
-	TextModerations(ctx context.Context, request model.ModerationRequest) (response model.ModerationResponse, err error)
 }
 
 func NewAdapter(ctx context.Context, corp, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) Adapter {

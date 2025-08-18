@@ -51,10 +51,14 @@ func (o *OpenAI) ImageGenerations(ctx context.Context, request model.ImageGenera
 		Created: response.Created,
 		Data:    data,
 		Usage: model.Usage{
-			TotalTokens:        response.Usage.TotalTokens,
-			InputTokens:        response.Usage.InputTokens,
-			OutputTokens:       response.Usage.OutputTokens,
-			InputTokensDetails: response.Usage.InputTokensDetails,
+			TotalTokens:  response.Usage.TotalTokens,
+			InputTokens:  response.Usage.InputTokens,
+			OutputTokens: response.Usage.OutputTokens,
+			InputTokensDetails: model.InputTokensDetails{
+				TextTokens:   response.Usage.InputTokensDetails.TextTokens,
+				ImageTokens:  response.Usage.InputTokensDetails.ImageTokens,
+				CachedTokens: response.Usage.InputTokensDetails.CachedTokens,
+			},
 		},
 	}
 
@@ -101,10 +105,14 @@ func (o *OpenAI) ImageEdits(ctx context.Context, request model.ImageEditRequest)
 		Created: response.Created,
 		Data:    data,
 		Usage: model.Usage{
-			TotalTokens:        response.Usage.TotalTokens,
-			InputTokens:        response.Usage.InputTokens,
-			OutputTokens:       response.Usage.OutputTokens,
-			InputTokensDetails: response.Usage.InputTokensDetails,
+			TotalTokens:  response.Usage.TotalTokens,
+			InputTokens:  response.Usage.InputTokens,
+			OutputTokens: response.Usage.OutputTokens,
+			InputTokensDetails: model.InputTokensDetails{
+				TextTokens:   response.Usage.InputTokensDetails.TextTokens,
+				ImageTokens:  response.Usage.InputTokensDetails.ImageTokens,
+				CachedTokens: response.Usage.InputTokensDetails.CachedTokens,
+			},
 		},
 	}
 
