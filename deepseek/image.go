@@ -6,7 +6,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/model"
 )
 
-func (d *DeepSeek) ImageGenerations(ctx context.Context, request model.ImageGenerationRequest) (response model.ImageResponse, err error) {
+func (d *DeepSeek) ImageGenerations(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

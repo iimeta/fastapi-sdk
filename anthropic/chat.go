@@ -19,13 +19,13 @@ import (
 
 func (a *Anthropic) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletions Anthropic model: %s start", a.model)
+
 	request, err := a.ConvChatCompletionsRequestOfficial(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions Anthropic ConvChatCompletionsRequestOfficial error: %v", err)
 		return response, err
 	}
-
-	logger.Infof(ctx, "ChatCompletions Anthropic model: %s start", a.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
@@ -88,13 +88,13 @@ func (a *Anthropic) ChatCompletions(ctx context.Context, data []byte) (response 
 
 func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletionsStream Anthropic model: %s start", a.model)
+
 	request, err := a.ConvChatCompletionsRequestOfficial(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream Anthropic ConvChatCompletionsRequest error: %v", err)
 		return nil, err
 	}
-
-	logger.Infof(ctx, "ChatCompletionsStream Anthropic model: %s start", a.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {

@@ -15,13 +15,13 @@ import (
 
 func (d *DeepSeek) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletions DeepSeek model: %s start", d.model)
+
 	request, err := d.ConvChatCompletionsRequest(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions DeepSeek ConvChatCompletionsRequest error: %v", err)
 		return response, err
 	}
-
-	logger.Infof(ctx, "ChatCompletions DeepSeek model: %s start", d.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
@@ -47,13 +47,13 @@ func (d *DeepSeek) ChatCompletions(ctx context.Context, data []byte) (response m
 
 func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s start", d.model)
+
 	request, err := d.ConvChatCompletionsRequest(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream DeepSeek ConvChatCompletionsRequest error: %v", err)
 		return nil, err
 	}
-
-	logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s start", d.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {

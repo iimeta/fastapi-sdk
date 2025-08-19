@@ -6,7 +6,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/model"
 )
 
-func (a *AI360) AudioSpeech(ctx context.Context, request model.SpeechRequest) (response model.SpeechResponse, err error) {
+func (a *AI360) AudioSpeech(ctx context.Context, data []byte) (response model.SpeechResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

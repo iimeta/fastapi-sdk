@@ -1,7 +1,5 @@
 package model
 
-import "github.com/iimeta/go-openai"
-
 type AliyunChatCompletionReq struct {
 	// 指定用于对话的通义千问模型名
 	// 目前可选择qwen-turbo、qwen-plus、qwen-max、qwen-max-0403、qwen-max-0107、qwen-max-1201和qwen-max-longcontext。
@@ -94,7 +92,7 @@ type Output struct {
 	// 包含本次请求的算法输出内容。
 	Text string `json:"text"`
 	// 有三种情况：正在生成时为null，生成结束时如果由于停止token导致则为stop，生成结束时如果因为生成长度过长导致则为length。
-	FinishReason openai.FinishReason `json:"finish_reason"`
+	FinishReason string `json:"finish_reason"`
 	// 入参result_format=message时候的返回值
 	Choices []ChatCompletionChoice `json:"choices"`
 }

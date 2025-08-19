@@ -1,7 +1,5 @@
 package model
 
-import "github.com/iimeta/go-openai"
-
 type GoogleChatCompletionReq struct {
 	Contents         []Content        `json:"contents"`
 	GenerationConfig GenerationConfig `json:"generationConfig,omitempty"`
@@ -56,10 +54,10 @@ type FileData struct {
 }
 
 type Candidate struct {
-	Content       Content             `json:"content"`
-	FinishReason  openai.FinishReason `json:"finishReason"`
-	Index         int                 `json:"index"`
-	SafetyRatings []SafetyRating      `json:"safetyRatings"`
+	Content       Content        `json:"content"`
+	FinishReason  string         `json:"finishReason"`
+	Index         int            `json:"index"`
+	SafetyRatings []SafetyRating `json:"safetyRatings"`
 }
 
 type SafetyRating struct {

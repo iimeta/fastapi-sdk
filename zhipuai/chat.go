@@ -14,13 +14,13 @@ import (
 
 func (z *ZhipuAI) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s start", z.model)
+
 	request, err := z.ConvChatCompletionsRequestOfficial(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions ZhipuAI ConvChatCompletionsRequestOfficial error: %v", err)
 		return response, err
 	}
-
-	logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s start", z.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
@@ -44,13 +44,13 @@ func (z *ZhipuAI) ChatCompletions(ctx context.Context, data []byte) (response mo
 
 func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s start", z.model)
+
 	request, err := z.ConvChatCompletionsRequestOfficial(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI ConvChatCompletionsRequestOfficial error: %v", err)
 		return nil, err
 	}
-
-	logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s start", z.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {

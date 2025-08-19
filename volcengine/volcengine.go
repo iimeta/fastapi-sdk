@@ -8,7 +8,6 @@ import (
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
-	"github.com/iimeta/go-openai"
 )
 
 type VolcEngine struct {
@@ -60,10 +59,10 @@ func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupport
 
 func (v *VolcEngine) apiErrorHandler(err error) error {
 
-	apiError := &openai.APIError{}
+	apiError := &sdkerr.ApiError{}
 	if errors.As(err, &apiError) {
 
-		switch apiError.HTTPStatusCode {
+		switch apiError.HttpStatusCode {
 		case 400:
 			if apiError.Code == "context_length_exceeded" {
 				return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
@@ -83,9 +82,9 @@ func (v *VolcEngine) apiErrorHandler(err error) error {
 		return err
 	}
 
-	reqError := &openai.RequestError{}
+	reqError := &sdkerr.RequestError{}
 	if errors.As(err, &reqError) {
-		return sdkerr.NewRequestError(apiError.HTTPStatusCode, reqError.Err)
+		return sdkerr.NewRequestError(apiError.HttpStatusCode, reqError.Err)
 	}
 
 	return err

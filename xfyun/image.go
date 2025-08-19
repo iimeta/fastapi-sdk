@@ -14,15 +14,21 @@ import (
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (x *Xfyun) ImageGenerations(ctx context.Context, request model.ImageGenerationRequest) (response model.ImageResponse, err error) {
+func (x *Xfyun) ImageGenerations(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
 
-	logger.Infof(ctx, "ImageGenerations Xfyun model: %s start", request.Model)
+	logger.Infof(ctx, "ImageGenerations Xfyun model: %s start", x.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ImageGenerations Xfyun model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+		logger.Infof(ctx, "ImageGenerations Xfyun model: %s totalTime: %d ms", x.model, gtime.TimestampMilli()-now)
 	}()
+
+	request, err := x.ConvImageGenerationsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ImageGenerations Xfyun ConvImageGenerationsRequest error: %v", err)
+		return response, err
+	}
 
 	width := 512
 	height := 512
@@ -77,7 +83,7 @@ func (x *Xfyun) ImageGenerations(ctx context.Context, request model.ImageGenerat
 
 	imageRes := new(model.XfyunChatCompletionRes)
 	if _, err = util.HttpPost(ctx, x.getHttpUrl(ctx), nil, gjson.MustEncode(imageReq), &imageRes, x.proxyURL); err != nil {
-		logger.Errorf(ctx, "ImageGenerations Xfyun model: %s, error: %v", request.Model, err)
+		logger.Errorf(ctx, "ImageGenerations Xfyun model: %s, error: %v", x.model, err)
 		return response, err
 	}
 

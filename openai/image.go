@@ -3,118 +3,69 @@ package openai
 import (
 	"context"
 
+	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
-	"github.com/iimeta/go-openai"
+	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (o *OpenAI) ImageGenerations(ctx context.Context, request model.ImageGenerationRequest) (res model.ImageResponse, err error) {
+func (o *OpenAI) ImageGenerations(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
 
-	logger.Infof(ctx, "ImageGenerations OpenAI model: %s start", request.Model)
+	logger.Infof(ctx, "ImageGenerations OpenAI model: %s start", o.model)
+
+	request, err := o.ConvImageGenerationsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ImageGenerations OpenAI ConvImageGenerationsRequest error: %v", err)
+		return response, err
+	}
 
 	now := gtime.TimestampMilli()
 	defer func() {
-		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ImageGenerations OpenAI model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+		response.TotalTime = gtime.TimestampMilli() - now
+		logger.Infof(ctx, "ImageGenerations OpenAI model: %s totalTime: %d ms", o.model, gtime.TimestampMilli()-now)
 	}()
 
-	response, err := o.client.CreateImage(ctx, openai.ImageRequest{
-		Prompt:            request.Prompt,
-		Background:        request.Background,
-		Model:             request.Model,
-		Moderation:        request.Moderation,
-		N:                 request.N,
-		OutputCompression: request.OutputCompression,
-		OutputFormat:      request.OutputFormat,
-		Quality:           request.Quality,
-		ResponseFormat:    request.ResponseFormat,
-		Size:              request.Size,
-		Style:             request.Style,
-		User:              request.User,
-	})
+	bytes, err := util.HttpPost(ctx, o.baseURL+"/images/generations", o.header, gjson.MustEncode(request), nil, o.proxyURL)
 	if err != nil {
-		logger.Errorf(ctx, "ImageGenerations OpenAI model: %s, error: %v", request.Model, err)
-		return res, err
+		logger.Errorf(ctx, "ImageGenerations OpenAI model: %s, error: %v", o.model, err)
+		return response, err
 	}
 
-	data := make([]model.ImageResponseDataInner, 0)
-	for _, d := range response.Data {
-		data = append(data, model.ImageResponseDataInner{
-			URL:           d.URL,
-			B64JSON:       d.B64JSON,
-			RevisedPrompt: d.RevisedPrompt,
-		})
+	if response, err = o.ConvImageGenerationsResponse(ctx, bytes); err != nil {
+		logger.Errorf(ctx, "ImageGenerations OpenAI ConvImageGenerationsResponse error: %v", err)
+		return response, err
 	}
 
-	res = model.ImageResponse{
-		Created: response.Created,
-		Data:    data,
-		Usage: model.Usage{
-			TotalTokens:  response.Usage.TotalTokens,
-			InputTokens:  response.Usage.InputTokens,
-			OutputTokens: response.Usage.OutputTokens,
-			InputTokensDetails: model.InputTokensDetails{
-				TextTokens:   response.Usage.InputTokensDetails.TextTokens,
-				ImageTokens:  response.Usage.InputTokensDetails.ImageTokens,
-				CachedTokens: response.Usage.InputTokensDetails.CachedTokens,
-			},
-		},
-	}
-
-	return res, nil
+	return response, nil
 }
 
-func (o *OpenAI) ImageEdits(ctx context.Context, request model.ImageEditRequest) (res model.ImageResponse, err error) {
+func (o *OpenAI) ImageEdits(ctx context.Context, request model.ImageEditRequest) (response model.ImageResponse, err error) {
 
-	logger.Infof(ctx, "ImageEdits OpenAI model: %s start", request.Model)
+	logger.Infof(ctx, "ImageEdits OpenAI model: %s start", o.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
-		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ImageEdits OpenAI model: %s totalTime: %d ms", request.Model, gtime.TimestampMilli()-now)
+		response.TotalTime = gtime.TimestampMilli() - now
+		logger.Infof(ctx, "ImageEdits OpenAI model: %s totalTime: %d ms", o.model, gtime.TimestampMilli()-now)
 	}()
 
-	response, err := o.client.CreateEditImage(ctx, openai.ImageEditRequest{
-		Image:          request.Image,
-		Prompt:         request.Prompt,
-		Background:     request.Background,
-		Mask:           request.Mask,
-		Model:          request.Model,
-		N:              request.N,
-		Quality:        request.Quality,
-		ResponseFormat: request.ResponseFormat,
-		Size:           request.Size,
-		User:           request.User,
-	})
+	data, err := o.ConvImageEditsRequest(ctx, request)
 	if err != nil {
-		logger.Errorf(ctx, "ImageEdits OpenAI model: %s, error: %v", request.Model, err)
-		return res, err
+		logger.Errorf(ctx, "ImageEdits OpenAI ConvImageEditsRequest error: %v", err)
+		return response, err
 	}
 
-	data := make([]model.ImageResponseDataInner, 0)
-	for _, d := range response.Data {
-		data = append(data, model.ImageResponseDataInner{
-			URL:           d.URL,
-			B64JSON:       d.B64JSON,
-			RevisedPrompt: d.RevisedPrompt,
-		})
+	bytes, err := util.HttpPost(ctx, o.baseURL+"/images/edits", o.header, data, nil, o.proxyURL)
+	if err != nil {
+		logger.Errorf(ctx, "ImageEdits OpenAI model: %s, error: %v", o.model, err)
+		return response, err
 	}
 
-	res = model.ImageResponse{
-		Created: response.Created,
-		Data:    data,
-		Usage: model.Usage{
-			TotalTokens:  response.Usage.TotalTokens,
-			InputTokens:  response.Usage.InputTokens,
-			OutputTokens: response.Usage.OutputTokens,
-			InputTokensDetails: model.InputTokensDetails{
-				TextTokens:   response.Usage.InputTokensDetails.TextTokens,
-				ImageTokens:  response.Usage.InputTokensDetails.ImageTokens,
-				CachedTokens: response.Usage.InputTokensDetails.CachedTokens,
-			},
-		},
+	if response, err = o.ConvImageEditsResponse(ctx, bytes); err != nil {
+		logger.Errorf(ctx, "ImageEdits OpenAI ConvImageEditsResponse error: %v", err)
+		return response, err
 	}
 
-	return res, nil
+	return response, nil
 }

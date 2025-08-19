@@ -15,13 +15,13 @@ import (
 
 func (a *AI360) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletions 360AI model: %s start", a.model)
+
 	request, err := a.ConvChatCompletionsRequest(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions 360AI ConvChatCompletionsRequest error: %v", err)
 		return response, err
 	}
-
-	logger.Infof(ctx, "ChatCompletions 360AI model: %s start", a.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
@@ -47,13 +47,13 @@ func (a *AI360) ChatCompletions(ctx context.Context, data []byte) (response mode
 
 func (a *AI360) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletionsStream 360AI model: %s start", a.model)
+
 	request, err := a.ConvChatCompletionsRequest(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream 360AI ConvChatCompletionsRequest error: %v", err)
 		return nil, err
 	}
-
-	logger.Infof(ctx, "ChatCompletionsStream 360AI model: %s start", a.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {

@@ -6,7 +6,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/model"
 )
 
-func (d *DeepSeek) AudioSpeech(ctx context.Context, request model.SpeechRequest) (response model.SpeechResponse, err error) {
+func (d *DeepSeek) AudioSpeech(ctx context.Context, data []byte) (response model.SpeechResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

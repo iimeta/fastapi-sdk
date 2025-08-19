@@ -54,12 +54,12 @@ func NewRealtimeClient(ctx context.Context, model, key, baseURL, path string, pr
 
 func (c *RealtimeClient) Realtime(ctx context.Context, requestChan chan *model.RealtimeRequest) (responseChan chan *model.RealtimeResponse, err error) {
 
+	logger.Infof(ctx, "Realtime OpenAI model: %s start", c.model)
+
 	now := gtime.TimestampMilli()
 	defer func() {
 		logger.Infof(ctx, "Realtime OpenAI model: %s totalTime: %d ms", c.model, gtime.TimestampMilli()-now)
 	}()
-
-	logger.Infof(ctx, "Realtime OpenAI model: %s start", c.model)
 
 	requestHeader := http.Header{
 		"Authorization": {"Bearer " + c.key},

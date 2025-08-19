@@ -14,13 +14,13 @@ import (
 
 func (a *Aliyun) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletions Aliyun model: %s start", a.model)
+
 	request, err := a.ConvChatCompletionsRequestOfficial(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions Aliyun ConvChatCompletionsRequestOfficial error: %v", err)
 		return response, err
 	}
-
-	logger.Infof(ctx, "ChatCompletions Aliyun model: %s start", a.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
@@ -44,13 +44,13 @@ func (a *Aliyun) ChatCompletions(ctx context.Context, data []byte) (response mod
 
 func (a *Aliyun) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletionsStream Aliyun model: %s start", a.model)
+
 	request, err := a.ConvChatCompletionsRequestOfficial(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream Aliyun ConvChatCompletionsRequestOfficial error: %v", err)
 		return nil, err
 	}
-
-	logger.Infof(ctx, "ChatCompletionsStream Aliyun model: %s start", a.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {

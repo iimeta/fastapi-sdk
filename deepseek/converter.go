@@ -1,6 +1,7 @@
 package deepseek
 
 import (
+	"bytes"
 	"context"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
@@ -58,21 +59,6 @@ func (d *DeepSeek) ConvChatCompletionsStreamResponse(ctx context.Context, data [
 	return response, nil
 }
 
-func (d *DeepSeek) ConvChatCompletionsRequestOfficial(ctx context.Context, data []byte) ([]byte, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (d *DeepSeek) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (d *DeepSeek) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (d *DeepSeek) ConvChatResponsesRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
 	//TODO implement me
 	panic("implement me")
@@ -98,7 +84,7 @@ func (d *DeepSeek) ConvImageGenerationsResponse(ctx context.Context, data []byte
 	panic("implement me")
 }
 
-func (d *DeepSeek) ConvImageEditsRequest(ctx context.Context, data []byte) (model.ImageEditRequest, error) {
+func (d *DeepSeek) ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (*bytes.Buffer, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -118,7 +104,7 @@ func (d *DeepSeek) ConvAudioSpeechResponse(ctx context.Context, data []byte) (mo
 	panic("implement me")
 }
 
-func (d *DeepSeek) ConvAudioTranscriptionsRequest(ctx context.Context, data []byte) (model.AudioRequest, error) {
+func (d *DeepSeek) ConvAudioTranscriptionsRequest(ctx context.Context, request model.AudioRequest) (*bytes.Buffer, error) {
 	//TODO implement me
 	panic("implement me")
 }

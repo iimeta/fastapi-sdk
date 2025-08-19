@@ -15,13 +15,13 @@ import (
 
 func (v *VolcEngine) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletions VolcEngine model: %s start", v.model)
+
 	request, err := v.ConvChatCompletionsRequest(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions VolcEngine ConvChatCompletionsRequest error: %v", err)
 		return response, err
 	}
-
-	logger.Infof(ctx, "ChatCompletions VolcEngine model: %s start", v.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
@@ -47,13 +47,13 @@ func (v *VolcEngine) ChatCompletions(ctx context.Context, data []byte) (response
 
 func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletionsStream VolcEngine model: %s start", v.model)
+
 	request, err := v.ConvChatCompletionsRequest(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream VolcEngine ConvChatCompletionsRequest error: %v", err)
 		return nil, err
 	}
-
-	logger.Infof(ctx, "ChatCompletionsStream VolcEngine model: %s start", v.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {

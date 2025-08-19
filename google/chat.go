@@ -15,13 +15,13 @@ import (
 
 func (g *Google) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletions Google model: %s start", g.model)
+
 	request, err := g.ConvChatCompletionsRequestOfficial(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions Google ConvChatCompletionsRequest error: %v", err)
 		return response, err
 	}
-
-	logger.Infof(ctx, "ChatCompletions Google model: %s start", g.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
@@ -53,13 +53,13 @@ func (g *Google) ChatCompletions(ctx context.Context, data []byte) (response mod
 
 func (g *Google) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletionsStream Google model: %s start", g.model)
+
 	request, err := g.ConvChatCompletionsRequestOfficial(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream Google ConvChatCompletionsRequestOfficial error: %v", err)
 		return nil, err
 	}
-
-	logger.Infof(ctx, "ChatCompletionsStream Google model: %s start", g.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {

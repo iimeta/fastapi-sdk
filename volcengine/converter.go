@@ -1,6 +1,7 @@
 package volcengine
 
 import (
+	"bytes"
 	"context"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
@@ -58,21 +59,6 @@ func (v *VolcEngine) ConvChatCompletionsStreamResponse(ctx context.Context, data
 	return response, nil
 }
 
-func (v *VolcEngine) ConvChatCompletionsRequestOfficial(ctx context.Context, data []byte) ([]byte, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (v *VolcEngine) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (v *VolcEngine) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (v *VolcEngine) ConvChatResponsesRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
 	//TODO implement me
 	panic("implement me")
@@ -98,7 +84,7 @@ func (v *VolcEngine) ConvImageGenerationsResponse(ctx context.Context, data []by
 	panic("implement me")
 }
 
-func (v *VolcEngine) ConvImageEditsRequest(ctx context.Context, data []byte) (model.ImageEditRequest, error) {
+func (v *VolcEngine) ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (*bytes.Buffer, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -118,7 +104,7 @@ func (v *VolcEngine) ConvAudioSpeechResponse(ctx context.Context, data []byte) (
 	panic("implement me")
 }
 
-func (v *VolcEngine) ConvAudioTranscriptionsRequest(ctx context.Context, data []byte) (model.AudioRequest, error) {
+func (v *VolcEngine) ConvAudioTranscriptionsRequest(ctx context.Context, request model.AudioRequest) (*bytes.Buffer, error) {
 	//TODO implement me
 	panic("implement me")
 }

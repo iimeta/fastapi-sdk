@@ -58,7 +58,7 @@ func HttpGet(ctx context.Context, url string, header map[string]string, data g.M
 	return bytes, nil
 }
 
-func HttpPost(ctx context.Context, rawURL string, header map[string]string, data []byte, result interface{}, proxyURL string) ([]byte, error) {
+func HttpPost(ctx context.Context, rawURL string, header map[string]string, data, result any, proxyURL string) ([]byte, error) {
 
 	logger.Debugf(ctx, "HttpPost url: %s, header: %+v, data: %s, proxyURL: %s", rawURL, header, gjson.MustEncodeString(data), proxyURL)
 
@@ -66,13 +66,28 @@ func HttpPost(ctx context.Context, rawURL string, header map[string]string, data
 		Timeout: 600 * time.Second,
 	}
 
-	request, err := http.NewRequest("POST", rawURL, bytes.NewBuffer(data))
+	var bodyReader io.Reader
+
+	if data != nil {
+		if v, ok := data.([]byte); ok {
+			bodyReader = bytes.NewBuffer(v)
+		} else if v, ok := data.(io.Reader); ok {
+			bodyReader = v
+		} else {
+			bodyReader = bytes.NewBuffer(gjson.MustEncode(data))
+		}
+	}
+
+	request, err := http.NewRequest("POST", rawURL, bodyReader)
 	if err != nil {
 		logger.Errorf(ctx, "HttpPost url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
 		return nil, err
 	}
 
-	request.Header.Set("Content-Type", "application/json")
+	contentType := request.Header.Get("Content-Type")
+	if contentType == "" {
+		request.Header.Set("Content-Type", "application/json")
+	}
 
 	if header != nil {
 		for k, v := range header {

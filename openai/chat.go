@@ -18,13 +18,13 @@ import (
 
 func (o *OpenAI) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletions OpenAI model: %s start", o.model)
+
 	request, err := o.ConvChatCompletionsRequest(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions OpenAI ConvChatCompletionsRequest error: %v", err)
 		return response, err
 	}
-
-	logger.Infof(ctx, "ChatCompletions OpenAI model: %s start", o.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
@@ -50,13 +50,13 @@ func (o *OpenAI) ChatCompletions(ctx context.Context, data []byte) (response mod
 
 func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletionsStream OpenAI model: %s start", o.model)
+
 	request, err := o.ConvChatCompletionsRequest(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream OpenAI ConvChatCompletionsRequest error: %v", err)
 		return nil, err
 	}
-
-	logger.Infof(ctx, "ChatCompletionsStream OpenAI model: %s start", o.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {

@@ -1,6 +1,7 @@
 package sdk
 
 import (
+	"bytes"
 	"context"
 
 	"github.com/iimeta/fastapi-sdk/ai360"
@@ -33,12 +34,12 @@ type Converter interface {
 
 	ConvImageGenerationsRequest(ctx context.Context, data []byte) (model.ImageGenerationRequest, error)
 	ConvImageGenerationsResponse(ctx context.Context, data []byte) (model.ImageResponse, error)
-	ConvImageEditsRequest(ctx context.Context, data []byte) (model.ImageEditRequest, error)
+	ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (*bytes.Buffer, error)
 	ConvImageEditsResponse(ctx context.Context, data []byte) (model.ImageResponse, error)
 
 	ConvAudioSpeechRequest(ctx context.Context, data []byte) (model.SpeechRequest, error)
 	ConvAudioSpeechResponse(ctx context.Context, data []byte) (model.SpeechResponse, error)
-	ConvAudioTranscriptionsRequest(ctx context.Context, data []byte) (model.AudioRequest, error)
+	ConvAudioTranscriptionsRequest(ctx context.Context, request model.AudioRequest) (*bytes.Buffer, error)
 	ConvAudioTranscriptionsResponse(ctx context.Context, data []byte) (model.AudioResponse, error)
 
 	ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (model.EmbeddingRequest, error)

@@ -15,13 +15,13 @@ import (
 
 func (b *Baidu) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletions Baidu model: %s start", b.model)
+
 	request, err := b.ConvChatCompletionsRequestOfficial(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions Baidu ConvChatCompletionsRequestOfficial error: %v", err)
 		return response, err
 	}
-
-	logger.Infof(ctx, "ChatCompletions Baidu model: %s start", b.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
@@ -45,13 +45,13 @@ func (b *Baidu) ChatCompletions(ctx context.Context, data []byte) (response mode
 
 func (b *Baidu) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletionsStream Baidu model: %s start", b.model)
+
 	request, err := b.ConvChatCompletionsRequestOfficial(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream Baidu ConvChatCompletionsRequestOfficial error: %v", err)
 		return nil, err
 	}
-
-	logger.Infof(ctx, "ChatCompletionsStream Baidu model: %s start", b.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {

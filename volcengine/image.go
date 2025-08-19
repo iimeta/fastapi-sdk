@@ -6,7 +6,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/model"
 )
 
-func (v *VolcEngine) ImageGenerations(ctx context.Context, request model.ImageGenerationRequest) (response model.ImageResponse, err error) {
+func (v *VolcEngine) ImageGenerations(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

@@ -3,46 +3,41 @@ package openai
 import (
 	"context"
 
+	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
-	"github.com/iimeta/go-openai"
+	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (o *OpenAI) TextEmbeddings(ctx context.Context, request model.EmbeddingRequest) (res model.EmbeddingResponse, err error) {
+func (o *OpenAI) TextEmbeddings(ctx context.Context, data []byte) (response model.EmbeddingResponse, err error) {
 
-	logger.Infof(ctx, "TextEmbeddings OpenAI model: %s start", request.Model)
+	logger.Infof(ctx, "TextEmbeddings OpenAI model: %s start", o.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
-		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "TextEmbeddings OpenAI model: %s totalTime: %d ms", request.Model, res.TotalTime)
+		response.TotalTime = gtime.TimestampMilli() - now
+		logger.Infof(ctx, "TextEmbeddings OpenAI model: %s totalTime: %d ms", o.model, response.TotalTime)
 	}()
 
-	response, err := o.client.CreateEmbeddings(ctx, openai.EmbeddingRequest{
-		Input:          request.Input,
-		Model:          request.Model,
-		User:           request.User,
-		EncodingFormat: request.EncodingFormat,
-		Dimensions:     request.Dimensions,
-	})
+	request, err := o.ConvTextEmbeddingsRequest(ctx, data)
 	if err != nil {
-		logger.Errorf(ctx, "TextEmbeddings OpenAI model: %s, error: %v", request.Model, err)
-		return res, err
+		logger.Errorf(ctx, "TextEmbeddings OpenAI ConvTextEmbeddingsRequest error: %v", err)
+		return response, err
 	}
 
-	logger.Infof(ctx, "TextEmbeddings OpenAI model: %s finished", request.Model)
-
-	res = model.EmbeddingResponse{
-		Object: response.Object,
-		Data:   response.Data,
-		Model:  response.Model,
-		Usage: &model.Usage{
-			PromptTokens:     response.Usage.PromptTokens,
-			CompletionTokens: response.Usage.CompletionTokens,
-			TotalTokens:      response.Usage.TotalTokens,
-		},
+	bytes, err := util.HttpPost(ctx, o.baseURL+"/embeddings", o.header, gjson.MustEncode(request), nil, o.proxyURL)
+	if err != nil {
+		logger.Errorf(ctx, "TextEmbeddings OpenAI model: %s, error: %v", o.model, err)
+		return response, err
 	}
 
-	return res, nil
+	if response, err = o.ConvTextEmbeddingsResponse(ctx, bytes); err != nil {
+		logger.Errorf(ctx, "TextEmbeddings OpenAI ConvTextEmbeddingsResponse error: %v", err)
+		return response, err
+	}
+
+	logger.Infof(ctx, "TextEmbeddings OpenAI model: %s finished", o.model)
+
+	return response, nil
 }

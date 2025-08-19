@@ -22,13 +22,13 @@ type Adapter interface {
 	ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
 	ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error)
 
-	ImageGenerations(ctx context.Context, request model.ImageGenerationRequest) (response model.ImageResponse, err error)
+	ImageGenerations(ctx context.Context, data []byte) (response model.ImageResponse, err error)
 	ImageEdits(ctx context.Context, request model.ImageEditRequest) (response model.ImageResponse, err error)
 
-	AudioSpeech(ctx context.Context, request model.SpeechRequest) (response model.SpeechResponse, err error)
+	AudioSpeech(ctx context.Context, data []byte) (response model.SpeechResponse, err error)
 	AudioTranscriptions(ctx context.Context, request model.AudioRequest) (response model.AudioResponse, err error)
 
-	TextEmbeddings(ctx context.Context, request model.EmbeddingRequest) (response model.EmbeddingResponse, err error)
+	TextEmbeddings(ctx context.Context, data []byte) (response model.EmbeddingResponse, err error)
 }
 
 func NewAdapter(ctx context.Context, corp, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) Adapter {

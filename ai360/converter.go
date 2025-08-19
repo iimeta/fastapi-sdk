@@ -1,6 +1,7 @@
 package ai360
 
 import (
+	"bytes"
 	"context"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
@@ -58,21 +59,6 @@ func (a *AI360) ConvChatCompletionsStreamResponse(ctx context.Context, data []by
 	return response, nil
 }
 
-func (a *AI360) ConvChatCompletionsRequestOfficial(ctx context.Context, data []byte) ([]byte, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (a *AI360) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (a *AI360) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (a *AI360) ConvChatResponsesRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
 	//TODO implement me
 	panic("implement me")
@@ -98,7 +84,7 @@ func (a *AI360) ConvImageGenerationsResponse(ctx context.Context, data []byte) (
 	panic("implement me")
 }
 
-func (a *AI360) ConvImageEditsRequest(ctx context.Context, data []byte) (model.ImageEditRequest, error) {
+func (a *AI360) ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (*bytes.Buffer, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -118,7 +104,7 @@ func (a *AI360) ConvAudioSpeechResponse(ctx context.Context, data []byte) (model
 	panic("implement me")
 }
 
-func (a *AI360) ConvAudioTranscriptionsRequest(ctx context.Context, data []byte) (model.AudioRequest, error) {
+func (a *AI360) ConvAudioTranscriptionsRequest(ctx context.Context, request model.AudioRequest) (*bytes.Buffer, error) {
 	//TODO implement me
 	panic("implement me")
 }

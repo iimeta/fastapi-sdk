@@ -14,8 +14,6 @@ var (
 	ERR_RATE_LIMIT_EXCEEDED     = NewApiError(429, "rate_limit_exceeded", "Rate limit reached, Please try again later.", "requests", "")
 )
 
-// ApiError provides error information returned by the OpenAI API.
-// InnerError struct is only valid for Azure OpenAI Service.
 type ApiError struct {
 	HttpStatusCode int     `json:"-"`
 	Code           any     `json:"code,omitempty"`
@@ -24,7 +22,6 @@ type ApiError struct {
 	Param          *string `json:"param,omitempty"`
 }
 
-// RequestError provides information about generic request sdkerr.
 type RequestError struct {
 	HttpStatusCode int
 	Err            error
@@ -51,8 +48,6 @@ func (e *ApiError) UnmarshalJSON(data []byte) (err error) {
 
 	err = json.Unmarshal(rawMap["message"], &e.Message)
 	if err != nil {
-		// If the parameter field of a function call is invalid as a JSON schema
-		// refs: https://github.com/iimeta/go-openai/issues/381
 		var messages []string
 		err = json.Unmarshal(rawMap["message"], &messages)
 		if err != nil {
@@ -61,8 +56,6 @@ func (e *ApiError) UnmarshalJSON(data []byte) (err error) {
 		e.Message = strings.Join(messages, ", ")
 	}
 
-	// optional fields for azure openai
-	// refs: https://github.com/iimeta/go-openai/issues/343
 	if _, ok := rawMap["type"]; ok {
 		err = json.Unmarshal(rawMap["type"], &e.Type)
 		if err != nil {
@@ -82,8 +75,6 @@ func (e *ApiError) UnmarshalJSON(data []byte) (err error) {
 		return nil
 	}
 
-	// if the api returned a number, we need to force an integer
-	// since the json package defaults to float64
 	var intCode int
 	err = json.Unmarshal(rawMap["code"], &intCode)
 	if err == nil {

@@ -18,13 +18,13 @@ import (
 
 func (x *Xfyun) ChatCompletions(ctx context.Context, data []byte) (res model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletions Xfyun model: %s start", x.model)
+
 	request, err := x.ConvChatCompletionsRequestOfficial(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions Xfyun ConvChatCompletionsRequestOfficial error: %v", err)
 		return res, err
 	}
-
-	logger.Infof(ctx, "ChatCompletions Xfyun model: %s start", x.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
@@ -105,13 +105,13 @@ func (x *Xfyun) ChatCompletions(ctx context.Context, data []byte) (res model.Cha
 
 func (x *Xfyun) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
+	logger.Infof(ctx, "ChatCompletionsStream Xfyun model: %s start", x.model)
+
 	request, err := x.ConvChatCompletionsRequestOfficial(ctx, data)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream Xfyun ConvChatCompletionsRequestOfficial error: %v", err)
 		return nil, err
 	}
-
-	logger.Infof(ctx, "ChatCompletionsStream Xfyun model: %s start", x.model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
