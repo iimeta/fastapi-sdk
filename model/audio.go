@@ -28,13 +28,17 @@ type AudioRequest struct {
 }
 
 type AudioResponse struct {
-	Task      string    `json:"task"`
-	Language  string    `json:"language"`
-	Duration  float64   `json:"duration"`
-	Segments  []Segment `json:"segments"`
-	Words     []Word    `json:"words"`
-	Text      string    `json:"text"`
-	TotalTime int64     `json:"-"`
+	Task     string    `json:"task,omitempty"`
+	Language string    `json:"language,omitempty"`
+	Duration float64   `json:"duration,omitempty"`
+	Segments []Segment `json:"segments,omitempty"`
+	Words    []Word    `json:"words,omitempty"`
+	Text     string    `json:"text,omitempty"`
+	Usage    struct {
+		Type    string `json:"type"`
+		Seconds int    `json:"seconds"`
+	} `json:"usage"`
+	TotalTime int64 `json:"-"`
 }
 
 type Segment struct {
