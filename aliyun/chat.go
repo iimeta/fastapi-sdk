@@ -28,7 +28,7 @@ func (a *Aliyun) ChatCompletions(ctx context.Context, data []byte) (response mod
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, a.baseURL+a.path, a.header, request, nil, a.proxyURL)
+	bytes, err := util.HttpPost(ctx, a.baseURL+a.path, a.header, request, nil, a.proxyURL, a.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions Aliyun model: %s, error: %v", a.model, err)
 		return response, err

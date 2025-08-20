@@ -3,14 +3,12 @@ package openai
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
-	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"
@@ -32,7 +30,7 @@ func (o *OpenAI) ChatCompletions(ctx context.Context, data []byte) (response mod
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, o.baseURL+o.path, o.header, request, nil, o.proxyURL)
+	bytes, err := util.HttpPost(ctx, o.baseURL+o.path, o.header, request, nil, o.proxyURL, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions OpenAI model: %s, error: %v", o.model, err)
 		return response, err
@@ -69,7 +67,7 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 		return o.ChatCompletionStreamToNonStream(ctx, data)
 	}
 
-	stream, err := util.SSEClient(ctx, o.baseURL+o.path, o.header, gjson.MustEncode(request), o.proxyURL, nil)
+	stream, err := util.SSEClient(ctx, o.baseURL+o.path, o.header, gjson.MustEncode(request), o.proxyURL, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream OpenAI model: %s, error: %v", o.model, err)
 		return responseChan, err
@@ -126,11 +124,6 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 			}
 
 			end := gtime.TimestampMilli()
-
-			// todo
-			if response.Usage != nil {
-				fmt.Println(stream.ReqTime, response.ResTime, end, end-gconv.Int64(response.ResTime), end-gconv.Int64(stream.ReqTime)-response.ResTotalTime, "end")
-			}
 
 			response.ConnTime = duration - now
 			response.Duration = end - duration

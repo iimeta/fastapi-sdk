@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
-	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
 )
 
@@ -33,7 +32,6 @@ type StreamReader struct {
 	response           *http.Response
 	emptyMessagesLimit uint
 	isFinished         bool
-	ReqTime            string
 }
 
 func SSEClient(ctx context.Context, rawURL string, header map[string]string, data []byte, proxyURL string, requestErrorHandler RequestErrorHandler) (stream *StreamReader, err error) {
@@ -50,13 +48,10 @@ func SSEClient(ctx context.Context, rawURL string, header map[string]string, dat
 		return nil, err
 	}
 
-	reqTime := gtime.TimestampMilliStr()
-
 	request.Header.Set("Accept", "text/event-stream")
 	request.Header.Set("Cache-Control", "no-cache")
 	request.Header.Set("Connection", "keep-alive")
 	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("x-request-time", reqTime)
 
 	if header != nil {
 		for k, v := range header {
@@ -111,7 +106,6 @@ func SSEClient(ctx context.Context, rawURL string, header map[string]string, dat
 		reader:             bufio.NewReader(response.Body),
 		response:           response,
 		emptyMessagesLimit: 300,
-		ReqTime:            reqTime,
 	}
 
 	return stream, nil

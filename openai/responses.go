@@ -27,7 +27,7 @@ func (o *OpenAI) Responses(ctx context.Context, data []byte) (res model.OpenAIRe
 		logger.Infof(ctx, "Responses OpenAI model: %s totalTime: %d ms", o.model, res.TotalTime)
 	}()
 
-	if res.ResponseBytes, err = util.HttpPost(ctx, fmt.Sprintf("%s%s", o.baseURL, o.path), o.header, data, &res, o.proxyURL); err != nil {
+	if res.ResponseBytes, err = util.HttpPost(ctx, fmt.Sprintf("%s%s", o.baseURL, o.path), o.header, data, &res, o.proxyURL, o.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "Responses OpenAI model: %s, error: %v", o.model, err)
 		return res, err
 	}

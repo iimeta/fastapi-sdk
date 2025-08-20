@@ -46,27 +46,11 @@ type ZhipuAIChatCompletionRes struct {
 	// 模型名称
 	Model string `json:"model"`
 	// 当前对话的模型输出内容
-	Choices []Choice `json:"choices"`
+	Choices []ChatCompletionChoice `json:"choices"`
 	// 结束时返回本次模型调用的 tokens 数量统计。
 	Usage *Usage `json:"usage"`
 	// 当failed时会有错误信息
 	Error ZhipuAIError `json:"error"`
-}
-
-type Choice struct {
-	// 结果下标
-	Index int `json:"index"`
-	// 模型推理终止的原因。
-	// stop代表推理自然结束或触发停止词。
-	// tool_calls 代表模型命中函数。
-	// length代表到达 tokens 长度上限。
-	// sensitive 代表模型推理内容被安全审核接口拦截。请注意，针对此类内容，请用户自行判断并决定是否撤回已公开的内容。
-	// network_error 代表模型推理异常。
-	FinishReason string `json:"finish_reason"`
-	// 模型返回的文本信息
-	Message *ChatCompletionMessage `json:"message,omitempty"`
-	// 模型返回的文本信息-流式
-	Delta *ChatCompletionStreamChoiceDelta `json:"delta,omitempty"`
 }
 
 type ZhipuAIError struct {

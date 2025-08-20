@@ -3,7 +3,6 @@ package openai
 import (
 	"context"
 
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -26,7 +25,7 @@ func (o *OpenAI) TextEmbeddings(ctx context.Context, data []byte) (response mode
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, o.baseURL+"/embeddings", o.header, gjson.MustEncode(request), nil, o.proxyURL)
+	bytes, err := util.HttpPost(ctx, o.baseURL+"/embeddings", o.header, request, nil, o.proxyURL, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "TextEmbeddings OpenAI model: %s, error: %v", o.model, err)
 		return response, err

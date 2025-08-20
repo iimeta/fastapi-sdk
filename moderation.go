@@ -3,11 +3,15 @@ package sdk
 import (
 	"context"
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
@@ -62,7 +66,7 @@ func (c *ModerationClient) TextModerations(ctx context.Context, request model.Mo
 	header["Authorization"] = "Bearer " + c.key
 
 	response := model.ModerationResponse{}
-	if _, err = util.HttpPost(ctx, c.baseURL+c.path, header, gjson.MustEncode(request), &response, c.proxyURL); err != nil {
+	if _, err = util.HttpPost(ctx, c.baseURL+c.path, header, request, &response, c.proxyURL, c.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "TextModerations OpenAI model: %s, error: %v", request.Model, err)
 		return res, err
 	}
@@ -81,4 +85,16 @@ func (c *ModerationClient) TextModerations(ctx context.Context, request model.Mo
 	}
 
 	return res, nil
+}
+
+func (c *ModerationClient) requestErrorHandler(ctx context.Context, response *http.Response) (err error) {
+	bytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
+}
+
+func (c *ModerationClient) apiErrorHandler(response *model.XfyunChatCompletionRes) error {
+	return sdkerr.NewApiError(500, response.Header.Code, gjson.MustEncodeString(response), "api_error", "")
 }

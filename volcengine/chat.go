@@ -29,10 +29,10 @@ func (v *VolcEngine) ChatCompletions(ctx context.Context, data []byte) (response
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, v.baseURL+v.path, v.header, request, nil, v.proxyURL)
+	bytes, err := util.HttpPost(ctx, v.baseURL+v.path, v.header, request, nil, v.proxyURL, v.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions VolcEngine model: %s, error: %v", v.model, err)
-		return response, v.apiErrorHandler(err)
+		return response, err
 	}
 
 	if response, err = v.ConvChatCompletionsResponse(ctx, bytes); err != nil {
@@ -62,10 +62,10 @@ func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data []byte) (re
 		return nil, err
 	}
 
-	stream, err := util.SSEClient(ctx, v.baseURL+v.path, v.header, gjson.MustEncode(request), v.proxyURL, nil)
+	stream, err := util.SSEClient(ctx, v.baseURL+v.path, v.header, gjson.MustEncode(request), v.proxyURL, v.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream VolcEngine model: %s, error: %v", v.model, err)
-		return responseChan, v.apiErrorHandler(err)
+		return responseChan, err
 	}
 
 	duration := gtime.TimestampMilli()

@@ -72,25 +72,9 @@ func (z *ZhipuAI) ConvChatCompletionsResponseOfficial(ctx context.Context, data 
 		Object:        consts.COMPLETION_OBJECT,
 		Created:       chatCompletionRes.Created,
 		Model:         z.model,
+		Choices:       chatCompletionRes.Choices,
 		Usage:         chatCompletionRes.Usage,
 		ResponseBytes: data,
-	}
-
-	for _, choice := range chatCompletionRes.Choices {
-		response.Choices = append(response.Choices, model.ChatCompletionChoice{
-			Index: choice.Index,
-			Message: &model.ChatCompletionMessage{
-				Role:         choice.Message.Role,
-				Content:      choice.Message.Content,
-				Refusal:      choice.Message.Refusal,
-				Name:         choice.Message.Name,
-				FunctionCall: choice.Message.FunctionCall,
-				ToolCalls:    choice.Message.ToolCalls,
-				ToolCallID:   choice.Message.ToolCallID,
-				Audio:        choice.Message.Audio,
-			},
-			FinishReason: choice.FinishReason,
-		})
 	}
 
 	return response, nil
@@ -118,23 +102,9 @@ func (z *ZhipuAI) ConvChatCompletionsStreamResponseOfficial(ctx context.Context,
 		Object:        consts.COMPLETION_STREAM_OBJECT,
 		Created:       chatCompletionRes.Created,
 		Model:         z.model,
+		Choices:       chatCompletionRes.Choices,
 		Usage:         chatCompletionRes.Usage,
 		ResponseBytes: data,
-	}
-
-	for _, choice := range chatCompletionRes.Choices {
-		response.Choices = append(response.Choices, model.ChatCompletionChoice{
-			Index: choice.Index,
-			Delta: &model.ChatCompletionStreamChoiceDelta{
-				Content:      choice.Delta.Content,
-				Role:         choice.Delta.Role,
-				FunctionCall: choice.Delta.FunctionCall,
-				ToolCalls:    choice.Delta.ToolCalls,
-				Refusal:      choice.Delta.Refusal,
-				Audio:        choice.Delta.Audio,
-			},
-			FinishReason: choice.FinishReason,
-		})
 	}
 
 	return response, nil

@@ -29,7 +29,7 @@ func (a *AI360) ChatCompletions(ctx context.Context, data []byte) (response mode
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, a.baseURL+a.path, a.header, gjson.MustEncode(request), nil, a.proxyURL)
+	bytes, err := util.HttpPost(ctx, a.baseURL+a.path, a.header, request, nil, a.proxyURL, a.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions 360AI model: %s, error: %v", a.model, err)
 		return response, err
@@ -62,10 +62,10 @@ func (a *AI360) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 		return nil, err
 	}
 
-	stream, err := util.SSEClient(ctx, a.baseURL+a.path, a.header, gjson.MustEncode(request), a.proxyURL, nil)
+	stream, err := util.SSEClient(ctx, a.baseURL+a.path, a.header, gjson.MustEncode(request), a.proxyURL, a.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream 360AI model: %s, error: %v", a.model, err)
-		return responseChan, a.apiErrorHandler(err)
+		return responseChan, err
 	}
 
 	duration := gtime.TimestampMilli()

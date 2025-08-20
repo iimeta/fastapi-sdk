@@ -73,7 +73,7 @@ func (a *Anthropic) ChatCompletions(ctx context.Context, data []byte) (response 
 		bytes = invokeModelOutput.Body
 
 	} else {
-		if bytes, err = util.HttpPost(ctx, a.baseURL+a.path, a.header, request, nil, a.proxyURL); err != nil {
+		if bytes, err = util.HttpPost(ctx, a.baseURL+a.path, a.header, request, nil, a.proxyURL, a.requestErrorHandler); err != nil {
 			logger.Errorf(ctx, "ChatCompletions Anthropic model: %s, error: %v", a.model, err)
 			return response, err
 		}

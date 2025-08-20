@@ -25,7 +25,7 @@ func (o *OpenAI) AudioSpeech(ctx context.Context, data []byte) (response model.S
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, o.baseURL+"/audio/speech", o.header, request, nil, o.proxyURL)
+	bytes, err := util.HttpPost(ctx, o.baseURL+"/audio/speech", o.header, request, nil, o.proxyURL, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "AudioSpeech OpenAI model: %s, error: %v", o.model, err)
 		return response, err
@@ -57,7 +57,7 @@ func (o *OpenAI) AudioTranscriptions(ctx context.Context, request model.AudioReq
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, o.baseURL+"/audio/transcriptions", o.header, data, nil, o.proxyURL)
+	bytes, err := util.HttpPost(ctx, o.baseURL+"/audio/transcriptions", o.header, data, nil, o.proxyURL, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "AudioTranscriptions OpenAI model: %s, error: %v", o.model, err)
 		return response, err

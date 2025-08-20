@@ -29,7 +29,7 @@ func (b *Baidu) ChatCompletions(ctx context.Context, data []byte) (response mode
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, fmt.Sprintf("%s?access_token=%s", b.baseURL+b.path, b.accessToken), nil, request, nil, b.proxyURL)
+	bytes, err := util.HttpPost(ctx, fmt.Sprintf("%s?access_token=%s", b.baseURL+b.path, b.accessToken), b.header, request, nil, b.proxyURL, b.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions Baidu model: %s, error: %v", b.model, err)
 		return response, err
@@ -60,7 +60,7 @@ func (b *Baidu) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 		return nil, err
 	}
 
-	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s?access_token=%s", b.baseURL+b.path, b.accessToken), nil, request, b.proxyURL, b.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s?access_token=%s", b.baseURL+b.path, b.accessToken), b.header, request, b.proxyURL, b.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream Baidu model: %s, error: %v", b.model, err)
 		return responseChan, err

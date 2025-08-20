@@ -2,7 +2,6 @@ package model
 
 import "mime/multipart"
 
-// ImageGenerationRequest represents the request structure for the image API.
 type ImageGenerationRequest struct {
 	Prompt            string `json:"prompt,omitempty"`
 	Background        string `json:"background,omitempty"`
@@ -25,7 +24,6 @@ type ImageResponse struct {
 	TotalTime int64                    `json:"-"`
 }
 
-// ImageResponseDataInner represents a response data structure for image API.
 type ImageResponseDataInner struct {
 	URL           string `json:"url,omitempty"`
 	B64JSON       string `json:"b64_json,omitempty"`

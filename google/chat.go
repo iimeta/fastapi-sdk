@@ -32,12 +32,12 @@ func (g *Google) ChatCompletions(ctx context.Context, data []byte) (response mod
 	var bytes []byte
 
 	if g.isGcp {
-		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent", g.baseURL+g.path), g.header, request, nil, g.proxyURL); err != nil {
+		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent", g.baseURL+g.path), g.header, request, nil, g.proxyURL, g.requestErrorHandler); err != nil {
 			logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", g.model, err)
 			return response, err
 		}
 	} else {
-		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", g.baseURL+g.path, g.key), nil, request, nil, g.proxyURL); err != nil {
+		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", g.baseURL+g.path, g.key), g.header, request, nil, g.proxyURL, g.requestErrorHandler); err != nil {
 			logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", g.model, err)
 			return response, err
 		}
@@ -77,7 +77,7 @@ func (g *Google) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 			return responseChan, err
 		}
 	} else {
-		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", g.baseURL+g.path, g.key), nil, request, g.proxyURL, g.requestErrorHandler)
+		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", g.baseURL+g.path, g.key), g.header, request, g.proxyURL, g.requestErrorHandler)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.model, err)
 			return responseChan, err

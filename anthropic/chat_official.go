@@ -71,7 +71,7 @@ func (a *Anthropic) ChatCompletionOfficial(ctx context.Context, data []byte) (re
 		res.ResponseBytes = invokeModelOutput.Body
 
 	} else {
-		if res.ResponseBytes, err = util.HttpPost(ctx, a.baseURL+a.path, a.header, gjson.MustEncode(request), &res, a.proxyURL); err != nil {
+		if res.ResponseBytes, err = util.HttpPost(ctx, a.baseURL+a.path, a.header, request, &res, a.proxyURL, a.requestErrorHandler); err != nil {
 			logger.Errorf(ctx, "ChatCompletionOfficial Anthropic model: %s, error: %v", a.model, err)
 			return res, err
 		}

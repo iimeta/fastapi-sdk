@@ -25,7 +25,7 @@ func (g *Google) ChatCompletionOfficial(ctx context.Context, data []byte) (res m
 		logger.Infof(ctx, "ChatCompletionOfficial Google model: %s totalTime: %d ms", g.model, res.TotalTime)
 	}()
 
-	if res.ResponseBytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", g.baseURL+g.path, g.key), nil, data, &res, g.proxyURL); err != nil {
+	if res.ResponseBytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", g.baseURL+g.path, g.key), g.header, data, &res, g.proxyURL, g.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "ChatCompletionOfficial Google model: %s, error: %v", g.model, err)
 		return res, err
 	}

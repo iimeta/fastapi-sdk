@@ -29,7 +29,7 @@ func (d *DeepSeek) ChatCompletions(ctx context.Context, data []byte) (response m
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, d.baseURL+d.path, d.header, gjson.MustEncode(request), nil, d.proxyURL)
+	bytes, err := util.HttpPost(ctx, d.baseURL+d.path, d.header, request, nil, d.proxyURL, d.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions DeepSeek model: %s, error: %v", d.model, err)
 		return response, err
@@ -62,10 +62,10 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data []byte) (resp
 		return nil, err
 	}
 
-	stream, err := util.SSEClient(ctx, d.baseURL+d.path, d.header, gjson.MustEncode(request), d.proxyURL, nil)
+	stream, err := util.SSEClient(ctx, d.baseURL+d.path, d.header, gjson.MustEncode(request), d.proxyURL, d.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, error: %v", d.model, err)
-		return responseChan, d.apiErrorHandler(err)
+		return responseChan, err
 	}
 
 	duration := gtime.TimestampMilli()

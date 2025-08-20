@@ -3,6 +3,9 @@ package volcengine
 import (
 	"context"
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
@@ -55,6 +58,14 @@ func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupport
 	}
 
 	return volcengine
+}
+
+func (v *VolcEngine) requestErrorHandler(ctx context.Context, response *http.Response) (err error) {
+	bytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
 }
 
 func (v *VolcEngine) apiErrorHandler(err error) error {

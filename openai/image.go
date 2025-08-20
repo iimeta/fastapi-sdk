@@ -3,7 +3,6 @@ package openai
 import (
 	"context"
 
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -26,7 +25,7 @@ func (o *OpenAI) ImageGenerations(ctx context.Context, data []byte) (response mo
 		logger.Infof(ctx, "ImageGenerations OpenAI model: %s totalTime: %d ms", o.model, gtime.TimestampMilli()-now)
 	}()
 
-	bytes, err := util.HttpPost(ctx, o.baseURL+"/images/generations", o.header, gjson.MustEncode(request), nil, o.proxyURL)
+	bytes, err := util.HttpPost(ctx, o.baseURL+"/images/generations", o.header, request, nil, o.proxyURL, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageGenerations OpenAI model: %s, error: %v", o.model, err)
 		return response, err
@@ -56,7 +55,7 @@ func (o *OpenAI) ImageEdits(ctx context.Context, request model.ImageEditRequest)
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, o.baseURL+"/images/edits", o.header, data, nil, o.proxyURL)
+	bytes, err := util.HttpPost(ctx, o.baseURL+"/images/edits", o.header, data, nil, o.proxyURL, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageEdits OpenAI model: %s, error: %v", o.model, err)
 		return response, err

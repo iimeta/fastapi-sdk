@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"errors"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
 	"net/url"
@@ -152,6 +154,14 @@ func (x *Xfyun) getSignature(ctx context.Context, method string) (date, host, si
 	}
 
 	return gurl.RawEncode(date), parse.Host, gbase64.EncodeToString(hash.Sum(nil)), nil
+}
+
+func (x *Xfyun) requestErrorHandler(ctx context.Context, response *http.Response) (err error) {
+	bytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
 }
 
 func (x *Xfyun) apiErrorHandler(response *model.XfyunChatCompletionRes) error {

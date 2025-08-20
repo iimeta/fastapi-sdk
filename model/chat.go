@@ -40,35 +40,35 @@ type ChatCompletionResponse struct {
 	Model             string                 `json:"model"`
 	Choices           []ChatCompletionChoice `json:"choices"`
 	Usage             *Usage                 `json:"usage"`
+	ServiceTier       string                 `json:"service_tier,omitempty"`
 	SystemFingerprint string                 `json:"system_fingerprint,omitempty"`
+	Obfuscation       string                 `json:"obfuscation,omitempty"`
 	PromptAnnotations []PromptAnnotation     `json:"prompt_annotations,omitempty"`
 	ResponseBytes     []byte                 `json:"-"`
 	ConnTime          int64                  `json:"-"`
 	Duration          int64                  `json:"-"`
 	TotalTime         int64                  `json:"-"`
 	Error             error                  `json:"-"`
-	ResTime           string                 `json:"res_time,omitempty"`
-	ResTotalTime      int64                  `json:"res_total_time,omitempty"`
 }
 
 type ChatCompletionMessage struct {
 	Role             string        `json:"role"`
 	Content          any           `json:"content"`
 	ReasoningContent any           `json:"reasoning_content,omitempty"`
-	Refusal          string        `json:"refusal,omitempty"`
+	Refusal          *string       `json:"refusal"`
 	Name             string        `json:"name,omitempty"`
 	FunctionCall     *FunctionCall `json:"function_call,omitempty"`
 	ToolCalls        any           `json:"tool_calls,omitempty"`
 	ToolCallID       string        `json:"tool_call_id,omitempty"`
 	Audio            *Audio        `json:"audio,omitempty"`
-	Annotations      []any         `json:"annotations,omitempty"`
+	Annotations      []any         `json:"annotations"`
 }
 
 type ChatCompletionChoice struct {
 	Index        int                              `json:"index"`
 	Message      *ChatCompletionMessage           `json:"message,omitempty"`
 	Delta        *ChatCompletionStreamChoiceDelta `json:"delta,omitempty"`
-	LogProbs     *LogProbs                        `json:"logprobs,omitempty"`
+	LogProbs     *LogProbs                        `json:"logprobs"`
 	FinishReason string                           `json:"finish_reason"`
 }
 
@@ -94,12 +94,14 @@ type PromptTokensDetails struct {
 }
 
 type CompletionTokensDetails struct {
-	AudioTokens          int `json:"audio_tokens"`
-	ReasoningTokens      int `json:"reasoning_tokens"`
-	CachedTokens         int `json:"cached_tokens"`
-	CachedTokensInternal int `json:"cached_tokens_internal"`
-	TextTokens           int `json:"text_tokens"`
-	ImageTokens          int `json:"image_tokens"`
+	AudioTokens              int `json:"audio_tokens"`
+	ReasoningTokens          int `json:"reasoning_tokens"`
+	CachedTokens             int `json:"cached_tokens"`
+	CachedTokensInternal     int `json:"cached_tokens_internal"`
+	TextTokens               int `json:"text_tokens"`
+	ImageTokens              int `json:"image_tokens"`
+	AcceptedPredictionTokens int `json:"accepted_prediction_tokens"`
+	RejectedPredictionTokens int `json:"rejected_prediction_tokens"`
 }
 
 type InputTokensDetails struct {
@@ -118,7 +120,7 @@ type ChatCompletionStreamChoiceDelta struct {
 	Role             string        `json:"role,omitempty"`
 	FunctionCall     *FunctionCall `json:"function_call,omitempty"`
 	ToolCalls        any           `json:"tool_calls,omitempty"`
-	Refusal          string        `json:"refusal,omitempty"`
+	Refusal          *string       `json:"refusal,omitempty"`
 	Audio            *Audio        `json:"audio,omitempty"`
 	Annotations      any           `json:"annotations,omitempty"`
 }

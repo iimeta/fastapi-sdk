@@ -136,7 +136,7 @@ func (a *Anthropic) ConvChatCompletionsResponseOfficial(ctx context.Context, dat
 					Role:    chatCompletionRes.Role,
 					Content: content.Text,
 				},
-				FinishReason: "stop",
+				FinishReason: consts.FinishReasonStop,
 			})
 		}
 	}

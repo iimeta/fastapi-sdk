@@ -12,46 +12,88 @@ import (
 	"time"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
-	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/os/gtime"
-	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/logger"
 )
 
-func HttpGet(ctx context.Context, url string, header map[string]string, data g.Map, result interface{}, proxyURL string) ([]byte, error) {
+func HttpGet(ctx context.Context, rawURL string, header map[string]string, data, result any, proxyURL string, requestErrorHandler RequestErrorHandler) ([]byte, error) {
 
-	logger.Debugf(ctx, "HttpGet url: %s, header: %+v, data: %s, proxyURL: %s", url, header, gjson.MustEncodeString(data), proxyURL)
+	logger.Debugf(ctx, "HttpGet url: %s, header: %+v, data: %s, proxyURL: %s", rawURL, header, gjson.MustEncodeString(data), proxyURL)
 
-	client := g.Client()
-
-	if header != nil {
-		client.SetHeaderMap(header)
+	client := &http.Client{
+		Timeout: 600 * time.Second,
 	}
 
-	if proxyURL != "" {
-		client.SetProxy(proxyURL)
+	var bodyReader io.Reader
+
+	if data != nil {
+		if v, ok := data.([]byte); ok {
+			bodyReader = bytes.NewBuffer(v)
+		} else if v, ok := data.(io.Reader); ok {
+			bodyReader = v
+		} else {
+			bodyReader = bytes.NewBuffer(gjson.MustEncode(data))
+		}
 	}
 
-	response, err := client.Get(ctx, url, data)
-	if response != nil {
-		defer func() {
-			if err := response.Close(); err != nil {
-				logger.Error(ctx, err)
-			}
-		}()
-	}
-
+	request, err := http.NewRequest("GET", rawURL, bodyReader)
 	if err != nil {
-		logger.Errorf(ctx, "HttpGet url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", url, header, gjson.MustEncodeString(data), proxyURL, err)
+		logger.Errorf(ctx, "HttpGet url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
 		return nil, err
 	}
 
-	bytes := response.ReadAll()
-	logger.Debugf(ctx, "HttpGet url: %s, statusCode: %d, header: %+v, data: %s, proxyURL: %s, response: %s", url, response.StatusCode, header, gjson.MustEncodeString(data), proxyURL, string(bytes))
+	response, err := client.Do(request)
+	if err != nil {
+		logger.Errorf(ctx, "HttpGet url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
+		if response != nil {
+			if err := response.Body.Close(); err != nil {
+				logger.Error(ctx, err)
+			}
+		}
+		return nil, err
+	}
+
+	if response == nil {
+		return nil, nil
+	}
+
+	if isFailureStatusCode(response) {
+
+		defer func() {
+			if err := response.Body.Close(); err != nil {
+				logger.Error(ctx, err)
+			}
+		}()
+
+		if requestErrorHandler != nil {
+			return nil, requestErrorHandler(ctx, response)
+		}
+
+		bytes, err := io.ReadAll(response.Body)
+		if err != nil {
+			logger.Errorf(ctx, "HttpGet url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
+			return nil, err
+		}
+
+		return nil, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes))
+	}
+
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			logger.Error(ctx, err)
+		}
+	}()
+
+	bytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		logger.Errorf(ctx, "HttpGet url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
+		return nil, err
+	}
+
+	logger.Debugf(ctx, "HttpGet url: %s, statusCode: %d, header: %+v, data: %s, proxyURL: %s, response: %s", rawURL, response.StatusCode, header, gjson.MustEncodeString(data), proxyURL, string(bytes))
 
 	if bytes != nil && len(bytes) > 0 {
 		if err = json.Unmarshal(bytes, result); err != nil {
-			logger.Errorf(ctx, "HttpGet url: %s, statusCode: %d, header: %+v, data: %s, proxyURL: %s, response: %s, error: %v", url, response.StatusCode, header, gjson.MustEncodeString(data), proxyURL, string(bytes), err)
+			logger.Errorf(ctx, "HttpGet url: %s, statusCode: %d, header: %+v, data: %s, proxyURL: %s, response: %s, error: %v", rawURL, response.StatusCode, header, gjson.MustEncodeString(data), proxyURL, string(bytes), err)
 			return bytes, err
 		}
 	}
@@ -59,7 +101,7 @@ func HttpGet(ctx context.Context, url string, header map[string]string, data g.M
 	return bytes, nil
 }
 
-func HttpPost(ctx context.Context, rawURL string, header map[string]string, data, result any, proxyURL string) ([]byte, error) {
+func HttpPost(ctx context.Context, rawURL string, header map[string]string, data, result any, proxyURL string, requestErrorHandler RequestErrorHandler) ([]byte, error) {
 
 	logger.Debugf(ctx, "HttpPost url: %s, header: %+v, data: %s, proxyURL: %s", rawURL, header, gjson.MustEncodeString(data), proxyURL)
 
@@ -107,27 +149,47 @@ func HttpPost(ctx context.Context, rawURL string, header map[string]string, data
 		}
 	}
 
-	reqTime := gtime.TimestampMilliStr()
-
-	request.Header.Set("x-request-time", reqTime)
-
 	response, err := client.Do(request)
-	if response != nil {
+	if err != nil {
+		logger.Errorf(ctx, "HttpPost url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
+		if response != nil {
+			if err := response.Body.Close(); err != nil {
+				logger.Error(ctx, err)
+			}
+		}
+		return nil, err
+	}
+
+	if response == nil {
+		return nil, nil
+	}
+
+	if isFailureStatusCode(response) {
+
 		defer func() {
 			if err := response.Body.Close(); err != nil {
 				logger.Error(ctx, err)
 			}
 		}()
+
+		if requestErrorHandler != nil {
+			return nil, requestErrorHandler(ctx, response)
+		}
+
+		bytes, err := io.ReadAll(response.Body)
+		if err != nil {
+			logger.Errorf(ctx, "HttpPost url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
+			return nil, err
+		}
+
+		return nil, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes))
 	}
 
-	if err != nil {
-		logger.Errorf(ctx, "HttpPost url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
-		return nil, err
-	}
-
-	if response == nil {
-		return []byte{}, nil
-	}
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			logger.Error(ctx, err)
+		}
+	}()
 
 	bytes, err := io.ReadAll(response.Body)
 	if err != nil {
@@ -143,11 +205,6 @@ func HttpPost(ctx context.Context, rawURL string, header map[string]string, data
 			return bytes, errors.New(fmt.Sprintf("response: %s, error: %v", bytes, err))
 		}
 	}
-
-	end := gtime.TimestampMilli()
-	resTime := response.Header.Get("x-response-time")
-	resTotalTime := response.Header.Get("x-response-total-time")
-	fmt.Println(reqTime, resTime, end, end-gconv.Int64(resTime), end-gconv.Int64(reqTime)-gconv.Int64(resTotalTime), "end")
 
 	return bytes, nil
 }

@@ -3,6 +3,9 @@ package ai360
 import (
 	"context"
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/iimeta/fastapi-sdk/logger"
@@ -52,6 +55,14 @@ func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupport
 	}
 
 	return ai360
+}
+
+func (a *AI360) requestErrorHandler(ctx context.Context, response *http.Response) (err error) {
+	bytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
 }
 
 func (a *AI360) apiErrorHandler(err error) error {

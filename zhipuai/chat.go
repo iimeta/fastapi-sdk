@@ -28,7 +28,7 @@ func (z *ZhipuAI) ChatCompletions(ctx context.Context, data []byte) (response mo
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, z.baseURL+z.path, z.header, request, nil, z.proxyURL)
+	bytes, err := util.HttpPost(ctx, z.baseURL+z.path, z.header, request, nil, z.proxyURL, z.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions ZhipuAI model: %s, error: %v", z.model, err)
 		return response, err

@@ -77,7 +77,7 @@ func (o *OpenAI) ConvChatCompletionsResponse(ctx context.Context, data []byte) (
 func (o *OpenAI) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
 	response = model.ChatCompletionResponse{
-		ResponseBytes: data,
+		//ResponseBytes: data,
 	}
 
 	if err = json.Unmarshal(data, &response); err != nil {

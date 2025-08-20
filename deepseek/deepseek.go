@@ -3,6 +3,9 @@ package deepseek
 import (
 	"context"
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
@@ -89,6 +92,14 @@ func NewAdapterBaidu(ctx context.Context, model, key, baseURL, path string, isSu
 	}
 
 	return baidu
+}
+
+func (d *DeepSeek) requestErrorHandler(ctx context.Context, response *http.Response) (err error) {
+	bytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
 }
 
 func (d *DeepSeek) apiErrorHandler(err error) error {
