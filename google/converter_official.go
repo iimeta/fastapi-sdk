@@ -2,6 +2,7 @@ package google
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -98,24 +99,24 @@ func (g *Google) ConvChatCompletionsRequestOfficial(ctx context.Context, data []
 	return gjson.MustEncode(chatCompletionReq), nil
 }
 
-func (g *Google) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (g *Google) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
 	chatCompletionRes := model.GoogleChatCompletionRes{}
-	if err := gjson.Unmarshal(data, &chatCompletionRes); err != nil {
+	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
 		logger.Error(ctx, err)
-		return model.ChatCompletionResponse{}, err
+		return response, err
 	}
 
 	if chatCompletionRes.Error.Code != 0 || (chatCompletionRes.Candidates[0].FinishReason != "STOP" && chatCompletionRes.Candidates[0].FinishReason != "MAX_TOKENS") {
 		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Google model: %s, chatCompletionRes: %s", g.model, gjson.MustEncodeString(chatCompletionRes))
 
-		err := g.apiErrorHandler(&chatCompletionRes)
+		err = g.apiErrorHandler(&chatCompletionRes)
 		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Google model: %s, error: %v", g.model, err)
 
-		return model.ChatCompletionResponse{}, err
+		return response, err
 	}
 
-	response := model.ChatCompletionResponse{
+	response = model.ChatCompletionResponse{
 		Id:      consts.COMPLETION_ID_PREFIX + grand.S(29),
 		Object:  consts.COMPLETION_OBJECT,
 		Created: gtime.Timestamp(),
@@ -125,6 +126,7 @@ func (g *Google) ConvChatCompletionsResponseOfficial(ctx context.Context, data [
 			CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
 			TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
 		},
+		ResponseBytes: data,
 	}
 
 	for i, part := range chatCompletionRes.Candidates[0].Content.Parts {
@@ -141,43 +143,29 @@ func (g *Google) ConvChatCompletionsResponseOfficial(ctx context.Context, data [
 	return response, nil
 }
 
-func (g *Google) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (g *Google) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	var (
-		usage   *model.Usage
-		created = gtime.Timestamp()
-		id      = consts.COMPLETION_ID_PREFIX + grand.S(29)
-	)
-
-	chatCompletionRes := new(model.GoogleChatCompletionRes)
-	if err := gjson.Unmarshal(data, &chatCompletionRes); err != nil {
+	chatCompletionRes := model.GoogleChatCompletionRes{}
+	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
 		logger.Error(ctx, err)
-		return model.ChatCompletionResponse{}, err
+		return response, err
 	}
 
 	if chatCompletionRes.Error.Code != 0 {
 		logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, chatCompletionRes: %s", g.model, gjson.MustEncodeString(chatCompletionRes))
 
-		err := g.apiErrorHandler(chatCompletionRes)
+		err = g.apiErrorHandler(&chatCompletionRes)
 		logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.model, err)
 
-		return model.ChatCompletionResponse{}, err
+		return response, err
 	}
 
-	if chatCompletionRes.UsageMetadata != nil {
-		usage = &model.Usage{
-			PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
-			CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
-			TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
-		}
-	}
-
-	response := model.ChatCompletionResponse{
-		Id:      id,
-		Object:  consts.COMPLETION_STREAM_OBJECT,
-		Created: created,
-		Model:   g.model,
-		Usage:   usage,
+	response = model.ChatCompletionResponse{
+		Id:            consts.COMPLETION_ID_PREFIX + grand.S(29),
+		Object:        consts.COMPLETION_STREAM_OBJECT,
+		Created:       gtime.Timestamp(),
+		Model:         g.model,
+		ResponseBytes: data,
 	}
 
 	for _, candidate := range chatCompletionRes.Candidates {
@@ -188,6 +176,14 @@ func (g *Google) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, 
 				Content: candidate.Content.Parts[0].Text,
 			},
 		})
+	}
+
+	if chatCompletionRes.UsageMetadata != nil {
+		response.Usage = &model.Usage{
+			PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
+			CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
+			TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
+		}
 	}
 
 	return response, nil

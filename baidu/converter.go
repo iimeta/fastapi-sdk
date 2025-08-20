@@ -3,8 +3,8 @@ package baidu
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
@@ -14,7 +14,7 @@ import (
 func (b *Baidu) ConvChatCompletionsRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
 
 	request := model.ChatCompletionRequest{}
-	if err := gjson.Unmarshal(data, &request); err != nil {
+	if err := json.Unmarshal(data, &request); err != nil {
 		logger.Error(ctx, err)
 		return request, err
 	}
@@ -32,10 +32,13 @@ func (b *Baidu) ConvChatCompletionsRequest(ctx context.Context, data []byte) (mo
 	return request, nil
 }
 
-func (b *Baidu) ConvChatCompletionsResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (b *Baidu) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response := model.ChatCompletionResponse{}
-	if err := gjson.Unmarshal(data, &response); err != nil {
+	response = model.ChatCompletionResponse{
+		ResponseBytes: data,
+	}
+
+	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
 	}
@@ -43,10 +46,13 @@ func (b *Baidu) ConvChatCompletionsResponse(ctx context.Context, data []byte) (m
 	return response, nil
 }
 
-func (b *Baidu) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (b *Baidu) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response := model.ChatCompletionResponse{}
-	if err := gjson.Unmarshal(data, &response); err != nil {
+	response = model.ChatCompletionResponse{
+		ResponseBytes: data,
+	}
+
+	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
 	}
@@ -59,12 +65,12 @@ func (b *Baidu) ConvChatResponsesRequest(ctx context.Context, data []byte) (mode
 	panic("implement me")
 }
 
-func (b *Baidu) ConvChatResponsesResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (b *Baidu) ConvChatResponsesResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (b *Baidu) ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

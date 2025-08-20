@@ -16,17 +16,17 @@ func (z *ZhipuAI) ChatCompletions(ctx context.Context, data []byte) (response mo
 
 	logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s start", z.model)
 
-	request, err := z.ConvChatCompletionsRequestOfficial(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions ZhipuAI ConvChatCompletionsRequestOfficial error: %v", err)
-		return response, err
-	}
-
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
 		logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s totalTime: %d ms", z.model, response.TotalTime)
 	}()
+
+	request, err := z.ConvChatCompletionsRequestOfficial(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletions ZhipuAI ConvChatCompletionsRequestOfficial error: %v", err)
+		return response, err
+	}
 
 	bytes, err := util.HttpPost(ctx, z.baseURL+z.path, z.header, request, nil, z.proxyURL)
 	if err != nil {
@@ -46,18 +46,18 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (respo
 
 	logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s start", z.model)
 
-	request, err := z.ConvChatCompletionsRequestOfficial(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI ConvChatCompletionsRequestOfficial error: %v", err)
-		return nil, err
-	}
-
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
 			logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s totalTime: %d ms", z.model, gtime.TimestampMilli()-now)
 		}
 	}()
+
+	request, err := z.ConvChatCompletionsRequestOfficial(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI ConvChatCompletionsRequestOfficial error: %v", err)
+		return nil, err
+	}
 
 	stream, err := util.SSEClient(ctx, z.baseURL+z.path, z.header, request, z.proxyURL, z.requestErrorHandler)
 	if err != nil {
@@ -117,7 +117,6 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (respo
 
 			end := gtime.TimestampMilli()
 
-			response.ResponseBytes = responseBytes
 			response.ConnTime = duration - now
 			response.Duration = end - duration
 			response.TotalTime = end - now

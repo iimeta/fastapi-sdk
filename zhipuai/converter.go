@@ -3,8 +3,8 @@ package zhipuai
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -13,7 +13,7 @@ import (
 func (z *ZhipuAI) ConvChatCompletionsRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
 
 	chatCompletionRequest := model.ChatCompletionRequest{}
-	if err := gjson.Unmarshal(data, &chatCompletionRequest); err != nil {
+	if err := json.Unmarshal(data, &chatCompletionRequest); err != nil {
 		logger.Error(ctx, err)
 		return chatCompletionRequest, err
 	}
@@ -27,10 +27,13 @@ func (z *ZhipuAI) ConvChatCompletionsRequest(ctx context.Context, data []byte) (
 	return chatCompletionRequest, nil
 }
 
-func (z *ZhipuAI) ConvChatCompletionsResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (z *ZhipuAI) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	chatCompletionResponse := model.ChatCompletionResponse{}
-	if err := gjson.Unmarshal(data, &chatCompletionResponse); err != nil {
+	chatCompletionResponse := model.ChatCompletionResponse{
+		ResponseBytes: data,
+	}
+
+	if err = json.Unmarshal(data, &chatCompletionResponse); err != nil {
 		logger.Error(ctx, err)
 		return chatCompletionResponse, err
 	}
@@ -38,10 +41,13 @@ func (z *ZhipuAI) ConvChatCompletionsResponse(ctx context.Context, data []byte) 
 	return chatCompletionResponse, nil
 }
 
-func (z *ZhipuAI) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (z *ZhipuAI) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	chatCompletionResponse := model.ChatCompletionResponse{}
-	if err := gjson.Unmarshal(data, &chatCompletionResponse); err != nil {
+	chatCompletionResponse := model.ChatCompletionResponse{
+		ResponseBytes: data,
+	}
+
+	if err = json.Unmarshal(data, &chatCompletionResponse); err != nil {
 		logger.Error(ctx, err)
 		return chatCompletionResponse, err
 	}
@@ -54,12 +60,12 @@ func (z *ZhipuAI) ConvChatResponsesRequest(ctx context.Context, data []byte) (mo
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvChatResponsesResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (z *ZhipuAI) ConvChatResponsesResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (z *ZhipuAI) ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

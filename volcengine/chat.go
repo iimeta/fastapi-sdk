@@ -17,19 +17,19 @@ func (v *VolcEngine) ChatCompletions(ctx context.Context, data []byte) (response
 
 	logger.Infof(ctx, "ChatCompletions VolcEngine model: %s start", v.model)
 
-	request, err := v.ConvChatCompletionsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions VolcEngine ConvChatCompletionsRequest error: %v", err)
-		return response, err
-	}
-
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
 		logger.Infof(ctx, "ChatCompletions VolcEngine model: %s totalTime: %d ms", v.model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpPost(ctx, v.baseURL+v.path, v.header, gjson.MustEncode(request), nil, v.proxyURL)
+	request, err := v.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletions VolcEngine ConvChatCompletionsRequest error: %v", err)
+		return response, err
+	}
+
+	bytes, err := util.HttpPost(ctx, v.baseURL+v.path, v.header, request, nil, v.proxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions VolcEngine model: %s, error: %v", v.model, err)
 		return response, v.apiErrorHandler(err)
@@ -49,18 +49,18 @@ func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data []byte) (re
 
 	logger.Infof(ctx, "ChatCompletionsStream VolcEngine model: %s start", v.model)
 
-	request, err := v.ConvChatCompletionsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream VolcEngine ConvChatCompletionsRequest error: %v", err)
-		return nil, err
-	}
-
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
 			logger.Infof(ctx, "ChatCompletionsStream VolcEngine model: %s totalTime: %d ms", v.model, gtime.TimestampMilli()-now)
 		}
 	}()
+
+	request, err := v.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletionsStream VolcEngine ConvChatCompletionsRequest error: %v", err)
+		return nil, err
+	}
 
 	stream, err := util.SSEClient(ctx, v.baseURL+v.path, v.header, gjson.MustEncode(request), v.proxyURL, nil)
 	if err != nil {
@@ -120,7 +120,6 @@ func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data []byte) (re
 
 			end := gtime.TimestampMilli()
 
-			response.ResponseBytes = responseBytes
 			response.ConnTime = duration - now
 			response.Duration = end - duration
 			response.TotalTime = end - now

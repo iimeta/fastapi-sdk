@@ -2,6 +2,7 @@ package anthropic
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -29,8 +30,8 @@ func (a *Anthropic) ChatCompletionOfficial(ctx context.Context, data []byte) (re
 	}()
 
 	request := make(map[string]interface{})
-	if err = gjson.Unmarshal(data, &request); err != nil {
-		logger.Errorf(ctx, "ChatCompletionOfficial Anthropic model: %s, data: %s, gjson.Unmarshal error: %v", a.model, data, err)
+	if err = json.Unmarshal(data, &request); err != nil {
+		logger.Errorf(ctx, "ChatCompletionOfficial Anthropic model: %s, data: %s, json.Unmarshal error: %v", a.model, data, err)
 		return res, err
 	}
 
@@ -62,8 +63,8 @@ func (a *Anthropic) ChatCompletionOfficial(ctx context.Context, data []byte) (re
 			return res, err
 		}
 
-		if err = gjson.Unmarshal(invokeModelOutput.Body, &res); err != nil {
-			logger.Errorf(ctx, "ChatCompletionOfficial Anthropic model: %s, invokeModelOutput.Body: %s, gjson.Unmarshal error: %v", a.model, invokeModelOutput.Body, err)
+		if err = json.Unmarshal(invokeModelOutput.Body, &res); err != nil {
+			logger.Errorf(ctx, "ChatCompletionOfficial Anthropic model: %s, invokeModelOutput.Body: %s, json.Unmarshal error: %v", a.model, invokeModelOutput.Body, err)
 			return res, err
 		}
 
@@ -100,8 +101,8 @@ func (a *Anthropic) ChatCompletionStreamOfficial(ctx context.Context, data []byt
 	}()
 
 	request := make(map[string]interface{})
-	if err = gjson.Unmarshal(data, &request); err != nil {
-		logger.Errorf(ctx, "ChatCompletionStreamOfficial Anthropic model: %s, data: %s, gjson.Unmarshal error: %v", a.model, data, err)
+	if err = json.Unmarshal(data, &request); err != nil {
+		logger.Errorf(ctx, "ChatCompletionStreamOfficial Anthropic model: %s, data: %s, json.Unmarshal error: %v", a.model, data, err)
 		return responseChan, err
 	}
 
@@ -171,13 +172,15 @@ func (a *Anthropic) ChatCompletionStreamOfficial(ctx context.Context, data []byt
 					return
 				}
 
-				var responseBytes []byte
-				chatCompletionRes := new(model.AnthropicChatCompletionRes)
+				var (
+					responseBytes     []byte
+					chatCompletionRes model.AnthropicChatCompletionRes
+				)
 
 				switch v := event.(type) {
 				case *types.ResponseStreamMemberChunk:
 					responseBytes = v.Value.Bytes
-					if err := gjson.Unmarshal(v.Value.Bytes, &chatCompletionRes); err != nil {
+					if err := json.Unmarshal(v.Value.Bytes, &chatCompletionRes); err != nil {
 						logger.Errorf(ctx, "ChatCompletionStreamOfficial Anthropic model: %s, v.Value.Bytes: %s, error: %v", a.model, v.Value.Bytes, err)
 
 						end := gtime.TimestampMilli()
@@ -217,7 +220,7 @@ func (a *Anthropic) ChatCompletionStreamOfficial(ctx context.Context, data []byt
 				if chatCompletionRes.Error != nil && chatCompletionRes.Error.Type != "" {
 					logger.Errorf(ctx, "ChatCompletionStreamOfficial Anthropic model: %s, chatCompletionRes: %s", a.model, gjson.MustEncodeString(chatCompletionRes))
 
-					err = a.apiErrorHandler(chatCompletionRes)
+					err = a.apiErrorHandler(&chatCompletionRes)
 					logger.Errorf(ctx, "ChatCompletionStreamOfficial Anthropic model: %s, error: %v", a.model, err)
 
 					end := gtime.TimestampMilli()
@@ -320,8 +323,8 @@ func (a *Anthropic) ChatCompletionStreamOfficial(ctx context.Context, data []byt
 					return
 				}
 
-				chatCompletionRes := new(model.AnthropicChatCompletionRes)
-				if err := gjson.Unmarshal(streamResponse, &chatCompletionRes); err != nil {
+				chatCompletionRes := model.AnthropicChatCompletionRes{}
+				if err := json.Unmarshal(streamResponse, &chatCompletionRes); err != nil {
 					logger.Errorf(ctx, "ChatCompletionStreamOfficial Anthropic model: %s, streamResponse: %s, error: %v", a.model, streamResponse, err)
 
 					end := gtime.TimestampMilli()
@@ -338,7 +341,7 @@ func (a *Anthropic) ChatCompletionStreamOfficial(ctx context.Context, data []byt
 				if chatCompletionRes.Error != nil && chatCompletionRes.Error.Type != "" {
 					logger.Errorf(ctx, "ChatCompletionStreamOfficial Anthropic model: %s, chatCompletionRes: %s", a.model, gjson.MustEncodeString(chatCompletionRes))
 
-					err = a.apiErrorHandler(chatCompletionRes)
+					err = a.apiErrorHandler(&chatCompletionRes)
 					logger.Errorf(ctx, "ChatCompletionStreamOfficial Anthropic model: %s, error: %v", a.model, err)
 
 					end := gtime.TimestampMilli()

@@ -17,17 +17,17 @@ func (d *DeepSeek) ChatCompletions(ctx context.Context, data []byte) (response m
 
 	logger.Infof(ctx, "ChatCompletions DeepSeek model: %s start", d.model)
 
-	request, err := d.ConvChatCompletionsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions DeepSeek ConvChatCompletionsRequest error: %v", err)
-		return response, err
-	}
-
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
 		logger.Infof(ctx, "ChatCompletions DeepSeek model: %s totalTime: %d ms", d.model, response.TotalTime)
 	}()
+
+	request, err := d.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletions DeepSeek ConvChatCompletionsRequest error: %v", err)
+		return response, err
+	}
 
 	bytes, err := util.HttpPost(ctx, d.baseURL+d.path, d.header, gjson.MustEncode(request), nil, d.proxyURL)
 	if err != nil {
@@ -49,18 +49,18 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data []byte) (resp
 
 	logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s start", d.model)
 
-	request, err := d.ConvChatCompletionsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream DeepSeek ConvChatCompletionsRequest error: %v", err)
-		return nil, err
-	}
-
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
 			logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s totalTime: %d ms", d.model, gtime.TimestampMilli()-now)
 		}
 	}()
+
+	request, err := d.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletionsStream DeepSeek ConvChatCompletionsRequest error: %v", err)
+		return nil, err
+	}
 
 	stream, err := util.SSEClient(ctx, d.baseURL+d.path, d.header, gjson.MustEncode(request), d.proxyURL, nil)
 	if err != nil {
@@ -120,7 +120,6 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data []byte) (resp
 
 			end := gtime.TimestampMilli()
 
-			response.ResponseBytes = responseBytes
 			response.ConnTime = duration - now
 			response.Duration = end - duration
 			response.TotalTime = end - now

@@ -2,6 +2,7 @@ package zhipuai
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/iimeta/fastapi-sdk/consts"
@@ -49,29 +50,30 @@ func (z *ZhipuAI) ConvChatCompletionsRequestOfficial(ctx context.Context, data [
 	return gjson.MustEncode(chatCompletionReq), nil
 }
 
-func (z *ZhipuAI) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (z *ZhipuAI) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
 	chatCompletionRes := model.ZhipuAIChatCompletionRes{}
-	if err := gjson.Unmarshal(data, &chatCompletionRes); err != nil {
+	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
 		logger.Error(ctx, err)
-		return model.ChatCompletionResponse{}, err
+		return response, err
 	}
 
 	if chatCompletionRes.Error.Code != "" && chatCompletionRes.Error.Code != "200" {
 		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial ZhipuAI model: %s, chatCompletionRes: %s", z.model, gjson.MustEncodeString(chatCompletionRes))
 
-		err := z.apiErrorHandler(&chatCompletionRes)
+		err = z.apiErrorHandler(&chatCompletionRes)
 		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial ZhipuAI model: %s, error: %v", z.model, err)
 
-		return model.ChatCompletionResponse{}, err
+		return response, err
 	}
 
-	response := model.ChatCompletionResponse{
-		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
-		Object:  consts.COMPLETION_OBJECT,
-		Created: chatCompletionRes.Created,
-		Model:   z.model,
-		Usage:   chatCompletionRes.Usage,
+	response = model.ChatCompletionResponse{
+		Id:            consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
+		Object:        consts.COMPLETION_OBJECT,
+		Created:       chatCompletionRes.Created,
+		Model:         z.model,
+		Usage:         chatCompletionRes.Usage,
+		ResponseBytes: data,
 	}
 
 	for _, choice := range chatCompletionRes.Choices {
@@ -94,29 +96,30 @@ func (z *ZhipuAI) ConvChatCompletionsResponseOfficial(ctx context.Context, data 
 	return response, nil
 }
 
-func (z *ZhipuAI) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (z *ZhipuAI) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	chatCompletionRes := new(model.ZhipuAIChatCompletionRes)
-	if err := gjson.Unmarshal(data, &chatCompletionRes); err != nil {
+	chatCompletionRes := model.ZhipuAIChatCompletionRes{}
+	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
 		logger.Error(ctx, err)
-		return model.ChatCompletionResponse{}, err
+		return response, err
 	}
 
 	if chatCompletionRes.Error.Code != "" && chatCompletionRes.Error.Code != "200" {
 		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, chatCompletionRes: %s", z.model, gjson.MustEncodeString(chatCompletionRes))
 
-		err := z.apiErrorHandler(chatCompletionRes)
+		err = z.apiErrorHandler(&chatCompletionRes)
 		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", z.model, err)
 
-		return model.ChatCompletionResponse{}, err
+		return response, err
 	}
 
-	response := model.ChatCompletionResponse{
-		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
-		Object:  consts.COMPLETION_STREAM_OBJECT,
-		Created: chatCompletionRes.Created,
-		Model:   z.model,
-		Usage:   chatCompletionRes.Usage,
+	response = model.ChatCompletionResponse{
+		Id:            consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
+		Object:        consts.COMPLETION_STREAM_OBJECT,
+		Created:       chatCompletionRes.Created,
+		Model:         z.model,
+		Usage:         chatCompletionRes.Usage,
+		ResponseBytes: data,
 	}
 
 	for _, choice := range chatCompletionRes.Choices {

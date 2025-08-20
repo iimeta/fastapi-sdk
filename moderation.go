@@ -61,8 +61,7 @@ func (c *ModerationClient) TextModerations(ctx context.Context, request model.Mo
 	header := make(map[string]string)
 	header["Authorization"] = "Bearer " + c.key
 
-	response := new(model.ModerationResponse)
-
+	response := model.ModerationResponse{}
 	if _, err = util.HttpPost(ctx, c.baseURL+c.path, header, gjson.MustEncode(request), &response, c.proxyURL); err != nil {
 		logger.Errorf(ctx, "TextModerations OpenAI model: %s, error: %v", request.Model, err)
 		return res, err

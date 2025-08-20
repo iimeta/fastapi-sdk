@@ -20,19 +20,19 @@ func (o *OpenAI) ChatCompletions(ctx context.Context, data []byte) (response mod
 
 	logger.Infof(ctx, "ChatCompletions OpenAI model: %s start", o.model)
 
-	request, err := o.ConvChatCompletionsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions OpenAI ConvChatCompletionsRequest error: %v", err)
-		return response, err
-	}
-
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
 		logger.Infof(ctx, "ChatCompletions OpenAI model: %s totalTime: %d ms", o.model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpPost(ctx, o.baseURL+o.path, o.header, gjson.MustEncode(request), nil, o.proxyURL)
+	request, err := o.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletions OpenAI ConvChatCompletionsRequest error: %v", err)
+		return response, err
+	}
+
+	bytes, err := util.HttpPost(ctx, o.baseURL+o.path, o.header, request, nil, o.proxyURL)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions OpenAI model: %s, error: %v", o.model, err)
 		return response, err
@@ -52,18 +52,18 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 
 	logger.Infof(ctx, "ChatCompletionsStream OpenAI model: %s start", o.model)
 
-	request, err := o.ConvChatCompletionsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream OpenAI ConvChatCompletionsRequest error: %v", err)
-		return nil, err
-	}
-
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
 			logger.Infof(ctx, "ChatCompletionsStream OpenAI model: %s totalTime: %d ms", o.model, gtime.TimestampMilli()-now)
 		}
 	}()
+
+	request, err := o.ConvChatCompletionsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletionsStream OpenAI ConvChatCompletionsRequest error: %v", err)
+		return nil, err
+	}
 
 	if (o.isSupportStream != nil && !*o.isSupportStream) || (gstr.HasPrefix(o.model, "o") && o.isAzure) {
 		return o.ChatCompletionStreamToNonStream(ctx, data)
@@ -132,7 +132,6 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 				fmt.Println(stream.ReqTime, response.ResTime, end, end-gconv.Int64(response.ResTime), end-gconv.Int64(stream.ReqTime)-response.ResTotalTime, "end")
 			}
 
-			response.ResponseBytes = responseBytes
 			response.ConnTime = duration - now
 			response.Duration = end - duration
 			response.TotalTime = end - now

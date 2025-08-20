@@ -11,12 +11,12 @@ func (o *OpenAI) ConvChatCompletionsRequestOfficial(ctx context.Context, data []
 	panic("implement me")
 }
 
-func (o *OpenAI) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (o *OpenAI) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (o *OpenAI) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (o *OpenAI) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

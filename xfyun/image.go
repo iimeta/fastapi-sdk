@@ -81,7 +81,7 @@ func (x *Xfyun) ImageGenerations(ctx context.Context, data []byte) (response mod
 		},
 	}
 
-	imageRes := new(model.XfyunChatCompletionRes)
+	imageRes := model.XfyunChatCompletionRes{}
 	if _, err = util.HttpPost(ctx, x.getHttpUrl(ctx), nil, gjson.MustEncode(imageReq), &imageRes, x.proxyURL); err != nil {
 		logger.Errorf(ctx, "ImageGenerations Xfyun model: %s, error: %v", x.model, err)
 		return response, err

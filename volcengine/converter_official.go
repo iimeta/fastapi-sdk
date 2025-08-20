@@ -11,12 +11,12 @@ func (v *VolcEngine) ConvChatCompletionsRequestOfficial(ctx context.Context, dat
 	panic("implement me")
 }
 
-func (v *VolcEngine) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (v *VolcEngine) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (v *VolcEngine) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (v *VolcEngine) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

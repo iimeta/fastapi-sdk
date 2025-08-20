@@ -3,10 +3,10 @@ package openai
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/consts"
@@ -18,7 +18,7 @@ import (
 func (o *OpenAI) ConvChatCompletionsRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
 
 	request := model.ChatCompletionRequest{}
-	if err := gjson.Unmarshal(data, &request); err != nil {
+	if err := json.Unmarshal(data, &request); err != nil {
 		logger.Error(ctx, err)
 		return request, err
 	}
@@ -54,10 +54,13 @@ func (o *OpenAI) ConvChatCompletionsRequest(ctx context.Context, data []byte) (m
 	return request, nil
 }
 
-func (o *OpenAI) ConvChatCompletionsResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (o *OpenAI) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response := model.ChatCompletionResponse{}
-	if err := gjson.Unmarshal(data, &response); err != nil {
+	response = model.ChatCompletionResponse{
+		ResponseBytes: data,
+	}
+
+	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
 	}
@@ -71,10 +74,13 @@ func (o *OpenAI) ConvChatCompletionsResponse(ctx context.Context, data []byte) (
 	return response, nil
 }
 
-func (o *OpenAI) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (o *OpenAI) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response := model.ChatCompletionResponse{}
-	if err := gjson.Unmarshal(data, &response); err != nil {
+	response = model.ChatCompletionResponse{
+		ResponseBytes: data,
+	}
+
+	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
 	}
@@ -96,12 +102,12 @@ func (o *OpenAI) ConvChatResponsesRequest(ctx context.Context, data []byte) (mod
 	panic("implement me")
 }
 
-func (o *OpenAI) ConvChatResponsesResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (o *OpenAI) ConvChatResponsesResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (o *OpenAI) ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (o *OpenAI) ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -109,7 +115,7 @@ func (o *OpenAI) ConvChatResponsesStreamResponse(ctx context.Context, data []byt
 func (o *OpenAI) ConvImageGenerationsRequest(ctx context.Context, data []byte) (model.ImageGenerationRequest, error) {
 
 	request := model.ImageGenerationRequest{}
-	if err := gjson.Unmarshal(data, &request); err != nil {
+	if err := json.Unmarshal(data, &request); err != nil {
 		logger.Error(ctx, err)
 		return request, err
 	}
@@ -120,7 +126,7 @@ func (o *OpenAI) ConvImageGenerationsRequest(ctx context.Context, data []byte) (
 func (o *OpenAI) ConvImageGenerationsResponse(ctx context.Context, data []byte) (model.ImageResponse, error) {
 
 	response := model.ImageResponse{}
-	if err := gjson.Unmarshal(data, &response); err != nil {
+	if err := json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
 	}
@@ -221,7 +227,7 @@ func (o *OpenAI) ConvImageEditsRequest(ctx context.Context, request model.ImageE
 func (o *OpenAI) ConvImageEditsResponse(ctx context.Context, data []byte) (model.ImageResponse, error) {
 
 	response := model.ImageResponse{}
-	if err := gjson.Unmarshal(data, &response); err != nil {
+	if err := json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
 	}
@@ -232,7 +238,7 @@ func (o *OpenAI) ConvImageEditsResponse(ctx context.Context, data []byte) (model
 func (o *OpenAI) ConvAudioSpeechRequest(ctx context.Context, data []byte) (model.SpeechRequest, error) {
 
 	request := model.SpeechRequest{}
-	if err := gjson.Unmarshal(data, &request); err != nil {
+	if err := json.Unmarshal(data, &request); err != nil {
 		logger.Error(ctx, err)
 		return request, err
 	}
@@ -313,7 +319,7 @@ func (o *OpenAI) ConvAudioTranscriptionsRequest(ctx context.Context, request mod
 func (o *OpenAI) ConvAudioTranscriptionsResponse(ctx context.Context, data []byte) (model.AudioResponse, error) {
 
 	response := model.AudioResponse{}
-	if err := gjson.Unmarshal(data, &response); err != nil {
+	if err := json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
 	}
@@ -324,7 +330,7 @@ func (o *OpenAI) ConvAudioTranscriptionsResponse(ctx context.Context, data []byt
 func (o *OpenAI) ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (model.EmbeddingRequest, error) {
 
 	request := model.EmbeddingRequest{}
-	if err := gjson.Unmarshal(data, &request); err != nil {
+	if err := json.Unmarshal(data, &request); err != nil {
 		logger.Error(ctx, err)
 		return request, err
 	}
@@ -335,7 +341,7 @@ func (o *OpenAI) ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (mo
 func (o *OpenAI) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (model.EmbeddingResponse, error) {
 
 	response := model.EmbeddingResponse{}
-	if err := gjson.Unmarshal(data, &response); err != nil {
+	if err := json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
 	}

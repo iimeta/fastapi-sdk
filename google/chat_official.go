@@ -2,6 +2,7 @@ package google
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -112,8 +113,8 @@ func (g *Google) ChatCompletionStreamOfficial(ctx context.Context, data []byte) 
 				return
 			}
 
-			chatCompletionRes := new(model.GoogleChatCompletionRes)
-			if err := gjson.Unmarshal(streamResponse, &chatCompletionRes); err != nil {
+			chatCompletionRes := model.GoogleChatCompletionRes{}
+			if err := json.Unmarshal(streamResponse, &chatCompletionRes); err != nil {
 				logger.Errorf(ctx, "ChatCompletionStreamOfficial Google model: %s, streamResponse: %s, error: %v", g.model, streamResponse, err)
 
 				end := gtime.TimestampMilli()
@@ -130,7 +131,7 @@ func (g *Google) ChatCompletionStreamOfficial(ctx context.Context, data []byte) 
 			if chatCompletionRes.Error.Code != 0 {
 				logger.Errorf(ctx, "ChatCompletionStreamOfficial Google model: %s, chatCompletionRes: %s", g.model, gjson.MustEncodeString(chatCompletionRes))
 
-				err = g.apiErrorHandler(chatCompletionRes)
+				err = g.apiErrorHandler(&chatCompletionRes)
 				logger.Errorf(ctx, "ChatCompletionStreamOfficial Google model: %s, error: %v", g.model, err)
 
 				end := gtime.TimestampMilli()

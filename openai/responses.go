@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -113,8 +114,8 @@ func (o *OpenAI) ResponsesStream(ctx context.Context, data []byte) (responseChan
 				return
 			}
 
-			responsesRes := new(model.OpenAIResponsesStreamRes)
-			if err := gjson.Unmarshal(streamResponse, &responsesRes); err != nil {
+			responsesRes := model.OpenAIResponsesStreamRes{}
+			if err := json.Unmarshal(streamResponse, &responsesRes); err != nil {
 				logger.Errorf(ctx, "ResponsesStream OpenAI model: %s, streamResponse: %s, error: %v", o.model, streamResponse, err)
 
 				end := gtime.TimestampMilli()
@@ -181,7 +182,7 @@ func (o *OpenAI) ResponsesStreamToNonStream(ctx context.Context, data []byte) (r
 		}()
 
 		request := make(map[string]interface{})
-		if err = gjson.Unmarshal(data, &request); err != nil {
+		if err = json.Unmarshal(data, &request); err != nil {
 			logger.Errorf(ctx, "ResponsesStreamToNonStream OpenAI model: %s, data: %s, error: %v", o.model, data, err)
 
 			end := gtime.TimestampMilli()
@@ -215,8 +216,8 @@ func (o *OpenAI) ResponsesStreamToNonStream(ctx context.Context, data []byte) (r
 
 		duration = gtime.TimestampMilli()
 
-		responsesRes := new(model.OpenAIResponsesRes)
-		if err := gjson.Unmarshal(responses.ResponseBytes, &responsesRes); err != nil {
+		responsesRes := model.OpenAIResponsesRes{}
+		if err := json.Unmarshal(responses.ResponseBytes, &responsesRes); err != nil {
 			logger.Errorf(ctx, "ResponsesStreamToNonStream OpenAI model: %s, responses: %s, error: %v", o.model, responses.ResponseBytes, err)
 
 			end := gtime.TimestampMilli()

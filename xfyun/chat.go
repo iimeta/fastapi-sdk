@@ -2,6 +2,7 @@ package xfyun
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -20,17 +21,17 @@ func (x *Xfyun) ChatCompletions(ctx context.Context, data []byte) (res model.Cha
 
 	logger.Infof(ctx, "ChatCompletions Xfyun model: %s start", x.model)
 
-	request, err := x.ConvChatCompletionsRequestOfficial(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions Xfyun ConvChatCompletionsRequestOfficial error: %v", err)
-		return res, err
-	}
-
 	now := gtime.TimestampMilli()
 	defer func() {
 		res.TotalTime = gtime.TimestampMilli() - now
 		logger.Infof(ctx, "ChatCompletions Xfyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", x.model, res.ConnTime, res.Duration, res.TotalTime)
 	}()
+
+	request, err := x.ConvChatCompletionsRequestOfficial(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletions Xfyun ConvChatCompletionsRequestOfficial error: %v", err)
+		return res, err
+	}
 
 	conn, err := util.WebSocketClient(ctx, x.getWebSocketUrl(ctx), nil, websocket.TextMessage, request, x.proxyURL)
 	if err != nil {
@@ -44,10 +45,11 @@ func (x *Xfyun) ChatCompletions(ctx context.Context, data []byte) (res model.Cha
 		}
 	}()
 
-	duration := gtime.TimestampMilli()
-
-	responseContent := ""
-	chatCompletionRes := new(model.XfyunChatCompletionRes)
+	var (
+		duration          = gtime.TimestampMilli()
+		responseContent   = ""
+		chatCompletionRes = model.XfyunChatCompletionRes{}
+	)
 
 	for {
 
@@ -57,7 +59,7 @@ func (x *Xfyun) ChatCompletions(ctx context.Context, data []byte) (res model.Cha
 			return res, err
 		}
 
-		if err = gjson.Unmarshal(message, &chatCompletionRes); err != nil {
+		if err = json.Unmarshal(message, &chatCompletionRes); err != nil {
 			logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, message: %s, error: %v", x.model, message, err)
 			return res, errors.New(fmt.Sprintf("message: %s, error: %v", message, err))
 		}
@@ -65,7 +67,7 @@ func (x *Xfyun) ChatCompletions(ctx context.Context, data []byte) (res model.Cha
 		if chatCompletionRes.Header.Code != 0 {
 			logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, chatCompletionRes: %s", x.model, gjson.MustEncodeString(chatCompletionRes))
 
-			err = x.apiErrorHandler(chatCompletionRes)
+			err = x.apiErrorHandler(&chatCompletionRes)
 			logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, error: %v", x.model, err)
 
 			return res, err
@@ -107,18 +109,18 @@ func (x *Xfyun) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 
 	logger.Infof(ctx, "ChatCompletionsStream Xfyun model: %s start", x.model)
 
-	request, err := x.ConvChatCompletionsRequestOfficial(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream Xfyun ConvChatCompletionsRequestOfficial error: %v", err)
-		return nil, err
-	}
-
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
 			logger.Infof(ctx, "ChatCompletionsStream Xfyun model: %s totalTime: %d ms", x.model, gtime.TimestampMilli()-now)
 		}
 	}()
+
+	request, err := x.ConvChatCompletionsRequestOfficial(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletionsStream Xfyun ConvChatCompletionsRequestOfficial error: %v", err)
+		return nil, err
+	}
 
 	conn, err := util.WebSocketClient(ctx, x.getWebSocketUrl(ctx), nil, websocket.TextMessage, request, x.proxyURL)
 	if err != nil {
@@ -163,8 +165,8 @@ func (x *Xfyun) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 				return
 			}
 
-			chatCompletionRes := new(model.XfyunChatCompletionRes)
-			if err := gjson.Unmarshal(message, &chatCompletionRes); err != nil {
+			chatCompletionRes := model.XfyunChatCompletionRes{}
+			if err := json.Unmarshal(message, &chatCompletionRes); err != nil {
 				logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, message: %s, error: %v", x.model, message, err)
 
 				end := gtime.TimestampMilli()
@@ -181,7 +183,7 @@ func (x *Xfyun) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 			if chatCompletionRes.Header.Code != 0 {
 				logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, chatCompletionRes: %s", x.model, gjson.MustEncodeString(chatCompletionRes))
 
-				err = x.apiErrorHandler(chatCompletionRes)
+				err = x.apiErrorHandler(&chatCompletionRes)
 				logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, error: %v", x.model, err)
 
 				end := gtime.TimestampMilli()

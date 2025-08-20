@@ -11,12 +11,12 @@ func (d *DeepSeek) ConvChatCompletionsRequestOfficial(ctx context.Context, data 
 	panic("implement me")
 }
 
-func (d *DeepSeek) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (d *DeepSeek) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (d *DeepSeek) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (d *DeepSeek) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

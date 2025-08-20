@@ -2,6 +2,7 @@ package anthropic
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -160,7 +161,7 @@ func (a *Anthropic) requestErrorHandler(ctx context.Context, response *http.Resp
 	}
 
 	errRes := model.AnthropicErrorResponse{}
-	if err := gjson.Unmarshal(bytes, &errRes); err != nil || errRes.Error == nil {
+	if err := json.Unmarshal(bytes, &errRes); err != nil || errRes.Error == nil {
 
 		reqErr := &sdkerr.RequestError{
 			HttpStatusCode: response.StatusCode,

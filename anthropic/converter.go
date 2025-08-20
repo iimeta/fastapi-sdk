@@ -3,8 +3,8 @@ package anthropic
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -13,7 +13,7 @@ import (
 func (a *Anthropic) ConvChatCompletionsRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
 
 	request := model.ChatCompletionRequest{}
-	if err := gjson.Unmarshal(data, &request); err != nil {
+	if err := json.Unmarshal(data, &request); err != nil {
 		logger.Error(ctx, err)
 		return request, err
 	}
@@ -27,10 +27,13 @@ func (a *Anthropic) ConvChatCompletionsRequest(ctx context.Context, data []byte)
 	return request, nil
 }
 
-func (a *Anthropic) ConvChatCompletionsResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (a *Anthropic) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response := model.ChatCompletionResponse{}
-	if err := gjson.Unmarshal(data, &response); err != nil {
+	response = model.ChatCompletionResponse{
+		ResponseBytes: data,
+	}
+
+	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
 	}
@@ -38,10 +41,13 @@ func (a *Anthropic) ConvChatCompletionsResponse(ctx context.Context, data []byte
 	return response, nil
 }
 
-func (a *Anthropic) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (a *Anthropic) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response := model.ChatCompletionResponse{}
-	if err := gjson.Unmarshal(data, &response); err != nil {
+	response = model.ChatCompletionResponse{
+		ResponseBytes: data,
+	}
+
+	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
 	}
@@ -54,12 +60,12 @@ func (a *Anthropic) ConvChatResponsesRequest(ctx context.Context, data []byte) (
 	panic("implement me")
 }
 
-func (a *Anthropic) ConvChatResponsesResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (a *Anthropic) ConvChatResponsesResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (a *Anthropic) ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (a *Anthropic) ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

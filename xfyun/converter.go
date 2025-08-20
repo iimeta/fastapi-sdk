@@ -3,8 +3,8 @@ package xfyun
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -13,7 +13,7 @@ import (
 func (x *Xfyun) ConvChatCompletionsRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
 
 	chatCompletionRequest := model.ChatCompletionRequest{}
-	if err := gjson.Unmarshal(data, &chatCompletionRequest); err != nil {
+	if err := json.Unmarshal(data, &chatCompletionRequest); err != nil {
 		logger.Error(ctx, err)
 		return chatCompletionRequest, err
 	}
@@ -27,10 +27,13 @@ func (x *Xfyun) ConvChatCompletionsRequest(ctx context.Context, data []byte) (mo
 	return chatCompletionRequest, nil
 }
 
-func (x *Xfyun) ConvChatCompletionsResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (x *Xfyun) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	chatCompletionResponse := model.ChatCompletionResponse{}
-	if err := gjson.Unmarshal(data, &chatCompletionResponse); err != nil {
+	chatCompletionResponse := model.ChatCompletionResponse{
+		ResponseBytes: data,
+	}
+
+	if err = json.Unmarshal(data, &chatCompletionResponse); err != nil {
 		logger.Error(ctx, err)
 		return chatCompletionResponse, err
 	}
@@ -38,10 +41,13 @@ func (x *Xfyun) ConvChatCompletionsResponse(ctx context.Context, data []byte) (m
 	return chatCompletionResponse, nil
 }
 
-func (x *Xfyun) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (x *Xfyun) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	chatCompletionResponse := model.ChatCompletionResponse{}
-	if err := gjson.Unmarshal(data, &chatCompletionResponse); err != nil {
+	chatCompletionResponse := model.ChatCompletionResponse{
+		ResponseBytes: data,
+	}
+
+	if err = json.Unmarshal(data, &chatCompletionResponse); err != nil {
 		logger.Error(ctx, err)
 		return chatCompletionResponse, err
 	}
@@ -54,12 +60,12 @@ func (x *Xfyun) ConvChatResponsesRequest(ctx context.Context, data []byte) (mode
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvChatResponsesResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (x *Xfyun) ConvChatResponsesResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (x *Xfyun) ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -67,7 +73,7 @@ func (x *Xfyun) ConvChatResponsesStreamResponse(ctx context.Context, data []byte
 func (x *Xfyun) ConvImageGenerationsRequest(ctx context.Context, data []byte) (model.ImageGenerationRequest, error) {
 
 	request := model.ImageGenerationRequest{}
-	if err := gjson.Unmarshal(data, &request); err != nil {
+	if err := json.Unmarshal(data, &request); err != nil {
 		logger.Error(ctx, err)
 		return request, err
 	}

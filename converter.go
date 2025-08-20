@@ -21,16 +21,16 @@ import (
 
 type Converter interface {
 	ConvChatCompletionsRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error)
-	ConvChatCompletionsResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error)
-	ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error)
+	ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
+	ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
 
 	ConvChatCompletionsRequestOfficial(ctx context.Context, data []byte) ([]byte, error)
-	ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error)
-	ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error)
+	ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
+	ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
 
 	ConvChatResponsesRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error)
-	ConvChatResponsesResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error)
-	ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error)
+	ConvChatResponsesResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
+	ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
 
 	ConvImageGenerationsRequest(ctx context.Context, data []byte) (model.ImageGenerationRequest, error)
 	ConvImageGenerationsResponse(ctx context.Context, data []byte) (model.ImageResponse, error)

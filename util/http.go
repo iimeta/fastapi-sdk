@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -49,7 +50,7 @@ func HttpGet(ctx context.Context, url string, header map[string]string, data g.M
 	logger.Debugf(ctx, "HttpGet url: %s, statusCode: %d, header: %+v, data: %s, proxyURL: %s, response: %s", url, response.StatusCode, header, gjson.MustEncodeString(data), proxyURL, string(bytes))
 
 	if bytes != nil && len(bytes) > 0 {
-		if err = gjson.Unmarshal(bytes, result); err != nil {
+		if err = json.Unmarshal(bytes, result); err != nil {
 			logger.Errorf(ctx, "HttpGet url: %s, statusCode: %d, header: %+v, data: %s, proxyURL: %s, response: %s, error: %v", url, response.StatusCode, header, gjson.MustEncodeString(data), proxyURL, string(bytes), err)
 			return bytes, err
 		}
@@ -137,7 +138,7 @@ func HttpPost(ctx context.Context, rawURL string, header map[string]string, data
 	logger.Debugf(ctx, "HttpPost url: %s, statusCode: %d, header: %+v, data: %s, proxyURL: %s, response: %s", rawURL, response.StatusCode, header, gjson.MustEncodeString(data), proxyURL, string(bytes))
 
 	if bytes != nil && len(bytes) > 0 && result != nil {
-		if err = gjson.Unmarshal(bytes, result); err != nil {
+		if err = json.Unmarshal(bytes, result); err != nil {
 			logger.Errorf(ctx, "HttpPost url: %s, statusCode: %d, header: %+v, data: %s, proxyURL: %s, response: %s, error: %v", rawURL, response.StatusCode, header, gjson.MustEncodeString(data), proxyURL, string(bytes), err)
 			return bytes, errors.New(fmt.Sprintf("response: %s, error: %v", bytes, err))
 		}

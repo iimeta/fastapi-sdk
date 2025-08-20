@@ -2,6 +2,7 @@ package xfyun
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -57,24 +58,24 @@ func (x *Xfyun) ConvChatCompletionsRequestOfficial(ctx context.Context, data []b
 	return gjson.MustEncode(chatCompletionReq), nil
 }
 
-func (x *Xfyun) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (x *Xfyun) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
 	chatCompletionRes := model.XfyunChatCompletionRes{}
-	if err := gjson.Unmarshal(data, &chatCompletionRes); err != nil {
+	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
 		logger.Error(ctx, err)
-		return model.ChatCompletionResponse{}, err
+		return response, err
 	}
 
 	if chatCompletionRes.Header.Code != 0 {
 		logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, chatCompletionRes: %s", x.model, gjson.MustEncodeString(chatCompletionRes))
 
-		err := x.apiErrorHandler(&chatCompletionRes)
+		err = x.apiErrorHandler(&chatCompletionRes)
 		logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, error: %v", x.model, err)
 
-		return model.ChatCompletionResponse{}, err
+		return response, err
 	}
 
-	response := model.ChatCompletionResponse{
+	response = model.ChatCompletionResponse{
 		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Header.Sid,
 		Object:  consts.COMPLETION_OBJECT,
 		Created: gtime.Timestamp(),
@@ -91,29 +92,30 @@ func (x *Xfyun) ConvChatCompletionsResponseOfficial(ctx context.Context, data []
 			CompletionTokens: chatCompletionRes.Payload.Usage.Text.CompletionTokens,
 			TotalTokens:      chatCompletionRes.Payload.Usage.Text.TotalTokens,
 		},
+		ResponseBytes: data,
 	}
 
 	return response, nil
 }
 
-func (x *Xfyun) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (x *Xfyun) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	chatCompletionRes := new(model.XfyunChatCompletionRes)
-	if err := gjson.Unmarshal(data, &chatCompletionRes); err != nil {
+	chatCompletionRes := model.XfyunChatCompletionRes{}
+	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
 		logger.Error(ctx, err)
-		return model.ChatCompletionResponse{}, err
+		return response, err
 	}
 
 	if chatCompletionRes.Header.Code != 0 {
 		logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, chatCompletionRes: %s", x.model, gjson.MustEncodeString(chatCompletionRes))
 
-		err := x.apiErrorHandler(chatCompletionRes)
+		err = x.apiErrorHandler(&chatCompletionRes)
 		logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, error: %v", x.model, err)
 
-		return model.ChatCompletionResponse{}, err
+		return response, err
 	}
 
-	response := model.ChatCompletionResponse{
+	response = model.ChatCompletionResponse{
 		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Header.Sid,
 		Object:  consts.COMPLETION_STREAM_OBJECT,
 		Created: gtime.Timestamp(),
@@ -126,6 +128,7 @@ func (x *Xfyun) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, d
 				FunctionCall: chatCompletionRes.Payload.Choices.Text[0].FunctionCall,
 			},
 		}},
+		ResponseBytes: data,
 	}
 
 	if chatCompletionRes.Payload.Usage != nil {

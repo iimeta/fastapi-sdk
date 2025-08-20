@@ -17,17 +17,17 @@ func (b *Baidu) ChatCompletions(ctx context.Context, data []byte) (response mode
 
 	logger.Infof(ctx, "ChatCompletions Baidu model: %s start", b.model)
 
-	request, err := b.ConvChatCompletionsRequestOfficial(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions Baidu ConvChatCompletionsRequestOfficial error: %v", err)
-		return response, err
-	}
-
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
 		logger.Infof(ctx, "ChatCompletions Baidu model: %s totalTime: %d ms", b.model, response.TotalTime)
 	}()
+
+	request, err := b.ConvChatCompletionsRequestOfficial(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletions Baidu ConvChatCompletionsRequestOfficial error: %v", err)
+		return response, err
+	}
 
 	bytes, err := util.HttpPost(ctx, fmt.Sprintf("%s?access_token=%s", b.baseURL+b.path, b.accessToken), nil, request, nil, b.proxyURL)
 	if err != nil {
@@ -47,18 +47,18 @@ func (b *Baidu) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 
 	logger.Infof(ctx, "ChatCompletionsStream Baidu model: %s start", b.model)
 
-	request, err := b.ConvChatCompletionsRequestOfficial(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream Baidu ConvChatCompletionsRequestOfficial error: %v", err)
-		return nil, err
-	}
-
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
 			logger.Infof(ctx, "ChatCompletionsStream Baidu model: %s totalTime: %d ms", b.model, gtime.TimestampMilli()-now)
 		}
 	}()
+
+	request, err := b.ConvChatCompletionsRequestOfficial(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletionsStream Baidu ConvChatCompletionsRequestOfficial error: %v", err)
+		return nil, err
+	}
 
 	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s?access_token=%s", b.baseURL+b.path, b.accessToken), nil, request, b.proxyURL, b.requestErrorHandler)
 	if err != nil {
@@ -118,7 +118,6 @@ func (b *Baidu) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 
 			end := gtime.TimestampMilli()
 
-			response.ResponseBytes = responseBytes
 			response.ConnTime = duration - now
 			response.Duration = end - duration
 			response.TotalTime = end - now

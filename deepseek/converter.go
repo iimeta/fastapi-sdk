@@ -3,8 +3,8 @@ package deepseek
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/consts"
@@ -15,7 +15,7 @@ import (
 func (d *DeepSeek) ConvChatCompletionsRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
 
 	request := model.ChatCompletionRequest{}
-	if err := gjson.Unmarshal(data, &request); err != nil {
+	if err := json.Unmarshal(data, &request); err != nil {
 		logger.Error(ctx, err)
 		return request, err
 	}
@@ -29,10 +29,13 @@ func (d *DeepSeek) ConvChatCompletionsRequest(ctx context.Context, data []byte) 
 	return request, nil
 }
 
-func (d *DeepSeek) ConvChatCompletionsResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (d *DeepSeek) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response := model.ChatCompletionResponse{}
-	if err := gjson.Unmarshal(data, &response); err != nil {
+	response = model.ChatCompletionResponse{
+		ResponseBytes: data,
+	}
+
+	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
 	}
@@ -44,10 +47,13 @@ func (d *DeepSeek) ConvChatCompletionsResponse(ctx context.Context, data []byte)
 	return response, nil
 }
 
-func (d *DeepSeek) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (d *DeepSeek) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response := model.ChatCompletionResponse{}
-	if err := gjson.Unmarshal(data, &response); err != nil {
+	response = model.ChatCompletionResponse{
+		ResponseBytes: data,
+	}
+
+	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
 	}
@@ -64,12 +70,12 @@ func (d *DeepSeek) ConvChatResponsesRequest(ctx context.Context, data []byte) (m
 	panic("implement me")
 }
 
-func (d *DeepSeek) ConvChatResponsesResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (d *DeepSeek) ConvChatResponsesResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (d *DeepSeek) ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (model.ChatCompletionResponse, error) {
+func (d *DeepSeek) ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
