@@ -16,21 +16,16 @@ import (
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/options"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
 )
 
 type Anthropic struct {
-	model               string
-	key                 string
-	baseURL             string
-	path                string
-	proxyURL            string
-	header              map[string]string
-	isSupportSystemRole *bool
-	isSupportStream     *bool
-	isGcp               bool
-	isAws               bool
-	awsClient           *bedrockruntime.Client
+	*options.AdapterOptions
+	header    map[string]string
+	isGcp     bool
+	isAws     bool
+	awsClient *bedrockruntime.Client
 }
 
 // https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html
@@ -46,109 +41,67 @@ var AwsModelIDMap = map[string]string{
 	"claude-instant-1.2":         "anthropic.claude-instant-v1",
 }
 
-func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Anthropic {
-
-	logger.Infof(ctx, "NewAdapter Anthropic model: %s, key: %s", model, key)
+func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Anthropic {
 
 	anthropic := &Anthropic{
-		model:   model,
-		key:     key,
-		baseURL: "https://api.anthropic.com/v1",
-		path:    "/messages",
+		AdapterOptions: options,
 		header: g.MapStrStr{
-			"x-api-key":         key,
+			"x-api-key":         options.Key,
 			"anthropic-version": "2023-06-01",
 			"anthropic-beta":    "prompt-caching-2024-07-31",
 		},
-		isSupportSystemRole: isSupportSystemRole,
-		isSupportStream:     isSupportStream,
 	}
 
-	if baseURL != "" {
-		logger.Infof(ctx, "NewAdapter Anthropic model: %s, baseURL: %s", model, baseURL)
-		anthropic.baseURL = baseURL
+	if anthropic.BaseUrl == "" {
+		anthropic.BaseUrl = "https://api.anthropic.com/v1"
 	}
 
-	if path != "" {
-		logger.Infof(ctx, "NewAdapter Anthropic model: %s, path: %s", model, path)
-		anthropic.path = path
+	if anthropic.Path == "" {
+		anthropic.Path = "/messages"
 	}
 
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewAdapter Anthropic model: %s, proxyURL: %s", model, proxyURL[0])
-		anthropic.proxyURL = proxyURL[0]
-	}
+	logger.Infof(ctx, "NewAdapter Anthropic model: %s, key: %s", anthropic.Model, anthropic.Key)
 
 	return anthropic
 }
 
-func NewGcpAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Anthropic {
-
-	logger.Infof(ctx, "NewGcpAdapter Anthropic model: %s, key: %s", model, key)
+func NewGcpAdapter(ctx context.Context, options *options.AdapterOptions) *Anthropic {
 
 	gcp := &Anthropic{
-		model:   model,
-		key:     key,
-		baseURL: "https://us-east5-aiplatform.googleapis.com/v1",
-		path:    "/projects/%s/locations/us-east5/publishers/anthropic/models/%s:streamRawPredict",
+		AdapterOptions: options,
 		header: g.MapStrStr{
-			"Authorization": "Bearer " + key,
+			"Authorization": "Bearer " + options.Key,
 		},
-		isSupportSystemRole: isSupportSystemRole,
-		isSupportStream:     isSupportStream,
-		isGcp:               true,
+		isGcp: true,
 	}
 
-	if baseURL != "" {
-		logger.Infof(ctx, "NewGcpAdapter Anthropic model: %s, baseURL: %s", model, baseURL)
-		gcp.baseURL = baseURL
+	if gcp.BaseUrl == "" {
+		gcp.BaseUrl = "https://us-east5-aiplatform.googleapis.com/v1"
 	}
 
-	if path != "" {
-		logger.Infof(ctx, "NewGcpAdapter Anthropic model: %s, path: %s", model, path)
-		gcp.path = path
+	if gcp.Path == "" {
+		gcp.Path = "/projects/%s/locations/us-east5/publishers/anthropic/models/%s:streamRawPredict"
 	}
 
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewGcpAdapter Anthropic model: %s, proxyURL: %s", model, proxyURL[0])
-		gcp.proxyURL = proxyURL[0]
-	}
+	logger.Infof(ctx, "NewGcpAdapter Anthropic model: %s, key: %s", gcp.Model, gcp.Key)
 
 	return gcp
 }
 
-func NewAwsAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Anthropic {
+func NewAwsAdapter(ctx context.Context, options *options.AdapterOptions) *Anthropic {
 
-	logger.Infof(ctx, "NewAwsAdapter Anthropic model: %s, key: %s", model, key)
-
-	result := gstr.Split(key, "|")
+	result := gstr.Split(options.Key, "|")
 
 	aws := &Anthropic{
-		model:               model,
-		key:                 key,
-		isSupportSystemRole: isSupportSystemRole,
-		isSupportStream:     isSupportStream,
-		isAws:               true,
+		AdapterOptions: options,
+		isAws:          true,
 		awsClient: bedrockruntime.New(bedrockruntime.Options{
 			Region:      result[0],
 			Credentials: aws.NewCredentialsCache(credentials.NewStaticCredentialsProvider(result[1], result[2], "")),
 		}),
 	}
 
-	if baseURL != "" {
-		logger.Infof(ctx, "NewAwsAdapter Anthropic model: %s, baseURL: %s", model, baseURL)
-		aws.baseURL = baseURL
-	}
-
-	if path != "" {
-		logger.Infof(ctx, "NewAwsAdapter Anthropic model: %s, path: %s", model, path)
-		aws.path = path
-	}
-
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewAwsAdapter Anthropic model: %s, proxyURL: %s", model, proxyURL[0])
-		aws.proxyURL = proxyURL[0]
-	}
+	logger.Infof(ctx, "NewAwsAdapter Anthropic model: %s, key: %s", aws.Model, aws.Key)
 
 	return aws
 }

@@ -25,8 +25,8 @@ type ImageResponse struct {
 }
 
 type ImageResponseDataInner struct {
-	URL           string `json:"url,omitempty"`
-	B64JSON       string `json:"b64_json,omitempty"`
+	Url           string `json:"url,omitempty"`
+	B64Json       string `json:"b64_json,omitempty"`
 	RevisedPrompt string `json:"revised_prompt,omitempty"`
 }
 

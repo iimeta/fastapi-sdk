@@ -45,10 +45,8 @@ func (o *OpenAI) ConvChatCompletionsRequest(ctx context.Context, data []byte) (m
 		request.MaxTokens = 0
 	}
 
-	if o.isSupportSystemRole != nil {
-		request.Messages = common.HandleMessages(request.Messages, *o.isSupportSystemRole)
-	} else {
-		request.Messages = common.HandleMessages(request.Messages, true)
+	if o.IsSupportSystemRole != nil {
+		request.Messages = common.HandleMessages(request.Messages, *o.IsSupportSystemRole)
 	}
 
 	return request, nil
@@ -140,20 +138,20 @@ func (o *OpenAI) ConvImageEditsRequest(ctx context.Context, request model.ImageE
 	builder := util.NewFormBuilder(data)
 
 	if err := builder.WriteField("model", request.Model); err != nil {
-		logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.model, err)
+		logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 		return data, err
 	}
 
 	if len(request.Image) > 0 {
 		if len(request.Image) == 1 {
 			if err := builder.CreateFormFileHeader("image", request.Image[0]); err != nil {
-				logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.model, err)
+				logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 				return data, err
 			}
 		} else {
 			for _, image := range request.Image {
 				if err := builder.CreateFormFileHeader("image[]", image); err != nil {
-					logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.model, err)
+					logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 					return data, err
 				}
 			}
@@ -161,61 +159,61 @@ func (o *OpenAI) ConvImageEditsRequest(ctx context.Context, request model.ImageE
 	}
 
 	if err := builder.WriteField("prompt", request.Prompt); err != nil {
-		logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.model, err)
+		logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 		return data, err
 	}
 
 	if request.Background != "" {
 		if err := builder.WriteField("background", request.Background); err != nil {
-			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.model, err)
+			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
 	}
 
 	if request.Mask != nil {
 		if err := builder.CreateFormFileHeader("mask", request.Mask); err != nil {
-			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.model, err)
+			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
 	}
 
 	if request.N != 0 {
 		if err := builder.WriteField("n", strconv.Itoa(request.N)); err != nil {
-			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.model, err)
+			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
 	}
 
 	if request.Quality != "" {
 		if err := builder.WriteField("quality", request.Quality); err != nil {
-			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.model, err)
+			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
 	}
 
 	if request.ResponseFormat != "" {
 		if err := builder.WriteField("response_format", request.ResponseFormat); err != nil {
-			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.model, err)
+			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
 	}
 
 	if request.Size != "" {
 		if err := builder.WriteField("size", request.Size); err != nil {
-			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.model, err)
+			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
 	}
 
 	if request.User != "" {
 		if err := builder.WriteField("user", request.User); err != nil {
-			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.model, err)
+			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
 	}
 
 	if err := builder.Close(); err != nil {
-		logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.model, err)
+		logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 		return data, err
 	}
 
@@ -258,41 +256,41 @@ func (o *OpenAI) ConvAudioTranscriptionsRequest(ctx context.Context, request mod
 	builder := util.NewFormBuilder(data)
 
 	if err := builder.WriteField("model", request.Model); err != nil {
-		logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.model, err)
+		logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.Model, err)
 		return data, err
 	}
 
 	if request.File != nil {
 		if err := builder.CreateFormFileHeader("file", request.File); err != nil {
-			logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.model, err)
+			logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
 	}
 
 	if request.Prompt != "" {
 		if err := builder.WriteField("prompt", request.Prompt); err != nil {
-			logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.model, err)
+			logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
 	}
 
 	if request.Format != "" {
 		if err := builder.WriteField("response_format", request.Format); err != nil {
-			logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.model, err)
+			logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
 	}
 
 	if request.Temperature != 0 {
 		if err := builder.WriteField("temperature", fmt.Sprintf("%.2f", request.Temperature)); err != nil {
-			logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.model, err)
+			logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
 	}
 
 	if request.Language != "" {
 		if err := builder.WriteField("language", request.Language); err != nil {
-			logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.model, err)
+			logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
 	}
@@ -300,14 +298,14 @@ func (o *OpenAI) ConvAudioTranscriptionsRequest(ctx context.Context, request mod
 	if len(request.TimestampGranularities) > 0 {
 		for _, timestampGranularitie := range request.TimestampGranularities {
 			if err := builder.WriteField("timestamp_granularities[]", timestampGranularitie); err != nil {
-				logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.model, err)
+				logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.Model, err)
 				return data, err
 			}
 		}
 	}
 
 	if err := builder.Close(); err != nil {
-		logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.model, err)
+		logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.Model, err)
 		return data, err
 	}
 

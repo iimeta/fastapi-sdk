@@ -11,12 +11,12 @@ import (
 
 func (o *OpenAI) TextEmbeddings(ctx context.Context, data []byte) (response model.EmbeddingResponse, err error) {
 
-	logger.Infof(ctx, "TextEmbeddings OpenAI model: %s start", o.model)
+	logger.Infof(ctx, "TextEmbeddings OpenAI model: %s start", o.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "TextEmbeddings OpenAI model: %s totalTime: %d ms", o.model, response.TotalTime)
+		logger.Infof(ctx, "TextEmbeddings OpenAI model: %s totalTime: %d ms", o.Model, response.TotalTime)
 	}()
 
 	request, err := o.ConvTextEmbeddingsRequest(ctx, data)
@@ -25,9 +25,9 @@ func (o *OpenAI) TextEmbeddings(ctx context.Context, data []byte) (response mode
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, o.baseURL+"/embeddings", o.header, request, nil, o.proxyURL, o.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, o.BaseUrl+"/embeddings", o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "TextEmbeddings OpenAI model: %s, error: %v", o.model, err)
+		logger.Errorf(ctx, "TextEmbeddings OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
 	}
 
@@ -36,7 +36,7 @@ func (o *OpenAI) TextEmbeddings(ctx context.Context, data []byte) (response mode
 		return response, err
 	}
 
-	logger.Infof(ctx, "TextEmbeddings OpenAI model: %s finished", o.model)
+	logger.Infof(ctx, "TextEmbeddings OpenAI model: %s finished", o.Model)
 
 	return response, nil
 }

@@ -11,83 +11,54 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/options"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
 )
 
 type Google struct {
-	model               string
-	key                 string
-	baseURL             string
-	path                string
-	proxyURL            string
-	header              map[string]string
-	isSupportSystemRole *bool
-	isSupportStream     *bool
-	isGcp               bool
+	*options.AdapterOptions
+	header map[string]string
+	isGcp  bool
 }
 
-func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Google {
-
-	logger.Infof(ctx, "NewAdapter Google model: %s, key: %s", model, key)
+func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Google {
 
 	google := &Google{
-		model:               model,
-		key:                 key,
-		baseURL:             "https://generativelanguage.googleapis.com/v1beta",
-		path:                "/models/" + model,
-		isSupportSystemRole: isSupportSystemRole,
-		isSupportStream:     isSupportStream,
+		AdapterOptions: options,
 	}
 
-	if baseURL != "" {
-		logger.Infof(ctx, "NewAdapter Google model: %s, baseURL: %s", model, baseURL)
-		google.baseURL = baseURL
+	if google.BaseUrl == "" {
+		google.BaseUrl = "https://generativelanguage.googleapis.com/v1beta"
 	}
 
-	if path != "" {
-		logger.Infof(ctx, "NewAdapter Google model: %s, path: %s", model, path)
-		google.path = path
+	if google.Path == "" {
+		google.Path = "/models/" + google.Model
 	}
 
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewAdapter Google model: %s, proxyURL: %s", model, proxyURL[0])
-		google.proxyURL = proxyURL[0]
-	}
+	logger.Infof(ctx, "NewAdapter Google model: %s, key: %s", google.Model, google.Key)
 
 	return google
 }
 
-func NewGcpAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Google {
-
-	logger.Infof(ctx, "NewGcpAdapter Google model: %s, key: %s", model, key)
+func NewGcpAdapter(ctx context.Context, options *options.AdapterOptions) *Google {
 
 	gcp := &Google{
-		model:   model,
-		key:     key,
-		baseURL: "https://us-east5-aiplatform.googleapis.com/v1",
-		path:    "/projects/%s/locations/us-east5/publishers/google/models/%s",
+		AdapterOptions: options,
 		header: g.MapStrStr{
-			"Authorization": "Bearer " + key,
+			"Authorization": "Bearer " + options.Key,
 		},
-		isSupportSystemRole: isSupportSystemRole,
-		isSupportStream:     isSupportStream,
-		isGcp:               true,
+		isGcp: true,
 	}
 
-	if baseURL != "" {
-		logger.Infof(ctx, "NewGcpAdapter Google model: %s, baseURL: %s", model, baseURL)
-		gcp.baseURL = baseURL
+	if gcp.BaseUrl == "" {
+		gcp.BaseUrl = "https://us-east5-aiplatform.googleapis.com/v1"
 	}
 
-	if path != "" {
-		logger.Infof(ctx, "NewGcpAdapter Google model: %s, path: %s", model, path)
-		gcp.path = path
+	if gcp.Path == "" {
+		gcp.Path = "/projects/%s/locations/us-east5/publishers/google/models/%s"
 	}
 
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewGcpAdapter Google model: %s, proxyURL: %s", model, proxyURL[0])
-		gcp.proxyURL = proxyURL[0]
-	}
+	logger.Infof(ctx, "NewGcpAdapter Google model: %s, key: %s", gcp.Model, gcp.Key)
 
 	return gcp
 }

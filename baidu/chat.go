@@ -15,12 +15,12 @@ import (
 
 func (b *Baidu) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletions Baidu model: %s start", b.model)
+	logger.Infof(ctx, "ChatCompletions Baidu model: %s start", b.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletions Baidu model: %s totalTime: %d ms", b.model, response.TotalTime)
+		logger.Infof(ctx, "ChatCompletions Baidu model: %s totalTime: %d ms", b.Model, response.TotalTime)
 	}()
 
 	request, err := b.ConvChatCompletionsRequestOfficial(ctx, data)
@@ -29,9 +29,9 @@ func (b *Baidu) ChatCompletions(ctx context.Context, data []byte) (response mode
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, fmt.Sprintf("%s?access_token=%s", b.baseURL+b.path, b.accessToken), b.header, request, nil, b.proxyURL, b.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, fmt.Sprintf("%s?access_token=%s", b.BaseUrl+b.Path, b.accessToken), b.header, request, nil, b.Timeout, b.ProxyUrl, b.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions Baidu model: %s, error: %v", b.model, err)
+		logger.Errorf(ctx, "ChatCompletions Baidu model: %s, error: %v", b.Model, err)
 		return response, err
 	}
 
@@ -45,12 +45,12 @@ func (b *Baidu) ChatCompletions(ctx context.Context, data []byte) (response mode
 
 func (b *Baidu) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletionsStream Baidu model: %s start", b.model)
+	logger.Infof(ctx, "ChatCompletionsStream Baidu model: %s start", b.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionsStream Baidu model: %s totalTime: %d ms", b.model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStream Baidu model: %s totalTime: %d ms", b.Model, gtime.TimestampMilli()-now)
 		}
 	}()
 
@@ -60,9 +60,9 @@ func (b *Baidu) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 		return nil, err
 	}
 
-	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s?access_token=%s", b.baseURL+b.path, b.accessToken), b.header, request, b.proxyURL, b.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s?access_token=%s", b.BaseUrl+b.Path, b.accessToken), b.header, request, b.Timeout, b.ProxyUrl, b.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream Baidu model: %s, error: %v", b.model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream Baidu model: %s, error: %v", b.Model, err)
 		return responseChan, err
 	}
 
@@ -74,11 +74,11 @@ func (b *Baidu) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 
 		defer func() {
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionsStream Baidu model: %s, stream.Close error: %v", b.model, err)
+				logger.Errorf(ctx, "ChatCompletionsStream Baidu model: %s, stream.Close error: %v", b.Model, err)
 			}
 
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionsStream Baidu model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", b.model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStream Baidu model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", b.Model, duration-now, end-duration, end-now)
 		}()
 
 		for {
@@ -87,7 +87,7 @@ func (b *Baidu) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 			if err != nil {
 
 				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
-					logger.Errorf(ctx, "ChatCompletionsStream Baidu model: %s, error: %v", b.model, err)
+					logger.Errorf(ctx, "ChatCompletionsStream Baidu model: %s, error: %v", b.Model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -126,7 +126,7 @@ func (b *Baidu) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 		}
 
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream Baidu model: %s, error: %v", b.model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream Baidu model: %s, error: %v", b.Model, err)
 		return responseChan, err
 	}
 

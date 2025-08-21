@@ -108,10 +108,10 @@ func (g *Google) ConvChatCompletionsResponseOfficial(ctx context.Context, data [
 	}
 
 	if chatCompletionRes.Error.Code != 0 || (chatCompletionRes.Candidates[0].FinishReason != "STOP" && chatCompletionRes.Candidates[0].FinishReason != "MAX_TOKENS") {
-		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Google model: %s, chatCompletionRes: %s", g.model, gjson.MustEncodeString(chatCompletionRes))
+		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Google model: %s, chatCompletionRes: %s", g.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = g.apiErrorHandler(&chatCompletionRes)
-		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Google model: %s, error: %v", g.model, err)
+		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Google model: %s, error: %v", g.Model, err)
 
 		return response, err
 	}
@@ -120,7 +120,7 @@ func (g *Google) ConvChatCompletionsResponseOfficial(ctx context.Context, data [
 		Id:      consts.COMPLETION_ID_PREFIX + grand.S(29),
 		Object:  consts.COMPLETION_OBJECT,
 		Created: gtime.Timestamp(),
-		Model:   g.model,
+		Model:   g.Model,
 		Usage: &model.Usage{
 			PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
 			CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
@@ -152,10 +152,10 @@ func (g *Google) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, 
 	}
 
 	if chatCompletionRes.Error.Code != 0 {
-		logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, chatCompletionRes: %s", g.model, gjson.MustEncodeString(chatCompletionRes))
+		logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, chatCompletionRes: %s", g.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = g.apiErrorHandler(&chatCompletionRes)
-		logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.Model, err)
 
 		return response, err
 	}
@@ -164,7 +164,7 @@ func (g *Google) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, 
 		Id:            consts.COMPLETION_ID_PREFIX + grand.S(29),
 		Object:        consts.COMPLETION_STREAM_OBJECT,
 		Created:       gtime.Timestamp(),
-		Model:         g.model,
+		Model:         g.Model,
 		ResponseBytes: data,
 	}
 

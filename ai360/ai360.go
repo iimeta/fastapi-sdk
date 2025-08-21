@@ -9,50 +9,33 @@ import (
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/iimeta/fastapi-sdk/logger"
+	"github.com/iimeta/fastapi-sdk/options"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
 )
 
 type AI360 struct {
-	model               string
-	key                 string
-	baseURL             string
-	path                string
-	proxyURL            string
-	header              map[string]string
-	isSupportSystemRole *bool
-	isSupportStream     *bool
+	*options.AdapterOptions
+	header map[string]string
 }
 
-func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *AI360 {
-
-	logger.Infof(ctx, "NewAdapter 360AI model: %s, key: %s", model, key)
+func NewAdapter(ctx context.Context, options *options.AdapterOptions) *AI360 {
 
 	ai360 := &AI360{
-		model:   model,
-		key:     key,
-		baseURL: "https://api.360.cn/v1",
-		path:    "/chat/completions",
+		AdapterOptions: options,
 		header: g.MapStrStr{
-			"Authorization": "Bearer " + key,
+			"Authorization": "Bearer " + options.Key,
 		},
-		isSupportSystemRole: isSupportSystemRole,
-		isSupportStream:     isSupportStream,
 	}
 
-	if baseURL != "" {
-		logger.Infof(ctx, "NewAdapter 360AI model: %s, baseURL: %s", model, baseURL)
-		ai360.baseURL = baseURL
+	if ai360.BaseUrl == "" {
+		ai360.BaseUrl = "https://api.360.cn/v1"
 	}
 
-	if path != "" {
-		logger.Infof(ctx, "NewAdapter 360AI model: %s, path: %s", model, path)
-		ai360.path = path
+	if ai360.Path == "" {
+		ai360.Path = "/chat/completions"
 	}
 
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewAdapter 360AI model: %s, proxyURL: %s", model, proxyURL[0])
-		ai360.proxyURL = proxyURL[0]
-	}
+	logger.Infof(ctx, "NewAdapter 360AI model: %s, key: %s", ai360.Model, ai360.Key)
 
 	return ai360
 }

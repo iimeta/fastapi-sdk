@@ -15,12 +15,12 @@ import (
 
 func (d *DeepSeek) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletions DeepSeek model: %s start", d.model)
+	logger.Infof(ctx, "ChatCompletions DeepSeek model: %s start", d.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletions DeepSeek model: %s totalTime: %d ms", d.model, response.TotalTime)
+		logger.Infof(ctx, "ChatCompletions DeepSeek model: %s totalTime: %d ms", d.Model, response.TotalTime)
 	}()
 
 	request, err := d.ConvChatCompletionsRequest(ctx, data)
@@ -29,9 +29,9 @@ func (d *DeepSeek) ChatCompletions(ctx context.Context, data []byte) (response m
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, d.baseURL+d.path, d.header, request, nil, d.proxyURL, d.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, d.BaseUrl+d.Path, d.header, request, nil, d.Timeout, d.ProxyUrl, d.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions DeepSeek model: %s, error: %v", d.model, err)
+		logger.Errorf(ctx, "ChatCompletions DeepSeek model: %s, error: %v", d.Model, err)
 		return response, err
 	}
 
@@ -40,19 +40,19 @@ func (d *DeepSeek) ChatCompletions(ctx context.Context, data []byte) (response m
 		return response, err
 	}
 
-	logger.Infof(ctx, "ChatCompletions DeepSeek model: %s finished", d.model)
+	logger.Infof(ctx, "ChatCompletions DeepSeek model: %s finished", d.Model)
 
 	return response, nil
 }
 
 func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s start", d.model)
+	logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s start", d.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s totalTime: %d ms", d.model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s totalTime: %d ms", d.Model, gtime.TimestampMilli()-now)
 		}
 	}()
 
@@ -62,9 +62,9 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data []byte) (resp
 		return nil, err
 	}
 
-	stream, err := util.SSEClient(ctx, d.baseURL+d.path, d.header, gjson.MustEncode(request), d.proxyURL, d.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, d.BaseUrl+d.Path, d.header, gjson.MustEncode(request), d.Timeout, d.ProxyUrl, d.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, error: %v", d.model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, error: %v", d.Model, err)
 		return responseChan, err
 	}
 
@@ -76,11 +76,11 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data []byte) (resp
 
 		defer func() {
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, stream.Close error: %v", d.model, err)
+				logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, stream.Close error: %v", d.Model, err)
 			}
 
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", d.model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", d.Model, duration-now, end-duration, end-now)
 		}()
 
 		for {
@@ -89,7 +89,7 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data []byte) (resp
 			if err != nil {
 
 				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
-					logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, error: %v", d.model, err)
+					logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, error: %v", d.Model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -128,7 +128,7 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data []byte) (resp
 		}
 
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, error: %v", d.model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, error: %v", d.Model, err)
 		return responseChan, err
 	}
 

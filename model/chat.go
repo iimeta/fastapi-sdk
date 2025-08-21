@@ -59,9 +59,10 @@ type ChatCompletionMessage struct {
 	Name             string        `json:"name,omitempty"`
 	FunctionCall     *FunctionCall `json:"function_call,omitempty"`
 	ToolCalls        any           `json:"tool_calls,omitempty"`
-	ToolCallID       string        `json:"tool_call_id,omitempty"`
+	ToolCallId       string        `json:"tool_call_id,omitempty"`
 	Audio            *Audio        `json:"audio,omitempty"`
 	Annotations      []any         `json:"annotations"`
+	Prefix           bool          `json:"prefix,omitempty"`
 }
 
 type ChatCompletionChoice struct {
@@ -198,7 +199,7 @@ type FunctionCall struct {
 
 type ToolCall struct {
 	Index    *int         `json:"index,omitempty"`
-	ID       string       `json:"id,omitempty"`
+	Id       string       `json:"id,omitempty"`
 	Type     string       `json:"type"`
 	Function FunctionCall `json:"function"`
 }

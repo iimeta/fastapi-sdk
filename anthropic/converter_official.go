@@ -95,10 +95,10 @@ func (a *Anthropic) ConvChatCompletionsResponseOfficial(ctx context.Context, dat
 	}
 
 	if chatCompletionRes.Error != nil && chatCompletionRes.Error.Type != "" {
-		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Anthropic model: %s, chatCompletionRes: %s", a.model, gjson.MustEncodeString(chatCompletionRes))
+		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Anthropic model: %s, chatCompletionRes: %s", a.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = a.apiErrorHandler(&chatCompletionRes)
-		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Anthropic model: %s, error: %v", a.model, err)
+		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Anthropic model: %s, error: %v", a.Model, err)
 
 		return response, err
 	}
@@ -107,7 +107,7 @@ func (a *Anthropic) ConvChatCompletionsResponseOfficial(ctx context.Context, dat
 		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
 		Object:  consts.COMPLETION_OBJECT,
 		Created: gtime.Timestamp(),
-		Model:   a.model,
+		Model:   a.Model,
 		Usage: &model.Usage{
 			PromptTokens:             chatCompletionRes.Usage.InputTokens,
 			CompletionTokens:         chatCompletionRes.Usage.OutputTokens,
@@ -153,10 +153,10 @@ func (a *Anthropic) ConvChatCompletionsStreamResponseOfficial(ctx context.Contex
 	}
 
 	if chatCompletionRes.Error != nil && chatCompletionRes.Error.Type != "" {
-		logger.Errorf(ctx, "ConvChatCompletionsStreamResponseOfficial Anthropic model: %s, chatCompletionRes: %s", a.model, gjson.MustEncodeString(chatCompletionRes))
+		logger.Errorf(ctx, "ConvChatCompletionsStreamResponseOfficial Anthropic model: %s, chatCompletionRes: %s", a.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = a.apiErrorHandler(&chatCompletionRes)
-		logger.Errorf(ctx, "ConvChatCompletionsStreamResponseOfficial Anthropic model: %s, error: %v", a.model, err)
+		logger.Errorf(ctx, "ConvChatCompletionsStreamResponseOfficial Anthropic model: %s, error: %v", a.Model, err)
 
 		return response, err
 	}
@@ -165,7 +165,7 @@ func (a *Anthropic) ConvChatCompletionsStreamResponseOfficial(ctx context.Contex
 		Id:            chatCompletionRes.Message.Id,
 		Object:        consts.COMPLETION_STREAM_OBJECT,
 		Created:       gtime.Timestamp(),
-		Model:         a.model,
+		Model:         a.Model,
 		ResponseBytes: data,
 	}
 

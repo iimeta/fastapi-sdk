@@ -18,8 +18,8 @@ func (a *Anthropic) ConvChatCompletionsRequest(ctx context.Context, data []byte)
 		return request, err
 	}
 
-	if a.isSupportSystemRole != nil {
-		request.Messages = common.HandleMessages(request.Messages, *a.isSupportSystemRole)
+	if a.IsSupportSystemRole != nil {
+		request.Messages = common.HandleMessages(request.Messages, *a.IsSupportSystemRole)
 	} else {
 		request.Messages = common.HandleMessages(request.Messages, true)
 	}

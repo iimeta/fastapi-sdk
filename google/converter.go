@@ -18,8 +18,8 @@ func (g *Google) ConvChatCompletionsRequest(ctx context.Context, data []byte) (m
 		return chatCompletionRequest, err
 	}
 
-	if g.isSupportSystemRole != nil {
-		chatCompletionRequest.Messages = common.HandleMessages(chatCompletionRequest.Messages, *g.isSupportSystemRole)
+	if g.IsSupportSystemRole != nil {
+		chatCompletionRequest.Messages = common.HandleMessages(chatCompletionRequest.Messages, *g.IsSupportSystemRole)
 	} else {
 		chatCompletionRequest.Messages = common.HandleMessages(chatCompletionRequest.Messages, false)
 	}

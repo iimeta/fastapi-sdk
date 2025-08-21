@@ -55,10 +55,10 @@ func (a *Aliyun) ConvChatCompletionsResponseOfficial(ctx context.Context, data [
 	}
 
 	if chatCompletionRes.Code != "" {
-		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Aliyun model: %s, chatCompletionRes: %s", a.model, gjson.MustEncodeString(chatCompletionRes))
+		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Aliyun model: %s, chatCompletionRes: %s", a.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = a.apiErrorHandler(&chatCompletionRes)
-		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Aliyun model: %s, error: %v", a.model, err)
+		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Aliyun model: %s, error: %v", a.Model, err)
 
 		return response, err
 	}
@@ -67,7 +67,7 @@ func (a *Aliyun) ConvChatCompletionsResponseOfficial(ctx context.Context, data [
 		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.RequestId,
 		Object:  consts.COMPLETION_OBJECT,
 		Created: gtime.Timestamp(),
-		Model:   a.model,
+		Model:   a.Model,
 		Choices: []model.ChatCompletionChoice{{
 			Message: &model.ChatCompletionMessage{
 				Role:    consts.ROLE_ASSISTANT,
@@ -94,10 +94,10 @@ func (a *Aliyun) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, 
 	}
 
 	if chatCompletionRes.Code != "" {
-		logger.Errorf(ctx, "ConvChatCompletionsStreamResponseOfficial Aliyun model: %s, chatCompletionRes: %s", a.model, gjson.MustEncodeString(chatCompletionRes))
+		logger.Errorf(ctx, "ConvChatCompletionsStreamResponseOfficial Aliyun model: %s, chatCompletionRes: %s", a.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = a.apiErrorHandler(&chatCompletionRes)
-		logger.Errorf(ctx, "ConvChatCompletionsStreamResponseOfficial Aliyun model: %s, error: %v", a.model, err)
+		logger.Errorf(ctx, "ConvChatCompletionsStreamResponseOfficial Aliyun model: %s, error: %v", a.Model, err)
 
 		return response, err
 	}
@@ -106,7 +106,7 @@ func (a *Aliyun) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, 
 		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.RequestId,
 		Object:  consts.COMPLETION_STREAM_OBJECT,
 		Created: gtime.Timestamp(),
-		Model:   a.model,
+		Model:   a.Model,
 		Choices: []model.ChatCompletionChoice{{
 			Delta: &model.ChatCompletionStreamChoiceDelta{
 				Role:    consts.ROLE_ASSISTANT,

@@ -11,12 +11,12 @@ import (
 
 func (o *OpenAI) AudioSpeech(ctx context.Context, data []byte) (response model.SpeechResponse, err error) {
 
-	logger.Infof(ctx, "AudioSpeech OpenAI model: %s start", o.model)
+	logger.Infof(ctx, "AudioSpeech OpenAI model: %s start", o.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "AudioSpeech OpenAI model: %s totalTime: %d ms", o.model, response.TotalTime)
+		logger.Infof(ctx, "AudioSpeech OpenAI model: %s totalTime: %d ms", o.Model, response.TotalTime)
 	}()
 
 	request, err := o.ConvAudioSpeechRequest(ctx, data)
@@ -25,9 +25,9 @@ func (o *OpenAI) AudioSpeech(ctx context.Context, data []byte) (response model.S
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, o.baseURL+"/audio/speech", o.header, request, nil, o.proxyURL, o.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, o.BaseUrl+"/audio/speech", o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "AudioSpeech OpenAI model: %s, error: %v", o.model, err)
+		logger.Errorf(ctx, "AudioSpeech OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
 	}
 
@@ -36,19 +36,19 @@ func (o *OpenAI) AudioSpeech(ctx context.Context, data []byte) (response model.S
 		return response, err
 	}
 
-	logger.Infof(ctx, "AudioSpeech OpenAI model: %s finished", o.model)
+	logger.Infof(ctx, "AudioSpeech OpenAI model: %s finished", o.Model)
 
 	return response, nil
 }
 
 func (o *OpenAI) AudioTranscriptions(ctx context.Context, request model.AudioRequest) (response model.AudioResponse, err error) {
 
-	logger.Infof(ctx, "AudioTranscriptions OpenAI model: %s start", o.model)
+	logger.Infof(ctx, "AudioTranscriptions OpenAI model: %s start", o.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "AudioTranscriptions OpenAI model: %s totalTime: %d ms", o.model, response.TotalTime)
+		logger.Infof(ctx, "AudioTranscriptions OpenAI model: %s totalTime: %d ms", o.Model, response.TotalTime)
 	}()
 
 	data, err := o.ConvAudioTranscriptionsRequest(ctx, request)
@@ -57,9 +57,9 @@ func (o *OpenAI) AudioTranscriptions(ctx context.Context, request model.AudioReq
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, o.baseURL+"/audio/transcriptions", o.header, data, nil, o.proxyURL, o.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, o.BaseUrl+"/audio/transcriptions", o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "AudioTranscriptions OpenAI model: %s, error: %v", o.model, err)
+		logger.Errorf(ctx, "AudioTranscriptions OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
 	}
 
@@ -68,7 +68,7 @@ func (o *OpenAI) AudioTranscriptions(ctx context.Context, request model.AudioReq
 		return response, err
 	}
 
-	logger.Infof(ctx, "AudioTranscriptions OpenAI model: %s finished", o.model)
+	logger.Infof(ctx, "AudioTranscriptions OpenAI model: %s finished", o.Model)
 
 	return response, nil
 }

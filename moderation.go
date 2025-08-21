@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -18,35 +19,33 @@ import (
 type ModerationClient struct {
 	model    string
 	key      string
-	baseURL  string
+	baseUrl  string
 	path     string
+	timeout  time.Duration
 	proxyURL string
 }
 
-func NewModerationClient(ctx context.Context, model, key, baseURL, path string, proxyURL ...string) *ModerationClient {
+func NewModerationClient(ctx context.Context, model, key, baseURL, path string, timeout time.Duration, proxyUrl string) *ModerationClient {
 
 	logger.Infof(ctx, "NewModerationClient OpenAI model: %s, key: %s", model, key)
 
 	moderationClient := &ModerationClient{
-		model:   model,
-		key:     key,
-		baseURL: "https://api.openai.com/v1",
-		path:    "/moderations",
+		model:    model,
+		key:      key,
+		baseUrl:  "https://api.openai.com/v1",
+		path:     "/moderations",
+		timeout:  timeout,
+		proxyURL: proxyUrl,
 	}
 
 	if baseURL != "" {
-		logger.Infof(ctx, "NewModerationClient OpenAI model: %s, baseURL: %s", model, baseURL)
-		moderationClient.baseURL = baseURL
+		logger.Infof(ctx, "NewModerationClient OpenAI model: %s, baseUrl: %s", model, baseURL)
+		moderationClient.baseUrl = baseURL
 	}
 
 	if path != "" {
 		logger.Infof(ctx, "NewModerationClient OpenAI model: %s, path: %s", model, path)
 		moderationClient.path = path
-	}
-
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewModerationClient OpenAI model: %s, proxyURL: %s", model, proxyURL[0])
-		moderationClient.proxyURL = proxyURL[0]
 	}
 
 	return moderationClient
@@ -66,7 +65,7 @@ func (c *ModerationClient) TextModerations(ctx context.Context, request model.Mo
 	header["Authorization"] = "Bearer " + c.key
 
 	response := model.ModerationResponse{}
-	if _, err = util.HttpPost(ctx, c.baseURL+c.path, header, request, &response, c.proxyURL, c.requestErrorHandler); err != nil {
+	if _, err = util.HttpPost(ctx, c.baseUrl+c.path, header, request, &response, c.timeout, c.proxyURL, c.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "TextModerations OpenAI model: %s, error: %v", request.Model, err)
 		return res, err
 	}

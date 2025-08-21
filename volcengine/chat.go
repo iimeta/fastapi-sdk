@@ -15,12 +15,12 @@ import (
 
 func (v *VolcEngine) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletions VolcEngine model: %s start", v.model)
+	logger.Infof(ctx, "ChatCompletions VolcEngine model: %s start", v.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletions VolcEngine model: %s totalTime: %d ms", v.model, response.TotalTime)
+		logger.Infof(ctx, "ChatCompletions VolcEngine model: %s totalTime: %d ms", v.Model, response.TotalTime)
 	}()
 
 	request, err := v.ConvChatCompletionsRequest(ctx, data)
@@ -29,9 +29,9 @@ func (v *VolcEngine) ChatCompletions(ctx context.Context, data []byte) (response
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, v.baseURL+v.path, v.header, request, nil, v.proxyURL, v.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, v.BaseUrl+v.Path, v.header, request, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions VolcEngine model: %s, error: %v", v.model, err)
+		logger.Errorf(ctx, "ChatCompletions VolcEngine model: %s, error: %v", v.Model, err)
 		return response, err
 	}
 
@@ -40,19 +40,19 @@ func (v *VolcEngine) ChatCompletions(ctx context.Context, data []byte) (response
 		return response, err
 	}
 
-	logger.Infof(ctx, "ChatCompletions VolcEngine model: %s finished", v.model)
+	logger.Infof(ctx, "ChatCompletions VolcEngine model: %s finished", v.Model)
 
 	return response, nil
 }
 
 func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletionsStream VolcEngine model: %s start", v.model)
+	logger.Infof(ctx, "ChatCompletionsStream VolcEngine model: %s start", v.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionsStream VolcEngine model: %s totalTime: %d ms", v.model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStream VolcEngine model: %s totalTime: %d ms", v.Model, gtime.TimestampMilli()-now)
 		}
 	}()
 
@@ -62,9 +62,9 @@ func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data []byte) (re
 		return nil, err
 	}
 
-	stream, err := util.SSEClient(ctx, v.baseURL+v.path, v.header, gjson.MustEncode(request), v.proxyURL, v.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, v.BaseUrl+v.Path, v.header, gjson.MustEncode(request), v.Timeout, v.ProxyUrl, v.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream VolcEngine model: %s, error: %v", v.model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream VolcEngine model: %s, error: %v", v.Model, err)
 		return responseChan, err
 	}
 
@@ -76,11 +76,11 @@ func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data []byte) (re
 
 		defer func() {
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionsStream VolcEngine model: %s, stream.Close error: %v", v.model, err)
+				logger.Errorf(ctx, "ChatCompletionsStream VolcEngine model: %s, stream.Close error: %v", v.Model, err)
 			}
 
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionsStream VolcEngine model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", v.model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStream VolcEngine model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", v.Model, duration-now, end-duration, end-now)
 		}()
 
 		for {
@@ -89,7 +89,7 @@ func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data []byte) (re
 			if err != nil {
 
 				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
-					logger.Errorf(ctx, "ChatCompletionsStream VolcEngine model: %s, error: %v", v.model, err)
+					logger.Errorf(ctx, "ChatCompletionsStream VolcEngine model: %s, error: %v", v.Model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -128,7 +128,7 @@ func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data []byte) (re
 		}
 
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream VolcEngine model: %s, error: %v", v.model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream VolcEngine model: %s, error: %v", v.Model, err)
 		return responseChan, err
 	}
 

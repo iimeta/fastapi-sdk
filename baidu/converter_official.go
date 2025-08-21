@@ -51,10 +51,10 @@ func (b *Baidu) ConvChatCompletionsResponseOfficial(ctx context.Context, data []
 	}
 
 	if chatCompletionRes.ErrorCode != 0 {
-		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Baidu model: %s, chatCompletionRes: %s", b.model, gjson.MustEncodeString(chatCompletionRes))
+		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Baidu model: %s, chatCompletionRes: %s", b.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = b.apiErrorHandler(&chatCompletionRes)
-		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Baidu model: %s, error: %v", b.model, err)
+		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Baidu model: %s, error: %v", b.Model, err)
 
 		return response, err
 	}
@@ -63,7 +63,7 @@ func (b *Baidu) ConvChatCompletionsResponseOfficial(ctx context.Context, data []
 		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
 		Object:  consts.COMPLETION_OBJECT,
 		Created: chatCompletionRes.Created,
-		Model:   b.model,
+		Model:   b.Model,
 		Choices: []model.ChatCompletionChoice{{
 			Message: &model.ChatCompletionMessage{
 				Role:    consts.ROLE_ASSISTANT,
@@ -86,10 +86,10 @@ func (b *Baidu) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, d
 	}
 
 	if chatCompletionRes.ErrorCode != 0 {
-		logger.Errorf(ctx, "ConvChatCompletionsStreamResponseOfficial Baidu model: %s, chatCompletionRes: %s", b.model, gjson.MustEncodeString(chatCompletionRes))
+		logger.Errorf(ctx, "ConvChatCompletionsStreamResponseOfficial Baidu model: %s, chatCompletionRes: %s", b.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = b.apiErrorHandler(&chatCompletionRes)
-		logger.Errorf(ctx, "ConvChatCompletionsStreamResponseOfficial Baidu model: %s, error: %v", b.model, err)
+		logger.Errorf(ctx, "ConvChatCompletionsStreamResponseOfficial Baidu model: %s, error: %v", b.Model, err)
 
 		return response, err
 	}
@@ -98,7 +98,7 @@ func (b *Baidu) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, d
 		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
 		Object:  consts.COMPLETION_STREAM_OBJECT,
 		Created: chatCompletionRes.Created,
-		Model:   b.model,
+		Model:   b.Model,
 		Choices: []model.ChatCompletionChoice{{
 			Index: chatCompletionRes.SentenceId,
 			Delta: &model.ChatCompletionStreamChoiceDelta{

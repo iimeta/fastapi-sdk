@@ -16,12 +16,12 @@ import (
 
 func (x *Xfyun) ImageGenerations(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
 
-	logger.Infof(ctx, "ImageGenerations Xfyun model: %s start", x.model)
+	logger.Infof(ctx, "ImageGenerations Xfyun model: %s start", x.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ImageGenerations Xfyun model: %s totalTime: %d ms", x.model, gtime.TimestampMilli()-now)
+		logger.Infof(ctx, "ImageGenerations Xfyun model: %s totalTime: %d ms", x.Model, gtime.TimestampMilli()-now)
 	}()
 
 	request, err := x.ConvImageGenerationsRequest(ctx, data)
@@ -82,15 +82,15 @@ func (x *Xfyun) ImageGenerations(ctx context.Context, data []byte) (response mod
 	}
 
 	imageRes := model.XfyunChatCompletionRes{}
-	if _, err = util.HttpPost(ctx, x.getHttpUrl(ctx), x.header, gjson.MustEncode(imageReq), &imageRes, x.proxyURL, x.requestErrorHandler); err != nil {
-		logger.Errorf(ctx, "ImageGenerations Xfyun model: %s, error: %v", x.model, err)
+	if _, err = util.HttpPost(ctx, x.getHttpUrl(ctx), x.header, gjson.MustEncode(imageReq), &imageRes, x.Timeout, x.ProxyUrl, x.requestErrorHandler); err != nil {
+		logger.Errorf(ctx, "ImageGenerations Xfyun model: %s, error: %v", x.Model, err)
 		return response, err
 	}
 
 	response = model.ImageResponse{
 		Created: gtime.Timestamp(),
 		Data: []model.ImageResponseDataInner{{
-			B64JSON: imageRes.Payload.Choices.Text[0].Content,
+			B64Json: imageRes.Payload.Choices.Text[0].Content,
 		}},
 	}
 

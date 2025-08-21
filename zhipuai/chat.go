@@ -14,12 +14,12 @@ import (
 
 func (z *ZhipuAI) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s start", z.model)
+	logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s start", z.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s totalTime: %d ms", z.model, response.TotalTime)
+		logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s totalTime: %d ms", z.Model, response.TotalTime)
 	}()
 
 	request, err := z.ConvChatCompletionsRequestOfficial(ctx, data)
@@ -28,9 +28,9 @@ func (z *ZhipuAI) ChatCompletions(ctx context.Context, data []byte) (response mo
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, z.baseURL+z.path, z.header, request, nil, z.proxyURL, z.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, z.BaseUrl+z.Path, z.header, request, nil, z.Timeout, z.ProxyUrl, z.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions ZhipuAI model: %s, error: %v", z.model, err)
+		logger.Errorf(ctx, "ChatCompletions ZhipuAI model: %s, error: %v", z.Model, err)
 		return response, err
 	}
 
@@ -44,12 +44,12 @@ func (z *ZhipuAI) ChatCompletions(ctx context.Context, data []byte) (response mo
 
 func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s start", z.model)
+	logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s start", z.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s totalTime: %d ms", z.model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s totalTime: %d ms", z.Model, gtime.TimestampMilli()-now)
 		}
 	}()
 
@@ -59,9 +59,9 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (respo
 		return nil, err
 	}
 
-	stream, err := util.SSEClient(ctx, z.baseURL+z.path, z.header, request, z.proxyURL, z.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, z.BaseUrl+z.Path, z.header, request, z.Timeout, z.ProxyUrl, z.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", z.model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", z.Model, err)
 		return responseChan, err
 	}
 
@@ -73,11 +73,11 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (respo
 
 		defer func() {
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, stream.Close error: %v", z.model, err)
+				logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, stream.Close error: %v", z.Model, err)
 			}
 
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", z.model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", z.Model, duration-now, end-duration, end-now)
 		}()
 
 		for {
@@ -86,7 +86,7 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (respo
 			if err != nil {
 
 				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
-					logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", z.model, err)
+					logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", z.Model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -125,7 +125,7 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (respo
 		}
 
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", z.model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", z.Model, err)
 		return responseChan, err
 	}
 

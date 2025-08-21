@@ -10,65 +10,48 @@ import (
 	"time"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/options"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
 )
 
 type ZhipuAI struct {
-	model               string
-	key                 string
-	baseURL             string
-	path                string
-	proxyURL            string
-	header              map[string]string
-	isSupportSystemRole *bool
-	isSupportStream     *bool
+	*options.AdapterOptions
+	header map[string]string
 }
 
-func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *ZhipuAI {
-
-	logger.Infof(ctx, "NewAdapter ZhipuAI model: %s, key: %s", model, key)
+func NewAdapter(ctx context.Context, options *options.AdapterOptions) *ZhipuAI {
 
 	zhipuai := &ZhipuAI{
-		model:               model,
-		key:                 key,
-		baseURL:             "https://open.bigmodel.cn/api/paas/v4",
-		path:                "/chat/completions",
-		isSupportSystemRole: isSupportSystemRole,
-		isSupportStream:     isSupportStream,
+		AdapterOptions: options,
 	}
 
-	if baseURL != "" {
-		logger.Infof(ctx, "NewAdapter ZhipuAI model: %s, baseURL: %s", model, baseURL)
-		zhipuai.baseURL = baseURL
+	if zhipuai.BaseUrl == "" {
+		zhipuai.BaseUrl = "https://open.bigmodel.cn/api/paas/v4"
 	}
 
-	if path != "" {
-		logger.Infof(ctx, "NewAdapter ZhipuAI model: %s, path: %s", model, path)
-		zhipuai.path = path
+	if zhipuai.Path == "" {
+		zhipuai.Path = "/chat/completions"
 	}
 
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewAdapter ZhipuAI model: %s, proxyURL: %s", model, proxyURL[0])
-		zhipuai.proxyURL = proxyURL[0]
+	zhipuai.header = g.MapStrStr{
+		"Authorization": "Bearer " + zhipuai.generateToken(ctx),
 	}
 
-	header := make(map[string]string)
-	header["Authorization"] = "Bearer " + zhipuai.generateToken(ctx)
-
-	zhipuai.header = header
+	logger.Infof(ctx, "NewAdapter ZhipuAI model: %s, key: %s", zhipuai.Model, zhipuai.Key)
 
 	return zhipuai
 }
 
 func (z *ZhipuAI) generateToken(ctx context.Context) string {
 
-	split := strings.Split(z.key, ".")
+	split := strings.Split(z.Key, ".")
 	if len(split) != 2 {
-		return z.key
+		return z.Key
 	}
 
 	now := gtime.Now()

@@ -15,12 +15,12 @@ import (
 
 func (a *AI360) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletions 360AI model: %s start", a.model)
+	logger.Infof(ctx, "ChatCompletions 360AI model: %s start", a.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletions 360AI model: %s totalTime: %d ms", a.model, response.TotalTime)
+		logger.Infof(ctx, "ChatCompletions 360AI model: %s totalTime: %d ms", a.Model, response.TotalTime)
 	}()
 
 	request, err := a.ConvChatCompletionsRequest(ctx, data)
@@ -29,9 +29,9 @@ func (a *AI360) ChatCompletions(ctx context.Context, data []byte) (response mode
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, a.baseURL+a.path, a.header, request, nil, a.proxyURL, a.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, request, nil, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions 360AI model: %s, error: %v", a.model, err)
+		logger.Errorf(ctx, "ChatCompletions 360AI model: %s, error: %v", a.Model, err)
 		return response, err
 	}
 
@@ -40,19 +40,19 @@ func (a *AI360) ChatCompletions(ctx context.Context, data []byte) (response mode
 		return response, err
 	}
 
-	logger.Infof(ctx, "ChatCompletions 360AI model: %s finished", a.model)
+	logger.Infof(ctx, "ChatCompletions 360AI model: %s finished", a.Model)
 
 	return response, nil
 }
 
 func (a *AI360) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletionsStream 360AI model: %s start", a.model)
+	logger.Infof(ctx, "ChatCompletionsStream 360AI model: %s start", a.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionsStream 360AI model: %s totalTime: %d ms", a.model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStream 360AI model: %s totalTime: %d ms", a.Model, gtime.TimestampMilli()-now)
 		}
 	}()
 
@@ -62,9 +62,9 @@ func (a *AI360) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 		return nil, err
 	}
 
-	stream, err := util.SSEClient(ctx, a.baseURL+a.path, a.header, gjson.MustEncode(request), a.proxyURL, a.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, a.BaseUrl+a.Path, a.header, gjson.MustEncode(request), a.Timeout, a.ProxyUrl, a.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream 360AI model: %s, error: %v", a.model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream 360AI model: %s, error: %v", a.Model, err)
 		return responseChan, err
 	}
 
@@ -76,11 +76,11 @@ func (a *AI360) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 
 		defer func() {
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionsStream 360AI model: %s, stream.Close error: %v", a.model, err)
+				logger.Errorf(ctx, "ChatCompletionsStream 360AI model: %s, stream.Close error: %v", a.Model, err)
 			}
 
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionsStream 360AI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", a.model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStream 360AI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", a.Model, duration-now, end-duration, end-now)
 		}()
 
 		for {
@@ -89,7 +89,7 @@ func (a *AI360) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 			if err != nil {
 
 				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
-					logger.Errorf(ctx, "ChatCompletionsStream 360AI model: %s, error: %v", a.model, err)
+					logger.Errorf(ctx, "ChatCompletionsStream 360AI model: %s, error: %v", a.Model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -128,7 +128,7 @@ func (a *AI360) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 		}
 
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream 360AI model: %s, error: %v", a.model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream 360AI model: %s, error: %v", a.Model, err)
 		return responseChan, err
 	}
 

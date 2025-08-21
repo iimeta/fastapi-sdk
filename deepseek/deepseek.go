@@ -10,86 +10,59 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
+	"github.com/iimeta/fastapi-sdk/options"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
 )
 
 type DeepSeek struct {
-	model               string
-	key                 string
-	baseURL             string
-	path                string
-	proxyURL            string
-	header              map[string]string
-	isSupportSystemRole *bool
-	isSupportStream     *bool
+	*options.AdapterOptions
+	header map[string]string
 }
 
-func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *DeepSeek {
-
-	logger.Infof(ctx, "NewAdapter DeepSeek model: %s, key: %s", model, key)
+func NewAdapter(ctx context.Context, options *options.AdapterOptions) *DeepSeek {
 
 	deepseek := &DeepSeek{
-		model:   model,
-		key:     key,
-		baseURL: "https://api.deepseek.com/v1",
-		path:    "/chat/completions",
+		AdapterOptions: options,
 		header: g.MapStrStr{
-			"Authorization": "Bearer " + key,
+			"Authorization": "Bearer " + options.Key,
 		},
-		isSupportSystemRole: isSupportSystemRole,
-		isSupportStream:     isSupportStream,
 	}
 
-	if baseURL != "" {
-		logger.Infof(ctx, "NewAdapter DeepSeek model: %s, baseURL: %s", model, baseURL)
-		deepseek.baseURL = baseURL
+	if deepseek.BaseUrl == "" {
+		deepseek.BaseUrl = "https://api.deepseek.com/v1"
 	}
 
-	if path != "" {
-		logger.Infof(ctx, "NewAdapter DeepSeek model: %s, path: %s", model, path)
-		deepseek.path = path
+	if deepseek.Path == "" {
+		deepseek.Path = "/chat/completions"
 	}
 
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewAdapter DeepSeek model: %s, proxyURL: %s", model, proxyURL[0])
-		deepseek.proxyURL = proxyURL[0]
-	}
+	logger.Infof(ctx, "NewAdapter DeepSeek model: %s, key: %s", deepseek.Model, deepseek.Key)
 
 	return deepseek
 }
 
-func NewAdapterBaidu(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *DeepSeek {
+func NewAdapterBaidu(ctx context.Context, options *options.AdapterOptions) *DeepSeek {
 
-	logger.Infof(ctx, "NewAdapterBaidu DeepSeek model: %s, key: %s", model, key)
-
-	split := gstr.Split(key, "|")
+	split := gstr.Split(options.Key, "|")
 
 	baidu := &DeepSeek{
-		model:   model,
-		key:     split[1],
-		baseURL: "https://qianfan.baidubce.com/v2",
-		path:    "/chat/completions",
+		AdapterOptions: options,
 		header: g.MapStrStr{
 			"appid": split[0],
 		},
-		isSupportSystemRole: isSupportSystemRole,
-		isSupportStream:     isSupportStream,
 	}
 
-	if baseURL != "" {
-		logger.Infof(ctx, "NewAdapterBaidu DeepSeek model: %s, baseURL: %s", model, baseURL)
-		baidu.baseURL = baseURL
+	baidu.Key = split[1]
+
+	if baidu.BaseUrl == "" {
+		baidu.BaseUrl = "https://qianfan.baidubce.com/v2"
 	}
 
-	if path != "" {
-		logger.Infof(ctx, "NewAdapterBaidu DeepSeek model: %s, path: %s", model, path)
-		baidu.path = path
+	if baidu.Path == "" {
+		baidu.Path = "/chat/completions"
 	}
 
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewAdapterBaidu DeepSeek model: %s, proxyURL: %s", model, proxyURL[0])
-		baidu.proxyURL = proxyURL[0]
-	}
+	logger.Infof(ctx, "NewAdapterBaidu DeepSeek model: %s, key: %s", baidu.Model, baidu.Key)
 
 	return baidu
 }

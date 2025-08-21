@@ -35,7 +35,7 @@ func NewRealtimeClient(ctx context.Context, model, key, baseURL, path string, pr
 	}
 
 	if baseURL != "" {
-		logger.Infof(ctx, "NewRealtimeClient OpenAI model: %s, baseURL: %s", model, baseURL)
+		logger.Infof(ctx, "NewRealtimeClient OpenAI model: %s, baseUrl: %s", model, baseURL)
 		realtimeClient.baseURL = baseURL
 	}
 

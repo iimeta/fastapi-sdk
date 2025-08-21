@@ -15,12 +15,12 @@ import (
 
 func (g *Google) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletions Google model: %s start", g.model)
+	logger.Infof(ctx, "ChatCompletions Google model: %s start", g.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletions Google model: %s totalTime: %d ms", g.model, response.TotalTime)
+		logger.Infof(ctx, "ChatCompletions Google model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
 	request, err := g.ConvChatCompletionsRequestOfficial(ctx, data)
@@ -32,13 +32,13 @@ func (g *Google) ChatCompletions(ctx context.Context, data []byte) (response mod
 	var bytes []byte
 
 	if g.isGcp {
-		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent", g.baseURL+g.path), g.header, request, nil, g.proxyURL, g.requestErrorHandler); err != nil {
-			logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", g.model, err)
+		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent", g.BaseUrl+g.Path), g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
+			logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", g.Model, err)
 			return response, err
 		}
 	} else {
-		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", g.baseURL+g.path, g.key), g.header, request, nil, g.proxyURL, g.requestErrorHandler); err != nil {
-			logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", g.model, err)
+		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", g.BaseUrl+g.Path, g.Key), g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
+			logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", g.Model, err)
 			return response, err
 		}
 	}
@@ -53,12 +53,12 @@ func (g *Google) ChatCompletions(ctx context.Context, data []byte) (response mod
 
 func (g *Google) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
 
-	logger.Infof(ctx, "ChatCompletionsStream Google model: %s start", g.model)
+	logger.Infof(ctx, "ChatCompletionsStream Google model: %s start", g.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionsStream Google model: %s totalTime: %d ms", g.model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStream Google model: %s totalTime: %d ms", g.Model, gtime.TimestampMilli()-now)
 		}
 	}()
 
@@ -71,15 +71,15 @@ func (g *Google) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 	var stream *util.StreamReader
 
 	if g.isGcp {
-		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse", g.baseURL+g.path), g.header, request, g.proxyURL, g.requestErrorHandler)
+		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse", g.BaseUrl+g.Path), g.header, request, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 		if err != nil {
-			logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.model, err)
+			logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.Model, err)
 			return responseChan, err
 		}
 	} else {
-		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", g.baseURL+g.path, g.key), g.header, request, g.proxyURL, g.requestErrorHandler)
+		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", g.BaseUrl+g.Path, g.Key), g.header, request, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 		if err != nil {
-			logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.model, err)
+			logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.Model, err)
 			return responseChan, err
 		}
 	}
@@ -92,10 +92,10 @@ func (g *Google) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 
 		defer func() {
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionsStream Google model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", g.model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStream Google model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", g.Model, duration-now, end-duration, end-now)
 
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, stream.Close error: %v", g.model, err)
+				logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, stream.Close error: %v", g.Model, err)
 			}
 		}()
 
@@ -109,7 +109,7 @@ func (g *Google) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 			if err != nil {
 
 				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
-					logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.model, err)
+					logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.Model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -154,7 +154,7 @@ func (g *Google) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 		}
 
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.Model, err)
 		return responseChan, err
 	}
 

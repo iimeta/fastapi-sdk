@@ -20,8 +20,8 @@ func (v *VolcEngine) ConvChatCompletionsRequest(ctx context.Context, data []byte
 		return request, err
 	}
 
-	if v.isSupportSystemRole != nil {
-		request.Messages = common.HandleMessages(request.Messages, *v.isSupportSystemRole)
+	if v.IsSupportSystemRole != nil {
+		request.Messages = common.HandleMessages(request.Messages, *v.IsSupportSystemRole)
 	} else {
 		request.Messages = common.HandleMessages(request.Messages, true)
 	}

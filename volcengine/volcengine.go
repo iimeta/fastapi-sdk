@@ -10,52 +10,38 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
+	"github.com/iimeta/fastapi-sdk/options"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
 )
 
 type VolcEngine struct {
-	model               string
-	key                 string
-	baseURL             string
-	path                string
-	proxyURL            string
-	header              map[string]string
-	isSupportSystemRole *bool
-	isSupportStream     *bool
+	*options.AdapterOptions
+	header map[string]string
 }
 
-func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *VolcEngine {
+func NewAdapter(ctx context.Context, options *options.AdapterOptions) *VolcEngine {
 
-	logger.Infof(ctx, "NewAdapter VolcEngine model: %s, key: %s", model, key)
-
-	split := gstr.Split(key, "|")
+	split := gstr.Split(options.Key, "|")
 
 	volcengine := &VolcEngine{
-		model:   split[0],
-		key:     split[1],
-		baseURL: "https://ark.cn-beijing.volces.com/api/v3",
-		path:    "/chat/completions",
+		AdapterOptions: options,
 		header: g.MapStrStr{
 			"Authorization": "Bearer " + split[1],
 		},
-		isSupportSystemRole: isSupportSystemRole,
-		isSupportStream:     isSupportStream,
 	}
 
-	if baseURL != "" {
-		logger.Infof(ctx, "NewAdapter VolcEngine model: %s, baseURL: %s", model, baseURL)
-		volcengine.baseURL = baseURL
+	volcengine.Model = split[0]
+	volcengine.Key = split[1]
+
+	if volcengine.BaseUrl == "" {
+		volcengine.BaseUrl = "https://ark.cn-beijing.volces.com/api/v3"
 	}
 
-	if path != "" {
-		logger.Infof(ctx, "NewAdapter VolcEngine model: %s, path: %s", model, path)
-		volcengine.path = path
+	if volcengine.Path == "" {
+		volcengine.Path = "/chat/completions"
 	}
 
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewAdapter VolcEngine model: %s, proxyURL: %s", model, proxyURL[0])
-		volcengine.proxyURL = proxyURL[0]
-	}
+	logger.Infof(ctx, "NewAdapter VolcEngine model: %s, key: %s", volcengine.Model, volcengine.Key)
 
 	return volcengine
 }

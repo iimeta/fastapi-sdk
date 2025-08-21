@@ -18,8 +18,8 @@ func (z *ZhipuAI) ConvChatCompletionsRequest(ctx context.Context, data []byte) (
 		return chatCompletionRequest, err
 	}
 
-	if z.isSupportSystemRole != nil {
-		chatCompletionRequest.Messages = common.HandleMessages(chatCompletionRequest.Messages, *z.isSupportSystemRole)
+	if z.IsSupportSystemRole != nil {
+		chatCompletionRequest.Messages = common.HandleMessages(chatCompletionRequest.Messages, *z.IsSupportSystemRole)
 	} else {
 		chatCompletionRequest.Messages = common.HandleMessages(chatCompletionRequest.Messages, true)
 	}

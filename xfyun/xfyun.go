@@ -21,80 +21,64 @@ import (
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/options"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
 )
 
 type Xfyun struct {
-	model               string
-	key                 string
-	baseURL             string
-	path                string
-	proxyURL            string
-	header              map[string]string
-	isSupportSystemRole *bool
-	isSupportStream     *bool
-	appId               string
-	secret              string
-	originalURL         string
-	domain              string
+	*options.AdapterOptions
+	header      map[string]string
+	appId       string
+	secret      string
+	originalUrl string
+	domain      string
 }
 
-func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Xfyun {
+func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Xfyun {
 
-	logger.Infof(ctx, "NewAdapter Xfyun model: %s, key: %s", model, key)
-
-	result := gstr.Split(key, "|")
+	result := gstr.Split(options.Key, "|")
 
 	xfyun := &Xfyun{
-		model:               model,
-		key:                 result[2],
-		baseURL:             "https://spark-api.xf-yun.com/v4.0",
-		path:                "/chat",
-		isSupportSystemRole: isSupportSystemRole,
-		isSupportStream:     isSupportStream,
-		appId:               result[0],
-		secret:              result[1],
-		originalURL:         "https://spark-api.xf-yun.com",
-		domain:              "4.0Ultra",
+		AdapterOptions: options,
+		appId:          result[0],
+		secret:         result[1],
+		originalUrl:    "https://spark-api.xf-yun.com",
+		domain:         "4.0Ultra",
 	}
 
-	if baseURL != "" {
-		logger.Infof(ctx, "NewAdapter Xfyun model: %s, baseURL: %s", model, baseURL)
+	xfyun.Key = result[2]
 
-		xfyun.baseURL = baseURL
+	if xfyun.BaseUrl == "" {
+		xfyun.BaseUrl = "https://spark-api.xf-yun.com/v4.0"
+	}
 
-		version := baseURL[strings.LastIndex(baseURL, "/")+1:]
+	if xfyun.Path == "" {
+		xfyun.Path = "/chat"
+	}
 
-		switch version {
-		case "v4.0":
-			xfyun.domain = "4.0Ultra"
-		case "v3.5":
-			xfyun.domain = "generalv3.5"
-		case "v3.1":
-			xfyun.domain = "generalv3"
-		case "v2.1":
-			xfyun.domain = "generalv2"
-		case "v1.1":
-			xfyun.domain = "general"
-		default:
-			v := gconv.Float64(version[1:])
-			if math.Round(v) > v {
-				xfyun.domain = fmt.Sprintf("general%s", version)
-			} else {
-				xfyun.domain = fmt.Sprintf("generalv%0.f", math.Round(v))
-			}
+	version := xfyun.BaseUrl[strings.LastIndex(xfyun.BaseUrl, "/")+1:]
+
+	switch version {
+	case "v4.0":
+		xfyun.domain = "4.0Ultra"
+	case "v3.5":
+		xfyun.domain = "generalv3.5"
+	case "v3.1":
+		xfyun.domain = "generalv3"
+	case "v2.1":
+		xfyun.domain = "generalv2"
+	case "v1.1":
+		xfyun.domain = "general"
+	default:
+		v := gconv.Float64(version[1:])
+		if math.Round(v) > v {
+			xfyun.domain = fmt.Sprintf("general%s", version)
+		} else {
+			xfyun.domain = fmt.Sprintf("generalv%0.f", math.Round(v))
 		}
 	}
 
-	if path != "" {
-		logger.Infof(ctx, "NewAdapter Xfyun model: %s, path: %s", model, path)
-		xfyun.path = path
-	}
-
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewAdapter Xfyun model: %s, proxyURL: %s", model, proxyURL[0])
-		xfyun.proxyURL = proxyURL[0]
-	}
+	logger.Infof(ctx, "NewAdapter Xfyun model: %s, key: %s", xfyun.Model, xfyun.Key)
 
 	return xfyun
 }
@@ -107,16 +91,16 @@ func (x *Xfyun) getWebSocketUrl(ctx context.Context) string {
 		return ""
 	}
 
-	authorizationOrigin := gbase64.EncodeToString([]byte(fmt.Sprintf("api_key=\"%s\",algorithm=\"%s\",headers=\"%s\",signature=\"%s\"", x.key, "hmac-sha256", "host date request-line", signature)))
+	authorizationOrigin := gbase64.EncodeToString([]byte(fmt.Sprintf("api_key=\"%s\",algorithm=\"%s\",headers=\"%s\",signature=\"%s\"", x.Key, "hmac-sha256", "host date request-line", signature)))
 
-	wsURL := gstr.Replace(gstr.Replace(x.baseURL+x.path, "https://", "wss://"), "http://", "ws://")
+	wsURL := gstr.Replace(gstr.Replace(x.BaseUrl+x.Path, "https://", "wss://"), "http://", "ws://")
 
 	return fmt.Sprintf("%s?authorization=%s&date=%s&host=%s", wsURL, authorizationOrigin, date, host)
 }
 
 func (x *Xfyun) getHttpUrl(ctx context.Context) string {
 
-	x.originalURL = "https://spark-api.cn-huabei-1.xf-yun.com"
+	x.originalUrl = "https://spark-api.cn-huabei-1.xf-yun.com"
 
 	date, host, signature, err := x.getSignature(ctx, http.MethodPost)
 	if err != nil {
@@ -124,14 +108,14 @@ func (x *Xfyun) getHttpUrl(ctx context.Context) string {
 		return ""
 	}
 
-	authorizationOrigin := gbase64.EncodeToString([]byte(fmt.Sprintf("api_key=\"%s\",algorithm=\"%s\",headers=\"%s\",signature=\"%s\"", x.key, "hmac-sha256", "host date request-line", signature)))
+	authorizationOrigin := gbase64.EncodeToString([]byte(fmt.Sprintf("api_key=\"%s\",algorithm=\"%s\",headers=\"%s\",signature=\"%s\"", x.Key, "hmac-sha256", "host date request-line", signature)))
 
-	return fmt.Sprintf("%s?authorization=%s&date=%s&host=%s", x.baseURL+x.path, authorizationOrigin, date, host)
+	return fmt.Sprintf("%s?authorization=%s&date=%s&host=%s", x.BaseUrl+x.Path, authorizationOrigin, date, host)
 }
 
 func (x *Xfyun) getSignature(ctx context.Context, method string) (date, host, signature string, err error) {
 
-	parse, err := url.Parse(x.originalURL + x.baseURL[strings.LastIndex(x.baseURL, "/"):] + x.path)
+	parse, err := url.Parse(x.originalUrl + x.BaseUrl[strings.LastIndex(x.BaseUrl, "/"):] + x.Path)
 	if err != nil {
 		logger.Errorf(ctx, "getSignature Xfyun client: %+v, error: %s", x, err)
 		return "", "", "", err

@@ -20,10 +20,8 @@ func (d *DeepSeek) ConvChatCompletionsRequest(ctx context.Context, data []byte) 
 		return request, err
 	}
 
-	if d.isSupportSystemRole != nil {
-		request.Messages = common.HandleMessages(request.Messages, *d.isSupportSystemRole)
-	} else {
-		request.Messages = common.HandleMessages(request.Messages, true)
+	if d.IsSupportSystemRole != nil {
+		request.Messages = common.HandleMessages(request.Messages, *d.IsSupportSystemRole)
 	}
 
 	return request, nil

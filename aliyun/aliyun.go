@@ -12,50 +12,33 @@ import (
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/options"
 	"github.com/iimeta/fastapi-sdk/sdkerr"
 )
 
 type Aliyun struct {
-	model               string
-	key                 string
-	baseURL             string
-	path                string
-	proxyURL            string
-	header              map[string]string
-	isSupportSystemRole *bool
-	isSupportStream     *bool
+	*options.AdapterOptions
+	header map[string]string
 }
 
-func NewAdapter(ctx context.Context, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) *Aliyun {
-
-	logger.Infof(ctx, "NewAdapter Aliyun model: %s, key: %s", model, key)
+func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Aliyun {
 
 	aliyun := &Aliyun{
-		model:   model,
-		key:     key,
-		baseURL: "https://dashscope.aliyuncs.com/api/v1",
-		path:    "/services/aigc/text-generation/generation",
+		AdapterOptions: options,
 		header: g.MapStrStr{
-			"Authorization": "Bearer " + key,
+			"Authorization": "Bearer " + options.Key,
 		},
-		isSupportSystemRole: isSupportSystemRole,
-		isSupportStream:     isSupportStream,
 	}
 
-	if baseURL != "" {
-		logger.Infof(ctx, "NewAdapter Aliyun model: %s, baseURL: %s", model, baseURL)
-		aliyun.baseURL = baseURL
+	if aliyun.BaseUrl == "" {
+		aliyun.BaseUrl = "https://dashscope.aliyuncs.com/api/v1"
 	}
 
-	if path != "" {
-		logger.Infof(ctx, "NewAdapter Aliyun model: %s, path: %s", model, path)
-		aliyun.path = path
+	if aliyun.Path == "" {
+		aliyun.Path = "/services/aigc/text-generation/generation"
 	}
 
-	if len(proxyURL) > 0 && proxyURL[0] != "" {
-		logger.Infof(ctx, "NewAdapter Aliyun model: %s, proxyURL: %s", model, proxyURL[0])
-		aliyun.proxyURL = proxyURL[0]
-	}
+	logger.Infof(ctx, "NewAdapter Aliyun model: %s, key: %s", aliyun.Model, aliyun.Key)
 
 	return aliyun
 }

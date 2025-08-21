@@ -18,8 +18,8 @@ func (x *Xfyun) ConvChatCompletionsRequest(ctx context.Context, data []byte) (mo
 		return chatCompletionRequest, err
 	}
 
-	if x.isSupportSystemRole != nil {
-		chatCompletionRequest.Messages = common.HandleMessages(chatCompletionRequest.Messages, *x.isSupportSystemRole)
+	if x.IsSupportSystemRole != nil {
+		chatCompletionRequest.Messages = common.HandleMessages(chatCompletionRequest.Messages, *x.IsSupportSystemRole)
 	} else {
 		chatCompletionRequest.Messages = common.HandleMessages(chatCompletionRequest.Messages, true)
 	}

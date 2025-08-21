@@ -67,10 +67,10 @@ func (x *Xfyun) ConvChatCompletionsResponseOfficial(ctx context.Context, data []
 	}
 
 	if chatCompletionRes.Header.Code != 0 {
-		logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, chatCompletionRes: %s", x.model, gjson.MustEncodeString(chatCompletionRes))
+		logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, chatCompletionRes: %s", x.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = x.apiErrorHandler(&chatCompletionRes)
-		logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, error: %v", x.model, err)
+		logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, error: %v", x.Model, err)
 
 		return response, err
 	}
@@ -79,7 +79,7 @@ func (x *Xfyun) ConvChatCompletionsResponseOfficial(ctx context.Context, data []
 		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Header.Sid,
 		Object:  consts.COMPLETION_OBJECT,
 		Created: gtime.Timestamp(),
-		Model:   x.model,
+		Model:   x.Model,
 		Choices: []model.ChatCompletionChoice{{
 			Index: chatCompletionRes.Payload.Choices.Seq,
 			Message: &model.ChatCompletionMessage{
@@ -107,10 +107,10 @@ func (x *Xfyun) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, d
 	}
 
 	if chatCompletionRes.Header.Code != 0 {
-		logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, chatCompletionRes: %s", x.model, gjson.MustEncodeString(chatCompletionRes))
+		logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, chatCompletionRes: %s", x.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = x.apiErrorHandler(&chatCompletionRes)
-		logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, error: %v", x.model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, error: %v", x.Model, err)
 
 		return response, err
 	}
@@ -119,7 +119,7 @@ func (x *Xfyun) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, d
 		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Header.Sid,
 		Object:  consts.COMPLETION_STREAM_OBJECT,
 		Created: gtime.Timestamp(),
-		Model:   x.model,
+		Model:   x.Model,
 		Choices: []model.ChatCompletionChoice{{
 			Index: chatCompletionRes.Payload.Choices.Seq,
 			Delta: &model.ChatCompletionStreamChoiceDelta{

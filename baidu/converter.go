@@ -19,8 +19,8 @@ func (b *Baidu) ConvChatCompletionsRequest(ctx context.Context, data []byte) (mo
 		return request, err
 	}
 
-	if b.isSupportSystemRole != nil {
-		request.Messages = common.HandleMessages(request.Messages, *b.isSupportSystemRole)
+	if b.IsSupportSystemRole != nil {
+		request.Messages = common.HandleMessages(request.Messages, *b.IsSupportSystemRole)
 	} else {
 		request.Messages = common.HandleMessages(request.Messages, true)
 	}

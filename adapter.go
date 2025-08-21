@@ -13,6 +13,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/openai"
+	"github.com/iimeta/fastapi-sdk/options"
 	"github.com/iimeta/fastapi-sdk/volcengine"
 	"github.com/iimeta/fastapi-sdk/xfyun"
 	"github.com/iimeta/fastapi-sdk/zhipuai"
@@ -31,42 +32,42 @@ type Adapter interface {
 	TextEmbeddings(ctx context.Context, data []byte) (response model.EmbeddingResponse, err error)
 }
 
-func NewAdapter(ctx context.Context, corp, model, key, baseURL, path string, isSupportSystemRole, isSupportStream *bool, proxyURL ...string) Adapter {
+func NewAdapter(ctx context.Context, options *options.AdapterOptions) Adapter {
 
-	logger.Infof(ctx, "NewAdapter corp: %s, model: %s, key: %s", corp, model, key)
+	logger.Infof(ctx, "NewAdapter corp: %s, model: %s, key: %s", options.Corp, options.Model, options.Key)
 
-	switch corp {
+	switch options.Corp {
 	case consts.CORP_OPENAI:
-		return openai.NewAdapter(ctx, model, key, baseURL, path, isSupportSystemRole, isSupportStream, proxyURL...)
+		return openai.NewAdapter(ctx, options)
 	case consts.CORP_AZURE:
-		return openai.NewAzureAdapter(ctx, model, key, baseURL, path, isSupportSystemRole, isSupportStream, proxyURL...)
+		return openai.NewAzureAdapter(ctx, options)
 	case consts.CORP_BAIDU:
-		return baidu.NewAdapter(ctx, model, key, baseURL, path, isSupportSystemRole, isSupportStream, proxyURL...)
+		return baidu.NewAdapter(ctx, options)
 	case consts.CORP_XFYUN:
-		return xfyun.NewAdapter(ctx, model, key, baseURL, path, isSupportSystemRole, isSupportStream, proxyURL...)
+		return xfyun.NewAdapter(ctx, options)
 	case consts.CORP_ALIYUN:
-		return aliyun.NewAdapter(ctx, model, key, baseURL, path, isSupportSystemRole, isSupportStream, proxyURL...)
+		return aliyun.NewAdapter(ctx, options)
 	case consts.CORP_ZHIPUAI:
-		return zhipuai.NewAdapter(ctx, model, key, baseURL, path, isSupportSystemRole, isSupportStream, proxyURL...)
+		return zhipuai.NewAdapter(ctx, options)
 	case consts.CORP_GOOGLE:
-		return google.NewAdapter(ctx, model, key, baseURL, path, isSupportSystemRole, isSupportStream, proxyURL...)
+		return google.NewAdapter(ctx, options)
 	case consts.CORP_GCP_GEMINI:
-		return google.NewGcpAdapter(ctx, model, key, baseURL, path, isSupportSystemRole, isSupportStream, proxyURL...)
+		return google.NewGcpAdapter(ctx, options)
 	case consts.CORP_DEEPSEEK:
-		return deepseek.NewAdapter(ctx, model, key, baseURL, path, isSupportSystemRole, isSupportStream, proxyURL...)
+		return deepseek.NewAdapter(ctx, options)
 	case consts.CORP_DEEPSEEK_BAIDU:
-		return deepseek.NewAdapterBaidu(ctx, model, key, baseURL, path, isSupportSystemRole, isSupportStream, proxyURL...)
+		return deepseek.NewAdapterBaidu(ctx, options)
 	case consts.CORP_360AI:
-		return ai360.NewAdapter(ctx, model, key, baseURL, path, isSupportSystemRole, isSupportStream, proxyURL...)
+		return ai360.NewAdapter(ctx, options)
 	case consts.CORP_ANTHROPIC:
-		return anthropic.NewAdapter(ctx, model, key, baseURL, path, isSupportSystemRole, isSupportStream, proxyURL...)
+		return anthropic.NewAdapter(ctx, options)
 	case consts.CORP_GCP_CLAUDE:
-		return anthropic.NewGcpAdapter(ctx, model, key, baseURL, path, isSupportSystemRole, isSupportStream, proxyURL...)
+		return anthropic.NewGcpAdapter(ctx, options)
 	case consts.CORP_AWS_CLAUDE:
-		return anthropic.NewAwsAdapter(ctx, model, key, baseURL, path, isSupportSystemRole, isSupportStream, proxyURL...)
+		return anthropic.NewAwsAdapter(ctx, options)
 	case consts.CORP_VOLC_ENGINE:
-		return volcengine.NewAdapter(ctx, model, key, baseURL, path, isSupportSystemRole, isSupportStream, proxyURL...)
+		return volcengine.NewAdapter(ctx, options)
 	}
 
-	return openai.NewAdapter(ctx, model, key, baseURL, path, isSupportSystemRole, isSupportStream, proxyURL...)
+	return openai.NewAdapter(ctx, options)
 }

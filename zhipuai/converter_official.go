@@ -19,7 +19,7 @@ func (z *ZhipuAI) ConvChatCompletionsRequestOfficial(ctx context.Context, data [
 	}
 
 	chatCompletionReq := model.ZhipuAIChatCompletionReq{
-		Model:       z.model,
+		Model:       z.Model,
 		Messages:    request.Messages,
 		MaxTokens:   request.MaxTokens,
 		Temperature: request.Temperature,
@@ -59,10 +59,10 @@ func (z *ZhipuAI) ConvChatCompletionsResponseOfficial(ctx context.Context, data 
 	}
 
 	if chatCompletionRes.Error.Code != "" && chatCompletionRes.Error.Code != "200" {
-		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial ZhipuAI model: %s, chatCompletionRes: %s", z.model, gjson.MustEncodeString(chatCompletionRes))
+		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial ZhipuAI model: %s, chatCompletionRes: %s", z.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = z.apiErrorHandler(&chatCompletionRes)
-		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial ZhipuAI model: %s, error: %v", z.model, err)
+		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial ZhipuAI model: %s, error: %v", z.Model, err)
 
 		return response, err
 	}
@@ -71,7 +71,7 @@ func (z *ZhipuAI) ConvChatCompletionsResponseOfficial(ctx context.Context, data 
 		Id:            consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
 		Object:        consts.COMPLETION_OBJECT,
 		Created:       chatCompletionRes.Created,
-		Model:         z.model,
+		Model:         z.Model,
 		Choices:       chatCompletionRes.Choices,
 		Usage:         chatCompletionRes.Usage,
 		ResponseBytes: data,
@@ -89,10 +89,10 @@ func (z *ZhipuAI) ConvChatCompletionsStreamResponseOfficial(ctx context.Context,
 	}
 
 	if chatCompletionRes.Error.Code != "" && chatCompletionRes.Error.Code != "200" {
-		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, chatCompletionRes: %s", z.model, gjson.MustEncodeString(chatCompletionRes))
+		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, chatCompletionRes: %s", z.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = z.apiErrorHandler(&chatCompletionRes)
-		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", z.model, err)
+		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", z.Model, err)
 
 		return response, err
 	}
@@ -101,7 +101,7 @@ func (z *ZhipuAI) ConvChatCompletionsStreamResponseOfficial(ctx context.Context,
 		Id:            consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
 		Object:        consts.COMPLETION_STREAM_OBJECT,
 		Created:       chatCompletionRes.Created,
-		Model:         z.model,
+		Model:         z.Model,
 		Choices:       chatCompletionRes.Choices,
 		Usage:         chatCompletionRes.Usage,
 		ResponseBytes: data,
