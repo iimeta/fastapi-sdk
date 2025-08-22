@@ -81,25 +81,13 @@ func (g *Google) ChatCompletionStreamOfficial(ctx context.Context, data []byte) 
 		for {
 
 			streamResponse, err := stream.Recv()
-			if err != nil && !errors.Is(err, io.EOF) {
+			if err != nil {
 
-				if !errors.Is(err, context.Canceled) {
+				if errors.Is(err, io.EOF) {
+					logger.Infof(ctx, "ChatCompletionStreamOfficial Google model: %s finished", g.Model)
+				} else {
 					logger.Errorf(ctx, "ChatCompletionStreamOfficial Google model: %s, error: %v", g.Model, err)
 				}
-
-				end := gtime.TimestampMilli()
-				responseChan <- &model.GoogleChatCompletionRes{
-					ConnTime:  duration - now,
-					Duration:  end - duration,
-					TotalTime: end - now,
-					Err:       err,
-				}
-
-				return
-			}
-
-			if errors.Is(err, io.EOF) {
-				logger.Infof(ctx, "ChatCompletionStreamOfficial Google model: %s finished", g.Model)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.GoogleChatCompletionRes{
@@ -107,7 +95,7 @@ func (g *Google) ChatCompletionStreamOfficial(ctx context.Context, data []byte) 
 					ConnTime:      duration - now,
 					Duration:      end - duration,
 					TotalTime:     end - now,
-					Err:           io.EOF,
+					Err:           err,
 				}
 
 				return

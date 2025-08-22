@@ -23,7 +23,7 @@ type AudioRequest struct {
 	Prompt                 string                `json:"prompt"`
 	Temperature            float32               `json:"temperature"`
 	Language               string                `json:"language"`
-	Format                 string                `json:"response_format"`
+	ResponseFormat         string                `json:"response_format"`
 	TimestampGranularities []string              `json:"timestamp_granularities"`
 }
 

@@ -86,7 +86,9 @@ func (b *Baidu) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 			responseBytes, err := stream.Recv()
 			if err != nil {
 
-				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
+				if errors.Is(err, io.EOF) {
+					logger.Infof(ctx, "ChatCompletionsStream Baidu model: %s finished", b.Model)
+				} else {
 					logger.Errorf(ctx, "ChatCompletionsStream Baidu model: %s, error: %v", b.Model, err)
 				}
 

@@ -88,7 +88,9 @@ func (a *AI360) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 			responseBytes, err := stream.Recv()
 			if err != nil {
 
-				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
+				if errors.Is(err, io.EOF) {
+					logger.Infof(ctx, "ChatCompletionsStream 360AI model: %s finished", a.Model)
+				} else {
 					logger.Errorf(ctx, "ChatCompletionsStream 360AI model: %s, error: %v", a.Model, err)
 				}
 

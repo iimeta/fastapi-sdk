@@ -108,7 +108,9 @@ func (g *Google) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 			responseBytes, err := stream.Recv()
 			if err != nil {
 
-				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
+				if errors.Is(err, io.EOF) {
+					logger.Infof(ctx, "ChatCompletionsStream Google model: %s finished", g.Model)
+				} else {
 					logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.Model, err)
 				}
 

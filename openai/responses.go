@@ -83,9 +83,11 @@ func (o *OpenAI) ResponsesStream(ctx context.Context, data []byte) (responseChan
 		for {
 
 			streamResponse, err := stream.Recv()
-			if err != nil && !errors.Is(err, io.EOF) {
+			if err != nil {
 
-				if !errors.Is(err, context.Canceled) {
+				if errors.Is(err, io.EOF) {
+					logger.Infof(ctx, "ResponsesStream OpenAI model: %s finished", o.Model)
+				} else {
 					logger.Errorf(ctx, "ResponsesStream OpenAI model: %s, error: %v", o.Model, err)
 				}
 
@@ -95,20 +97,6 @@ func (o *OpenAI) ResponsesStream(ctx context.Context, data []byte) (responseChan
 					Duration:  end - duration,
 					TotalTime: end - now,
 					Err:       err,
-				}
-
-				return
-			}
-
-			if errors.Is(err, io.EOF) {
-				logger.Infof(ctx, "ResponsesStream OpenAI model: %s finished", o.Model)
-
-				end := gtime.TimestampMilli()
-				responseChan <- &model.OpenAIResponsesStreamRes{
-					ConnTime:  duration - now,
-					Duration:  end - duration,
-					TotalTime: end - now,
-					Err:       io.EOF,
 				}
 
 				return
@@ -199,7 +187,9 @@ func (o *OpenAI) ResponsesStreamToNonStream(ctx context.Context, data []byte) (r
 		responses, err := o.Responses(ctx, gjson.MustEncode(request))
 		if err != nil {
 
-			if !errors.Is(err, context.Canceled) {
+			if errors.Is(err, io.EOF) {
+				logger.Infof(ctx, "ResponsesStreamToNonStream OpenAI model: %s finished", o.Model)
+			} else {
 				logger.Errorf(ctx, "ResponsesStreamToNonStream OpenAI model: %s, error: %v", o.Model, err)
 			}
 

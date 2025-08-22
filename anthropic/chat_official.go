@@ -155,9 +155,11 @@ func (a *Anthropic) ChatCompletionStreamOfficial(ctx context.Context, data []byt
 			for {
 
 				event, ok := <-stream.Events()
-				if !ok {
+				if !ok { // todo
 
-					if !errors.Is(err, context.Canceled) {
+					if errors.Is(err, io.EOF) {
+						logger.Infof(ctx, "ChatCompletionStreamOfficial Anthropic model: %s finished", a.Model)
+					} else {
 						logger.Errorf(ctx, "ChatCompletionStreamOfficial Anthropic model: %s, error: %v", a.Model, err)
 					}
 
@@ -251,7 +253,7 @@ func (a *Anthropic) ChatCompletionStreamOfficial(ctx context.Context, data []byt
 					ConnTime:      duration - now,
 				}
 
-				if errors.Is(err, io.EOF) || chatCompletionRes.Delta.StopReason != "" {
+				if chatCompletionRes.Delta.StopReason != "" {
 					logger.Infof(ctx, "ChatCompletionStreamOfficial Anthropic model: %s finished", a.Model)
 
 					end := gtime.TimestampMilli()
@@ -306,9 +308,11 @@ func (a *Anthropic) ChatCompletionStreamOfficial(ctx context.Context, data []byt
 			for {
 
 				streamResponse, err := stream.Recv()
-				if err != nil && !errors.Is(err, io.EOF) {
+				if err != nil {
 
-					if !errors.Is(err, context.Canceled) {
+					if errors.Is(err, io.EOF) {
+						logger.Infof(ctx, "ChatCompletionStreamOfficial Anthropic model: %s finished", a.Model)
+					} else {
 						logger.Errorf(ctx, "ChatCompletionStreamOfficial Anthropic model: %s, error: %v", a.Model, err)
 					}
 
@@ -372,7 +376,7 @@ func (a *Anthropic) ChatCompletionStreamOfficial(ctx context.Context, data []byt
 					ConnTime:      duration - now,
 				}
 
-				if errors.Is(err, io.EOF) || chatCompletionRes.Delta.StopReason != "" {
+				if chatCompletionRes.Delta.StopReason != "" {
 					logger.Infof(ctx, "ChatCompletionStreamOfficial Anthropic model: %s finished", a.Model)
 
 					end := gtime.TimestampMilli()

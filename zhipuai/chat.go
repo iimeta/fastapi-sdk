@@ -85,7 +85,9 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (respo
 			responseBytes, err := stream.Recv()
 			if err != nil {
 
-				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
+				if errors.Is(err, io.EOF) {
+					logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s finished", z.Model)
+				} else {
 					logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", z.Model, err)
 				}
 

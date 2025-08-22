@@ -88,7 +88,9 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data []byte) (resp
 			responseBytes, err := stream.Recv()
 			if err != nil {
 
-				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
+				if errors.Is(err, io.EOF) {
+					logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s finished", d.Model)
+				} else {
 					logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, error: %v", d.Model, err)
 				}
 

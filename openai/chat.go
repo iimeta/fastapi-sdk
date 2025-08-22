@@ -93,7 +93,9 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 			responseBytes, err := stream.Recv()
 			if err != nil {
 
-				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
+				if errors.Is(err, io.EOF) {
+					logger.Infof(ctx, "ChatCompletionsStream OpenAI model: %s finished", o.Model)
+				} else {
 					logger.Errorf(ctx, "ChatCompletionsStream OpenAI model: %s, error: %v", o.Model, err)
 				}
 
@@ -165,7 +167,9 @@ func (o *OpenAI) ChatCompletionStreamToNonStream(ctx context.Context, data []byt
 		response, err := o.ChatCompletions(ctx, gjson.MustEncode(request))
 		if err != nil {
 
-			if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
+			if errors.Is(err, io.EOF) {
+				logger.Infof(ctx, "ChatCompletionStreamToNonStream OpenAI model: %s finished", o.Model)
+			} else {
 				logger.Errorf(ctx, "ChatCompletionStreamToNonStream OpenAI model: %s, error: %v", o.Model, err)
 			}
 

@@ -75,7 +75,7 @@ func (o *OpenAI) ConvChatCompletionsResponse(ctx context.Context, data []byte) (
 func (o *OpenAI) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
 	response = model.ChatCompletionResponse{
-		//ResponseBytes: data,
+		ResponseBytes: data,
 	}
 
 	if err = json.Unmarshal(data, &response); err != nil {
@@ -274,8 +274,8 @@ func (o *OpenAI) ConvAudioTranscriptionsRequest(ctx context.Context, request mod
 		}
 	}
 
-	if request.Format != "" {
-		if err := builder.WriteField("response_format", request.Format); err != nil {
+	if request.ResponseFormat != "" {
+		if err := builder.WriteField("response_format", request.ResponseFormat); err != nil {
 			logger.Errorf(ctx, "ConvAudioTranscriptionsRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}

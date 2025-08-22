@@ -158,9 +158,11 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data []byte) (res
 			for {
 
 				event, ok := <-stream.Events()
-				if !ok {
+				if !ok { // todo
 
-					if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
+					if errors.Is(err, io.EOF) {
+						logger.Infof(ctx, "ChatCompletionsStream Anthropic model: %s finished", a.Model)
+					} else {
 						logger.Errorf(ctx, "ChatCompletionsStream Anthropic model: %s, error: %v", a.Model, err)
 					}
 
@@ -272,7 +274,9 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data []byte) (res
 				responseBytes, err := stream.Recv()
 				if err != nil {
 
-					if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
+					if errors.Is(err, io.EOF) {
+						logger.Infof(ctx, "ChatCompletionsStream Anthropic model: %s finished", a.Model)
+					} else {
 						logger.Errorf(ctx, "ChatCompletionsStream Anthropic model: %s, error: %v", a.Model, err)
 					}
 

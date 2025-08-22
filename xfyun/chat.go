@@ -54,7 +54,7 @@ func (x *Xfyun) ChatCompletions(ctx context.Context, data []byte) (res model.Cha
 	for {
 
 		_, message, err := conn.ReadMessage(ctx)
-		if err != nil && !errors.Is(err, io.EOF) {
+		if err != nil {
 			logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, error: %v", x.Model, err)
 			return res, err
 		}
@@ -148,9 +148,11 @@ func (x *Xfyun) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 		for {
 
 			_, message, err := conn.ReadMessage(ctx)
-			if err != nil && !errors.Is(err, io.EOF) {
+			if err != nil {
 
-				if !errors.Is(err, context.Canceled) {
+				if errors.Is(err, io.EOF) {
+					logger.Infof(ctx, "ChatCompletionsStream Xfyun model: %s finished", x.Model)
+				} else {
 					logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, error: %v", x.Model, err)
 				}
 

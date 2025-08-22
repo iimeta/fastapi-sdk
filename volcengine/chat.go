@@ -88,7 +88,9 @@ func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data []byte) (re
 			responseBytes, err := stream.Recv()
 			if err != nil {
 
-				if !errors.Is(err, context.Canceled) && !errors.Is(err, io.EOF) {
+				if errors.Is(err, io.EOF) {
+					logger.Infof(ctx, "ChatCompletionsStream VolcEngine model: %s finished", v.Model)
+				} else {
 					logger.Errorf(ctx, "ChatCompletionsStream VolcEngine model: %s, error: %v", v.Model, err)
 				}
 
