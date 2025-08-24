@@ -19,6 +19,11 @@ import (
 	"github.com/iimeta/fastapi-sdk/zhipuai"
 )
 
+type AdapterGroup interface {
+	Adapter
+	Converter
+}
+
 type Adapter interface {
 	ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
 	ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error)
@@ -32,42 +37,46 @@ type Adapter interface {
 	TextEmbeddings(ctx context.Context, data []byte) (response model.EmbeddingResponse, err error)
 }
 
-func NewAdapter(ctx context.Context, options *options.AdapterOptions) Adapter {
+func NewAdapter(ctx context.Context, corp string, opts ...*options.AdapterOptions) AdapterGroup {
 
-	logger.Infof(ctx, "NewAdapter corp: %s, model: %s, key: %s", options.Corp, options.Model, options.Key)
+	logger.Infof(ctx, "NewAdapter corp: %s", corp)
 
-	switch options.Corp {
-	case consts.CORP_OPENAI:
-		return openai.NewAdapter(ctx, options)
-	case consts.CORP_AZURE:
-		return openai.NewAzureAdapter(ctx, options)
-	case consts.CORP_BAIDU:
-		return baidu.NewAdapter(ctx, options)
-	case consts.CORP_XFYUN:
-		return xfyun.NewAdapter(ctx, options)
-	case consts.CORP_ALIYUN:
-		return aliyun.NewAdapter(ctx, options)
-	case consts.CORP_ZHIPUAI:
-		return zhipuai.NewAdapter(ctx, options)
-	case consts.CORP_GOOGLE:
-		return google.NewAdapter(ctx, options)
-	case consts.CORP_GCP_GEMINI:
-		return google.NewGcpAdapter(ctx, options)
-	case consts.CORP_DEEPSEEK:
-		return deepseek.NewAdapter(ctx, options)
-	case consts.CORP_DEEPSEEK_BAIDU:
-		return deepseek.NewAdapterBaidu(ctx, options)
-	case consts.CORP_360AI:
-		return ai360.NewAdapter(ctx, options)
-	case consts.CORP_ANTHROPIC:
-		return anthropic.NewAdapter(ctx, options)
-	case consts.CORP_GCP_CLAUDE:
-		return anthropic.NewGcpAdapter(ctx, options)
-	case consts.CORP_AWS_CLAUDE:
-		return anthropic.NewAwsAdapter(ctx, options)
-	case consts.CORP_VOLC_ENGINE:
-		return volcengine.NewAdapter(ctx, options)
+	if len(opts) == 0 {
+		opts = append(opts, &options.AdapterOptions{})
 	}
 
-	return openai.NewAdapter(ctx, options)
+	switch corp {
+	case consts.CORP_OPENAI:
+		return openai.NewAdapter(ctx, opts[0])
+	case consts.CORP_AZURE:
+		return openai.NewAzureAdapter(ctx, opts[0])
+	case consts.CORP_BAIDU:
+		return baidu.NewAdapter(ctx, opts[0])
+	case consts.CORP_XFYUN:
+		return xfyun.NewAdapter(ctx, opts[0])
+	case consts.CORP_ALIYUN:
+		return aliyun.NewAdapter(ctx, opts[0])
+	case consts.CORP_ZHIPUAI:
+		return zhipuai.NewAdapter(ctx, opts[0])
+	case consts.CORP_GOOGLE:
+		return google.NewAdapter(ctx, opts[0])
+	case consts.CORP_GCP_GEMINI:
+		return google.NewGcpAdapter(ctx, opts[0])
+	case consts.CORP_DEEPSEEK:
+		return deepseek.NewAdapter(ctx, opts[0])
+	case consts.CORP_DEEPSEEK_BAIDU:
+		return deepseek.NewAdapterBaidu(ctx, opts[0])
+	case consts.CORP_360AI:
+		return ai360.NewAdapter(ctx, opts[0])
+	case consts.CORP_ANTHROPIC:
+		return anthropic.NewAdapter(ctx, opts[0])
+	case consts.CORP_GCP_CLAUDE:
+		return anthropic.NewGcpAdapter(ctx, opts[0])
+	case consts.CORP_AWS_CLAUDE:
+		return anthropic.NewAwsAdapter(ctx, opts[0])
+	case consts.CORP_VOLC_ENGINE:
+		return volcengine.NewAdapter(ctx, opts[0])
+	}
+
+	return openai.NewAdapter(ctx, opts[0])
 }
