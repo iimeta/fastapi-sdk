@@ -3,7 +3,6 @@ package xfyun
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gorilla/websocket"
 	"github.com/iimeta/fastapi-sdk/consts"
+	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"

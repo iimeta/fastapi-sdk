@@ -2,7 +2,6 @@ package sdk
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,9 +9,9 @@ import (
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
-	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
@@ -91,9 +90,9 @@ func (c *ModerationClient) requestErrorHandler(ctx context.Context, response *ht
 	if err != nil {
 		return err
 	}
-	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
+	return errors.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
 }
 
 func (c *ModerationClient) apiErrorHandler(response *model.XfyunChatCompletionRes) error {
-	return sdkerr.NewApiError(500, response.Header.Code, gjson.MustEncodeString(response), "api_error", "")
+	return errors.NewApiError(500, response.Header.Code, gjson.MustEncodeString(response), "api_error", "")
 }

@@ -1,7 +1,8 @@
-package sdkerr
+package errors
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -108,4 +109,20 @@ func NewRequestError(httpStatusCode int, err error) error {
 		HttpStatusCode: httpStatusCode,
 		Err:            err,
 	}
+}
+
+func New(text string) error {
+	return errors.New(text)
+}
+
+func Newf(format string, args ...interface{}) error {
+	return errors.New(fmt.Sprintf(format, args...))
+}
+
+func Is(err, target error) bool {
+	return errors.Is(err, target)
+}
+
+func As(err error, target any) bool {
+	return errors.As(err, target)
 }

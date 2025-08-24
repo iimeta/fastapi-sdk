@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
 )
 

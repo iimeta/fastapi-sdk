@@ -2,17 +2,16 @@ package google
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/options"
-	"github.com/iimeta/fastapi-sdk/sdkerr"
 )
 
 type Google struct {
@@ -68,9 +67,9 @@ func (g *Google) requestErrorHandler(ctx context.Context, response *http.Respons
 	if err != nil {
 		return err
 	}
-	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
+	return errors.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
 }
 
 func (g *Google) apiErrorHandler(response *model.GoogleChatCompletionRes) error {
-	return sdkerr.NewApiError(500, response.Error.Code, gjson.MustEncodeString(response), "api_error", "")
+	return errors.NewApiError(500, response.Error.Code, gjson.MustEncodeString(response), "api_error", "")
 }

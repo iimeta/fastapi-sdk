@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
-	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -19,10 +18,10 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/options"
-	"github.com/iimeta/fastapi-sdk/sdkerr"
 )
 
 type Xfyun struct {
@@ -145,15 +144,15 @@ func (x *Xfyun) requestErrorHandler(ctx context.Context, response *http.Response
 	if err != nil {
 		return err
 	}
-	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
+	return errors.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
 }
 
 func (x *Xfyun) apiErrorHandler(response *model.XfyunChatCompletionRes) error {
 
 	switch response.Header.Code {
 	case 10163, 10907:
-		return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
+		return errors.ERR_CONTEXT_LENGTH_EXCEEDED
 	}
 
-	return sdkerr.NewApiError(500, response.Header.Code, gjson.MustEncodeString(response), "api_error", "")
+	return errors.NewApiError(500, response.Header.Code, gjson.MustEncodeString(response), "api_error", "")
 }

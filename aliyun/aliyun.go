@@ -2,7 +2,6 @@ package aliyun
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,10 +9,10 @@ import (
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/options"
-	"github.com/iimeta/fastapi-sdk/sdkerr"
 )
 
 type Aliyun struct {
@@ -48,7 +47,7 @@ func (a *Aliyun) requestErrorHandler(ctx context.Context, response *http.Respons
 	if err != nil {
 		return err
 	}
-	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
+	return errors.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
 }
 
 func (a *Aliyun) apiErrorHandler(response *model.AliyunChatCompletionRes) error {
@@ -56,15 +55,15 @@ func (a *Aliyun) apiErrorHandler(response *model.AliyunChatCompletionRes) error 
 	switch response.Code {
 	case "InvalidParameter":
 		if gstr.Contains(response.Message, "Range of input length") {
-			return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
+			return errors.ERR_CONTEXT_LENGTH_EXCEEDED
 		}
 	case "BadRequest.TooLarge":
-		return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
+		return errors.ERR_CONTEXT_LENGTH_EXCEEDED
 	case "InvalidApiKey":
-		return sdkerr.ERR_INVALID_API_KEY
+		return errors.ERR_INVALID_API_KEY
 	case "Throttling.AllocationQuota":
-		return sdkerr.ERR_INSUFFICIENT_QUOTA
+		return errors.ERR_INSUFFICIENT_QUOTA
 	}
 
-	return sdkerr.NewApiError(500, response.Code, gjson.MustEncodeString(response), "api_error", "")
+	return errors.NewApiError(500, response.Code, gjson.MustEncodeString(response), "api_error", "")
 }

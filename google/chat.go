@@ -2,12 +2,12 @@ package google
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"

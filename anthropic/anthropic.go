@@ -3,7 +3,6 @@ package anthropic
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,10 +13,10 @@ import (
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/options"
-	"github.com/iimeta/fastapi-sdk/sdkerr"
 )
 
 type Anthropic struct {
@@ -116,7 +115,7 @@ func (a *Anthropic) requestErrorHandler(ctx context.Context, response *http.Resp
 	errRes := model.AnthropicErrorResponse{}
 	if err := json.Unmarshal(bytes, &errRes); err != nil || errRes.Error == nil {
 
-		reqErr := &sdkerr.RequestError{
+		reqErr := &errors.RequestError{
 			HttpStatusCode: response.StatusCode,
 			Err:            errors.New(fmt.Sprintf("response: %s, error: %v", bytes, err)),
 		}
@@ -131,7 +130,7 @@ func (a *Anthropic) requestErrorHandler(ctx context.Context, response *http.Resp
 	switch errRes.Error.Type {
 	}
 
-	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, gjson.MustEncodeString(errRes.Error))))
+	return errors.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, gjson.MustEncodeString(errRes.Error))))
 }
 
 func (a *Anthropic) apiErrorHandler(response *model.AnthropicChatCompletionRes) error {
@@ -139,5 +138,5 @@ func (a *Anthropic) apiErrorHandler(response *model.AnthropicChatCompletionRes) 
 	switch response.Error.Type {
 	}
 
-	return sdkerr.NewApiError(500, response.Error.Type, gjson.MustEncodeString(response), "api_error", "")
+	return errors.NewApiError(500, response.Error.Type, gjson.MustEncodeString(response), "api_error", "")
 }

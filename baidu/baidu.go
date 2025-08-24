@@ -2,16 +2,15 @@ package baidu
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/options"
-	"github.com/iimeta/fastapi-sdk/sdkerr"
 )
 
 type Baidu struct {
@@ -45,17 +44,17 @@ func (b *Baidu) requestErrorHandler(ctx context.Context, response *http.Response
 	if err != nil {
 		return err
 	}
-	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
+	return errors.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
 }
 
 func (b *Baidu) apiErrorHandler(response *model.BaiduChatCompletionRes) error {
 
 	switch response.ErrorCode {
 	case 336103, 336007:
-		return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
+		return errors.ERR_CONTEXT_LENGTH_EXCEEDED
 	case 4, 18, 336501:
-		return sdkerr.ERR_RATE_LIMIT_EXCEEDED
+		return errors.ERR_RATE_LIMIT_EXCEEDED
 	}
 
-	return sdkerr.NewApiError(500, response.ErrorCode, gjson.MustEncodeString(response), "api_error", "")
+	return errors.NewApiError(500, response.ErrorCode, gjson.MustEncodeString(response), "api_error", "")
 }

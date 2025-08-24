@@ -3,7 +3,6 @@ package zhipuai
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -13,10 +12,10 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/options"
-	"github.com/iimeta/fastapi-sdk/sdkerr"
 )
 
 type ZhipuAI struct {
@@ -80,7 +79,7 @@ func (z *ZhipuAI) requestErrorHandler(ctx context.Context, response *http.Respon
 	errRes := model.ZhipuAIErrorResponse{}
 	if err := json.NewDecoder(response.Body).Decode(&errRes); err != nil || errRes.Error == nil {
 
-		reqErr := &sdkerr.RequestError{
+		reqErr := &errors.RequestError{
 			HttpStatusCode: response.StatusCode,
 			Err:            err,
 		}
@@ -94,22 +93,22 @@ func (z *ZhipuAI) requestErrorHandler(ctx context.Context, response *http.Respon
 
 	switch errRes.Error.Code {
 	case "1261":
-		return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
+		return errors.ERR_CONTEXT_LENGTH_EXCEEDED
 	case "1113":
-		return sdkerr.ERR_INSUFFICIENT_QUOTA
+		return errors.ERR_INSUFFICIENT_QUOTA
 	}
 
-	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, gjson.MustEncodeString(errRes.Error))))
+	return errors.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, gjson.MustEncodeString(errRes.Error))))
 }
 
 func (z *ZhipuAI) apiErrorHandler(response *model.ZhipuAIChatCompletionRes) error {
 
 	switch response.Error.Code {
 	case "1261":
-		return sdkerr.ERR_CONTEXT_LENGTH_EXCEEDED
+		return errors.ERR_CONTEXT_LENGTH_EXCEEDED
 	case "1113":
-		return sdkerr.ERR_INSUFFICIENT_QUOTA
+		return errors.ERR_INSUFFICIENT_QUOTA
 	}
 
-	return sdkerr.NewApiError(500, response.Error.Code, gjson.MustEncodeString(response), "api_error", "")
+	return errors.NewApiError(500, response.Error.Code, gjson.MustEncodeString(response), "api_error", "")
 }

@@ -3,7 +3,6 @@ package anthropic
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"io"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -13,6 +12,7 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/consts"
+	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 	"github.com/iimeta/fastapi-sdk/util"

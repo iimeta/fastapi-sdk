@@ -3,7 +3,6 @@ package openai
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 
@@ -11,9 +10,9 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
-	"github.com/iimeta/fastapi-sdk/sdkerr"
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
@@ -361,5 +360,5 @@ func (o *OpenAI) ResponsesStreamToNonStream(ctx context.Context, data []byte) (r
 }
 
 func (o *OpenAI) responsesErrorHandler(err *model.OpenAIResponsesError) error {
-	return sdkerr.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %s, error: %s", err.Code, gjson.MustEncodeString(err))))
+	return errors.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %s, error: %s", err.Code, gjson.MustEncodeString(err))))
 }
