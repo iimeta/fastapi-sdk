@@ -10,6 +10,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/baidu"
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/deepseek"
+	"github.com/iimeta/fastapi-sdk/general"
 	"github.com/iimeta/fastapi-sdk/google"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -88,5 +89,5 @@ func NewConverter(ctx context.Context, corp string, opts ...*options.AdapterOpti
 		return &volcengine.VolcEngine{AdapterOptions: opts[0]}
 	}
 
-	return &openai.OpenAI{AdapterOptions: opts[0]}
+	return &general.General{AdapterOptions: opts[0]}
 }
