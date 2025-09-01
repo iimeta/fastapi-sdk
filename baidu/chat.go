@@ -13,7 +13,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (b *Baidu) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+func (b *Baidu) ChatCompletions(ctx context.Context, data any) (response model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletions Baidu model: %s start", b.Model)
 
@@ -23,27 +23,35 @@ func (b *Baidu) ChatCompletions(ctx context.Context, data []byte) (response mode
 		logger.Infof(ctx, "ChatCompletions Baidu model: %s totalTime: %d ms", b.Model, response.TotalTime)
 	}()
 
-	request, err := b.ConvChatCompletionsRequestOfficial(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions Baidu ConvChatCompletionsRequestOfficial error: %v", err)
-		return response, err
+	if !b.IsOfficial {
+
+		chatCompletionsRequest, err := b.ConvChatCompletionsRequest(ctx, data)
+		if err != nil {
+			logger.Errorf(ctx, "ChatCompletions Baidu ConvChatCompletionsRequest error: %v", err)
+			return response, err
+		}
+
+		if data, err = b.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+			logger.Errorf(ctx, "ChatCompletions Baidu ConvChatCompletionsRequestOfficial error: %v", err)
+			return response, err
+		}
 	}
 
-	bytes, err := util.HttpPost(ctx, fmt.Sprintf("%s?access_token=%s", b.BaseUrl+b.Path, b.accessToken), b.header, request, nil, b.Timeout, b.ProxyUrl, b.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, fmt.Sprintf("%s?access_token=%s", b.BaseUrl+b.Path, b.accessToken), b.header, data, nil, b.Timeout, b.ProxyUrl, b.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions Baidu model: %s, error: %v", b.Model, err)
 		return response, err
 	}
 
-	if response, err = b.ConvChatCompletionsResponseOfficial(ctx, bytes); err != nil {
-		logger.Errorf(ctx, "ChatCompletions Baidu ConvChatCompletionsResponseOfficial error: %v", err)
+	if response, err = b.ConvChatCompletionsResponse(ctx, bytes); err != nil {
+		logger.Errorf(ctx, "ChatCompletions Baidu ConvChatCompletionsResponse error: %v", err)
 		return response, err
 	}
 
 	return response, nil
 }
 
-func (b *Baidu) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (b *Baidu) ChatCompletionsStream(ctx context.Context, data any) (responseChan chan *model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletionsStream Baidu model: %s start", b.Model)
 
@@ -54,13 +62,21 @@ func (b *Baidu) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 		}
 	}()
 
-	request, err := b.ConvChatCompletionsRequestOfficial(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream Baidu ConvChatCompletionsRequestOfficial error: %v", err)
-		return nil, err
+	if !b.IsOfficial {
+
+		chatCompletionsRequest, err := b.ConvChatCompletionsRequest(ctx, data)
+		if err != nil {
+			logger.Errorf(ctx, "ChatCompletionsStream Baidu ConvChatCompletionsRequest error: %v", err)
+			return responseChan, err
+		}
+
+		if data, err = b.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+			logger.Errorf(ctx, "ChatCompletionsStream Baidu ConvChatCompletionsRequestOfficial error: %v", err)
+			return responseChan, err
+		}
 	}
 
-	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s?access_token=%s", b.BaseUrl+b.Path, b.accessToken), b.header, request, b.Timeout, b.ProxyUrl, b.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s?access_token=%s", b.BaseUrl+b.Path, b.accessToken), b.header, data, b.Timeout, b.ProxyUrl, b.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream Baidu model: %s, error: %v", b.Model, err)
 		return responseChan, err
@@ -103,9 +119,9 @@ func (b *Baidu) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 				return
 			}
 
-			response, err := b.ConvChatCompletionsStreamResponseOfficial(ctx, responseBytes)
+			response, err := b.ConvChatCompletionsStreamResponse(ctx, responseBytes)
 			if err != nil {
-				logger.Errorf(ctx, "ChatCompletionsStream Baidu ConvChatCompletionsStreamResponseOfficial error: %v", err)
+				logger.Errorf(ctx, "ChatCompletionsStream Baidu ConvChatCompletionsStreamResponse error: %v", err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{

@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/errors"
@@ -13,7 +12,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (a *AI360) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+func (a *AI360) ChatCompletions(ctx context.Context, data any) (response model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletions 360AI model: %s start", a.Model)
 
@@ -23,13 +22,14 @@ func (a *AI360) ChatCompletions(ctx context.Context, data []byte) (response mode
 		logger.Infof(ctx, "ChatCompletions 360AI model: %s totalTime: %d ms", a.Model, response.TotalTime)
 	}()
 
-	request, err := a.ConvChatCompletionsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions 360AI ConvChatCompletionsRequest error: %v", err)
-		return response, err
+	if !a.IsOfficial {
+		if data, err = a.ConvChatCompletionsRequest(ctx, data); err != nil {
+			logger.Errorf(ctx, "ChatCompletions 360AI ConvChatCompletionsRequest error: %v", err)
+			return response, err
+		}
 	}
 
-	bytes, err := util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, request, nil, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, nil, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions 360AI model: %s, error: %v", a.Model, err)
 		return response, err
@@ -45,7 +45,7 @@ func (a *AI360) ChatCompletions(ctx context.Context, data []byte) (response mode
 	return response, nil
 }
 
-func (a *AI360) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (a *AI360) ChatCompletionsStream(ctx context.Context, data any) (responseChan chan *model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletionsStream 360AI model: %s start", a.Model)
 
@@ -56,13 +56,14 @@ func (a *AI360) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 		}
 	}()
 
-	request, err := a.ConvChatCompletionsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream 360AI ConvChatCompletionsRequest error: %v", err)
-		return nil, err
+	if !a.IsOfficial {
+		if data, err = a.ConvChatCompletionsRequest(ctx, data); err != nil {
+			logger.Errorf(ctx, "ChatCompletionsStream 360AI ConvChatCompletionsRequest error: %v", err)
+			return responseChan, err
+		}
 	}
 
-	stream, err := util.SSEClient(ctx, a.BaseUrl+a.Path, a.header, gjson.MustEncode(request), a.Timeout, a.ProxyUrl, a.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, a.BaseUrl+a.Path, a.header, data, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream 360AI model: %s, error: %v", a.Model, err)
 		return responseChan, err

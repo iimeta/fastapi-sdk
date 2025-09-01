@@ -26,8 +26,8 @@ type AdapterGroup interface {
 }
 
 type Adapter interface {
-	ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
-	ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error)
+	ChatCompletions(ctx context.Context, data any) (response model.ChatCompletionResponse, err error)
+	ChatCompletionsStream(ctx context.Context, data any) (responseChan chan *model.ChatCompletionResponse, err error)
 
 	ImageGenerations(ctx context.Context, data []byte) (response model.ImageResponse, err error)
 	ImageEdits(ctx context.Context, request model.ImageEditRequest) (response model.ImageResponse, err error)

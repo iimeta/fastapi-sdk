@@ -17,26 +17,34 @@ import (
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (x *Xfyun) ChatCompletions(ctx context.Context, data []byte) (res model.ChatCompletionResponse, err error) {
+func (x *Xfyun) ChatCompletions(ctx context.Context, data any) (response model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletions Xfyun model: %s start", x.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
-		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletions Xfyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", x.Model, res.ConnTime, res.Duration, res.TotalTime)
+		response.TotalTime = gtime.TimestampMilli() - now
+		logger.Infof(ctx, "ChatCompletions Xfyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", x.Model, response.ConnTime, response.Duration, response.TotalTime)
 	}()
 
-	request, err := x.ConvChatCompletionsRequestOfficial(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions Xfyun ConvChatCompletionsRequestOfficial error: %v", err)
-		return res, err
+	if !x.IsOfficial {
+
+		chatCompletionsRequest, err := x.ConvChatCompletionsRequest(ctx, data)
+		if err != nil {
+			logger.Errorf(ctx, "ChatCompletions Xfyun ConvChatCompletionsRequest error: %v", err)
+			return response, err
+		}
+
+		if data, err = x.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+			logger.Errorf(ctx, "ChatCompletions Xfyun ConvChatCompletionsRequestOfficial error: %v", err)
+			return response, err
+		}
 	}
 
-	conn, err := util.WebSocketClient(ctx, x.getWebSocketUrl(ctx), nil, websocket.TextMessage, request, x.ProxyUrl)
+	conn, err := util.WebSocketClient(ctx, x.getWebSocketUrl(ctx), nil, websocket.TextMessage, gjson.MustEncode(data), x.ProxyUrl)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, error: %v", x.Model, err)
-		return res, err
+		return response, err
 	}
 
 	defer func() {
@@ -56,12 +64,12 @@ func (x *Xfyun) ChatCompletions(ctx context.Context, data []byte) (res model.Cha
 		_, message, err := conn.ReadMessage(ctx)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, error: %v", x.Model, err)
-			return res, err
+			return response, err
 		}
 
 		if err = json.Unmarshal(message, &chatCompletionRes); err != nil {
 			logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, message: %s, error: %v", x.Model, message, err)
-			return res, errors.New(fmt.Sprintf("message: %s, error: %v", message, err))
+			return response, errors.New(fmt.Sprintf("message: %s, error: %v", message, err))
 		}
 
 		if chatCompletionRes.Header.Code != 0 {
@@ -70,7 +78,7 @@ func (x *Xfyun) ChatCompletions(ctx context.Context, data []byte) (res model.Cha
 			err = x.apiErrorHandler(&chatCompletionRes)
 			logger.Errorf(ctx, "ChatCompletions Xfyun model: %s, error: %v", x.Model, err)
 
-			return res, err
+			return response, err
 		}
 
 		responseContent += chatCompletionRes.Payload.Choices.Text[0].Content
@@ -80,7 +88,7 @@ func (x *Xfyun) ChatCompletions(ctx context.Context, data []byte) (res model.Cha
 		}
 	}
 
-	res = model.ChatCompletionResponse{
+	response = model.ChatCompletionResponse{
 		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Header.Sid,
 		Object:  consts.COMPLETION_OBJECT,
 		Created: gtime.Timestamp(),
@@ -102,10 +110,10 @@ func (x *Xfyun) ChatCompletions(ctx context.Context, data []byte) (res model.Cha
 		Duration: gtime.TimestampMilli() - duration,
 	}
 
-	return res, nil
+	return response, nil
 }
 
-func (x *Xfyun) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (x *Xfyun) ChatCompletionsStream(ctx context.Context, data any) (responseChan chan *model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletionsStream Xfyun model: %s start", x.Model)
 
@@ -116,13 +124,21 @@ func (x *Xfyun) ChatCompletionsStream(ctx context.Context, data []byte) (respons
 		}
 	}()
 
-	request, err := x.ConvChatCompletionsRequestOfficial(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream Xfyun ConvChatCompletionsRequestOfficial error: %v", err)
-		return nil, err
+	if !x.IsOfficial {
+
+		chatCompletionsRequest, err := x.ConvChatCompletionsRequest(ctx, data)
+		if err != nil {
+			logger.Errorf(ctx, "ChatCompletionsStream Xfyun ConvChatCompletionsRequest error: %v", err)
+			return nil, err
+		}
+
+		if data, err = x.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+			logger.Errorf(ctx, "ChatCompletionsStream Xfyun ConvChatCompletionsRequestOfficial error: %v", err)
+			return nil, err
+		}
 	}
 
-	conn, err := util.WebSocketClient(ctx, x.getWebSocketUrl(ctx), nil, websocket.TextMessage, request, x.ProxyUrl)
+	conn, err := util.WebSocketClient(ctx, x.getWebSocketUrl(ctx), nil, websocket.TextMessage, gjson.MustEncode(data), x.ProxyUrl)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream Xfyun model: %s, error: %v", x.Model, err)
 		return responseChan, err

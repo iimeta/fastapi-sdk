@@ -34,7 +34,7 @@ type StreamReader struct {
 	isFinished         bool
 }
 
-func SSEClient(ctx context.Context, rawURL string, header map[string]string, data []byte, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) (stream *StreamReader, err error) {
+func SSEClient(ctx context.Context, rawURL string, header map[string]string, data any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) (stream *StreamReader, err error) {
 
 	logger.Debugf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s", rawURL, header, gjson.MustEncodeString(data), proxyURL)
 
@@ -42,7 +42,19 @@ func SSEClient(ctx context.Context, rawURL string, header map[string]string, dat
 		Timeout: timeout,
 	}
 
-	request, err := http.NewRequest("POST", rawURL, bytes.NewBuffer(data))
+	var bodyReader io.Reader
+
+	if data != nil {
+		if v, ok := data.([]byte); ok {
+			bodyReader = bytes.NewBuffer(v)
+		} else if v, ok := data.(io.Reader); ok {
+			bodyReader = v
+		} else {
+			bodyReader = bytes.NewBuffer(gjson.MustEncode(data))
+		}
+	}
+
+	request, err := http.NewRequest("POST", rawURL, bodyReader)
 	if err != nil {
 		logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
 		return nil, err

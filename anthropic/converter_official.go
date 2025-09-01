@@ -2,24 +2,15 @@ package anthropic
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
-	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/consts"
-	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 )
 
-func (a *Anthropic) ConvChatCompletionsRequestOfficial(ctx context.Context, data []byte) ([]byte, error) {
-
-	request, err := a.ConvChatCompletionsRequest(ctx, data)
-	if err != nil {
-		logger.Error(ctx, err)
-		return nil, err
-	}
+func (a *Anthropic) ConvChatCompletionsRequestOfficial(ctx context.Context, request model.ChatCompletionRequest) ([]byte, error) {
 
 	chatCompletionReq := model.AnthropicChatCompletionReq{
 		Model:         request.Model,
@@ -86,132 +77,12 @@ func (a *Anthropic) ConvChatCompletionsRequestOfficial(ctx context.Context, data
 	return gjson.MustEncode(chatCompletionReq), nil
 }
 
-func (a *Anthropic) ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
-
-	chatCompletionRes := model.AnthropicChatCompletionRes{}
-	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
-		logger.Error(ctx, err)
-		return response, err
-	}
-
-	if chatCompletionRes.Error != nil && chatCompletionRes.Error.Type != "" {
-		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Anthropic model: %s, chatCompletionRes: %s", a.Model, gjson.MustEncodeString(chatCompletionRes))
-
-		err = a.apiErrorHandler(&chatCompletionRes)
-		logger.Errorf(ctx, "ConvChatCompletionsResponseOfficial Anthropic model: %s, error: %v", a.Model, err)
-
-		return response, err
-	}
-
-	response = model.ChatCompletionResponse{
-		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
-		Object:  consts.COMPLETION_OBJECT,
-		Created: gtime.Timestamp(),
-		Model:   a.Model,
-		Usage: &model.Usage{
-			PromptTokens:             chatCompletionRes.Usage.InputTokens,
-			CompletionTokens:         chatCompletionRes.Usage.OutputTokens,
-			TotalTokens:              chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
-			CacheCreationInputTokens: chatCompletionRes.Usage.CacheCreationInputTokens,
-			CacheReadInputTokens:     chatCompletionRes.Usage.CacheReadInputTokens,
-		},
-		ResponseBytes: data,
-	}
-
-	for _, content := range chatCompletionRes.Content {
-		if content.Type == consts.DELTA_TYPE_INPUT_JSON {
-			response.Choices = append(response.Choices, model.ChatCompletionChoice{
-				Delta: &model.ChatCompletionStreamChoiceDelta{
-					Role: consts.ROLE_ASSISTANT,
-					ToolCalls: []model.ToolCall{{
-						Function: model.FunctionCall{
-							Arguments: content.PartialJson,
-						},
-					}},
-				},
-			})
-		} else {
-			response.Choices = append(response.Choices, model.ChatCompletionChoice{
-				Message: &model.ChatCompletionMessage{
-					Role:    chatCompletionRes.Role,
-					Content: content.Text,
-				},
-				FinishReason: consts.FinishReasonStop,
-			})
-		}
-	}
-
-	return response, nil
+func (a *Anthropic) ConvChatCompletionsResponseOfficial(ctx context.Context, response model.ChatCompletionResponse) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
-func (a *Anthropic) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
-
-	chatCompletionRes := model.AnthropicChatCompletionRes{}
-	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
-		logger.Error(ctx, err)
-		return response, err
-	}
-
-	if chatCompletionRes.Error != nil && chatCompletionRes.Error.Type != "" {
-		logger.Errorf(ctx, "ConvChatCompletionsStreamResponseOfficial Anthropic model: %s, chatCompletionRes: %s", a.Model, gjson.MustEncodeString(chatCompletionRes))
-
-		err = a.apiErrorHandler(&chatCompletionRes)
-		logger.Errorf(ctx, "ConvChatCompletionsStreamResponseOfficial Anthropic model: %s, error: %v", a.Model, err)
-
-		return response, err
-	}
-
-	response = model.ChatCompletionResponse{
-		Id:            chatCompletionRes.Message.Id,
-		Object:        consts.COMPLETION_STREAM_OBJECT,
-		Created:       gtime.Timestamp(),
-		Model:         a.Model,
-		ResponseBytes: data,
-	}
-
-	if chatCompletionRes.Usage != nil {
-		response.Usage = &model.Usage{
-			PromptTokens:             chatCompletionRes.Usage.InputTokens,
-			CompletionTokens:         chatCompletionRes.Usage.OutputTokens,
-			TotalTokens:              chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
-			CacheCreationInputTokens: chatCompletionRes.Usage.CacheCreationInputTokens,
-			CacheReadInputTokens:     chatCompletionRes.Usage.CacheReadInputTokens,
-		}
-	}
-
-	if chatCompletionRes.Message.Usage != nil {
-		response.Usage = &model.Usage{
-			PromptTokens:             chatCompletionRes.Message.Usage.InputTokens,
-			CacheCreationInputTokens: chatCompletionRes.Message.Usage.CacheCreationInputTokens,
-			CacheReadInputTokens:     chatCompletionRes.Message.Usage.CacheReadInputTokens,
-		}
-	}
-
-	if chatCompletionRes.Delta.StopReason != "" {
-		response.Choices = append(response.Choices, model.ChatCompletionChoice{
-			FinishReason: consts.FinishReasonStop,
-		})
-	} else {
-		if chatCompletionRes.Delta.Type == consts.DELTA_TYPE_INPUT_JSON {
-			response.Choices = append(response.Choices, model.ChatCompletionChoice{
-				Delta: &model.ChatCompletionStreamChoiceDelta{
-					Role: consts.ROLE_ASSISTANT,
-					ToolCalls: []model.ToolCall{{
-						Function: model.FunctionCall{
-							Arguments: chatCompletionRes.Delta.PartialJson,
-						},
-					}},
-				},
-			})
-		} else {
-			response.Choices = append(response.Choices, model.ChatCompletionChoice{
-				Delta: &model.ChatCompletionStreamChoiceDelta{
-					Role:    consts.ROLE_ASSISTANT,
-					Content: chatCompletionRes.Delta.Text,
-				},
-			})
-		}
-	}
-
-	return response, nil
+func (a *Anthropic) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, response model.ChatCompletionResponse) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
 }

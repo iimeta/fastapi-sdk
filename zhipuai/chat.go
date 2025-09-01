@@ -12,7 +12,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (z *ZhipuAI) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+func (z *ZhipuAI) ChatCompletions(ctx context.Context, data any) (response model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s start", z.Model)
 
@@ -22,27 +22,35 @@ func (z *ZhipuAI) ChatCompletions(ctx context.Context, data []byte) (response mo
 		logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s totalTime: %d ms", z.Model, response.TotalTime)
 	}()
 
-	request, err := z.ConvChatCompletionsRequestOfficial(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions ZhipuAI ConvChatCompletionsRequestOfficial error: %v", err)
-		return response, err
+	if !z.IsOfficial {
+
+		chatCompletionsRequest, err := z.ConvChatCompletionsRequest(ctx, data)
+		if err != nil {
+			logger.Errorf(ctx, "ChatCompletions ZhipuAI ConvChatCompletionsRequest error: %v", err)
+			return response, err
+		}
+
+		if data, err = z.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+			logger.Errorf(ctx, "ChatCompletions ZhipuAI ConvChatCompletionsRequestOfficial error: %v", err)
+			return response, err
+		}
 	}
 
-	bytes, err := util.HttpPost(ctx, z.BaseUrl+z.Path, z.header, request, nil, z.Timeout, z.ProxyUrl, z.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, z.BaseUrl+z.Path, z.header, data, nil, z.Timeout, z.ProxyUrl, z.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions ZhipuAI model: %s, error: %v", z.Model, err)
 		return response, err
 	}
 
-	if response, err = z.ConvChatCompletionsResponseOfficial(ctx, bytes); err != nil {
-		logger.Errorf(ctx, "ChatCompletions ZhipuAI ConvChatCompletionsResponseOfficial error: %v", err)
+	if response, err = z.ConvChatCompletionsResponse(ctx, bytes); err != nil {
+		logger.Errorf(ctx, "ChatCompletions ZhipuAI ConvChatCompletionsResponse error: %v", err)
 		return response, err
 	}
 
 	return response, nil
 }
 
-func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data any) (responseChan chan *model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletionsStream ZhipuAI model: %s start", z.Model)
 
@@ -53,13 +61,21 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (respo
 		}
 	}()
 
-	request, err := z.ConvChatCompletionsRequestOfficial(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI ConvChatCompletionsRequestOfficial error: %v", err)
-		return nil, err
+	if !z.IsOfficial {
+
+		chatCompletionsRequest, err := z.ConvChatCompletionsRequest(ctx, data)
+		if err != nil {
+			logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI ConvChatCompletionsRequest error: %v", err)
+			return responseChan, err
+		}
+
+		if data, err = z.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+			logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI ConvChatCompletionsRequestOfficial error: %v", err)
+			return responseChan, err
+		}
 	}
 
-	stream, err := util.SSEClient(ctx, z.BaseUrl+z.Path, z.header, request, z.Timeout, z.ProxyUrl, z.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, z.BaseUrl+z.Path, z.header, data, z.Timeout, z.ProxyUrl, z.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI model: %s, error: %v", z.Model, err)
 		return responseChan, err
@@ -102,9 +118,9 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data []byte) (respo
 				return
 			}
 
-			response, err := z.ConvChatCompletionsStreamResponseOfficial(ctx, responseBytes)
+			response, err := z.ConvChatCompletionsStreamResponse(ctx, responseBytes)
 			if err != nil {
-				logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI ConvChatCompletionsStreamResponseOfficial error: %v", err)
+				logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI ConvChatCompletionsStreamResponse error: %v", err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{

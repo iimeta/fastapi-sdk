@@ -5,18 +5,29 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 )
 
-func (b *Baidu) ConvChatCompletionsRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
+func (b *Baidu) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {
 
-	request := model.ChatCompletionRequest{}
-	if err := json.Unmarshal(data, &request); err != nil {
-		logger.Error(ctx, err)
-		return request, err
+	request = model.ChatCompletionRequest{}
+
+	if v, ok := data.(model.ChatCompletionRequest); ok {
+		request = v
+	} else if v, ok := data.([]byte); ok {
+		if err = json.Unmarshal(v, &request); err != nil {
+			logger.Error(ctx, err)
+			return request, err
+		}
+	} else {
+		if err = json.Unmarshal(gjson.MustEncode(data), &request); err != nil {
+			logger.Error(ctx, err)
+			return request, err
+		}
 	}
 
 	if b.IsSupportSystemRole != nil {
@@ -34,13 +45,34 @@ func (b *Baidu) ConvChatCompletionsRequest(ctx context.Context, data []byte) (mo
 
 func (b *Baidu) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response = model.ChatCompletionResponse{
-		ResponseBytes: data,
-	}
-
-	if err = json.Unmarshal(data, &response); err != nil {
+	chatCompletionRes := model.BaiduChatCompletionRes{}
+	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
 		logger.Error(ctx, err)
 		return response, err
+	}
+
+	if chatCompletionRes.ErrorCode != 0 {
+		logger.Errorf(ctx, "ConvChatCompletionsResponse Baidu model: %s, chatCompletionRes: %s", b.Model, gjson.MustEncodeString(chatCompletionRes))
+
+		err = b.apiErrorHandler(&chatCompletionRes)
+		logger.Errorf(ctx, "ConvChatCompletionsResponse Baidu model: %s, error: %v", b.Model, err)
+
+		return response, err
+	}
+
+	response = model.ChatCompletionResponse{
+		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
+		Object:  consts.COMPLETION_OBJECT,
+		Created: chatCompletionRes.Created,
+		Model:   b.Model,
+		Choices: []model.ChatCompletionChoice{{
+			Message: &model.ChatCompletionMessage{
+				Role:    consts.ROLE_ASSISTANT,
+				Content: chatCompletionRes.Result,
+			},
+		}},
+		Usage:         chatCompletionRes.Usage,
+		ResponseBytes: data,
 	}
 
 	return response, nil
@@ -48,19 +80,41 @@ func (b *Baidu) ConvChatCompletionsResponse(ctx context.Context, data []byte) (r
 
 func (b *Baidu) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response = model.ChatCompletionResponse{
-		ResponseBytes: data,
-	}
-
-	if err = json.Unmarshal(data, &response); err != nil {
+	chatCompletionRes := model.BaiduChatCompletionRes{}
+	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
 		logger.Error(ctx, err)
 		return response, err
+	}
+
+	if chatCompletionRes.ErrorCode != 0 {
+		logger.Errorf(ctx, "ConvChatCompletionsStreamResponse Baidu model: %s, chatCompletionRes: %s", b.Model, gjson.MustEncodeString(chatCompletionRes))
+
+		err = b.apiErrorHandler(&chatCompletionRes)
+		logger.Errorf(ctx, "ConvChatCompletionsStreamResponse Baidu model: %s, error: %v", b.Model, err)
+
+		return response, err
+	}
+
+	response = model.ChatCompletionResponse{
+		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Id,
+		Object:  consts.COMPLETION_STREAM_OBJECT,
+		Created: chatCompletionRes.Created,
+		Model:   b.Model,
+		Choices: []model.ChatCompletionChoice{{
+			Index: chatCompletionRes.SentenceId,
+			Delta: &model.ChatCompletionStreamChoiceDelta{
+				Role:    consts.ROLE_ASSISTANT,
+				Content: chatCompletionRes.Result,
+			},
+		}},
+		Usage:         chatCompletionRes.Usage,
+		ResponseBytes: data,
 	}
 
 	return response, nil
 }
 
-func (b *Baidu) ConvChatResponsesRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
+func (b *Baidu) ConvChatResponsesRequest(ctx context.Context, data []byte) (request model.ChatCompletionRequest, err error) {
 	//TODO implement me
 	panic("implement me")
 }

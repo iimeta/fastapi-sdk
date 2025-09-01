@@ -14,7 +14,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (o *OpenAI) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+func (o *OpenAI) ChatCompletions(ctx context.Context, data any) (response model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletions OpenAI model: %s start", o.Model)
 
@@ -24,13 +24,14 @@ func (o *OpenAI) ChatCompletions(ctx context.Context, data []byte) (response mod
 		logger.Infof(ctx, "ChatCompletions OpenAI model: %s totalTime: %d ms", o.Model, response.TotalTime)
 	}()
 
-	request, err := o.ConvChatCompletionsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions OpenAI ConvChatCompletionsRequest error: %v", err)
-		return response, err
+	if !o.IsOfficial {
+		if data, err = o.ConvChatCompletionsRequest(ctx, data); err != nil {
+			logger.Errorf(ctx, "ChatCompletions OpenAI ConvChatCompletionsRequest error: %v", err)
+			return response, err
+		}
 	}
 
-	bytes, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
@@ -46,7 +47,7 @@ func (o *OpenAI) ChatCompletions(ctx context.Context, data []byte) (response mod
 	return response, nil
 }
 
-func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data any) (responseChan chan *model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletionsStream OpenAI model: %s start", o.Model)
 
@@ -57,17 +58,18 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 		}
 	}()
 
-	request, err := o.ConvChatCompletionsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream OpenAI ConvChatCompletionsRequest error: %v", err)
-		return nil, err
+	if !o.IsOfficial {
+		if data, err = o.ConvChatCompletionsRequest(ctx, data); err != nil {
+			logger.Errorf(ctx, "ChatCompletionsStream OpenAI ConvChatCompletionsRequest error: %v", err)
+			return nil, err
+		}
 	}
 
 	if (o.IsSupportStream != nil && !*o.IsSupportStream) || (gstr.HasPrefix(o.Model, "o") && o.isAzure) {
 		return o.ChatCompletionStreamToNonStream(ctx, data)
 	}
 
-	stream, err := util.SSEClient(ctx, o.BaseUrl+o.Path, o.header, gjson.MustEncode(request), o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, o.BaseUrl+o.Path, o.header, data, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream OpenAI model: %s, error: %v", o.Model, err)
 		return responseChan, err
@@ -142,7 +144,7 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 	return responseChan, nil
 }
 
-func (o *OpenAI) ChatCompletionStreamToNonStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (o *OpenAI) ChatCompletionStreamToNonStream(ctx context.Context, data any) (responseChan chan *model.ChatCompletionResponse, err error) {
 
 	request, err := o.ConvChatCompletionsRequest(ctx, data)
 	if err != nil {

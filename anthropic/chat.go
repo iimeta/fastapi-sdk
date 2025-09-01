@@ -18,7 +18,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (a *Anthropic) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+func (a *Anthropic) ChatCompletions(ctx context.Context, data any) (response model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletions Anthropic model: %s start", a.Model)
 
@@ -28,10 +28,18 @@ func (a *Anthropic) ChatCompletions(ctx context.Context, data []byte) (response 
 		logger.Infof(ctx, "ChatCompletions Anthropic model: %s totalTime: %d ms", a.Model, response.TotalTime)
 	}()
 
-	request, err := a.ConvChatCompletionsRequestOfficial(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions Anthropic ConvChatCompletionsRequestOfficial error: %v", err)
-		return response, err
+	if !a.IsOfficial {
+
+		chatCompletionsRequest, err := a.ConvChatCompletionsRequest(ctx, data)
+		if err != nil {
+			logger.Errorf(ctx, "ChatCompletions Anthropic ConvChatCompletionsRequest error: %v", err)
+			return response, err
+		}
+
+		if data, err = a.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+			logger.Errorf(ctx, "ChatCompletions Anthropic ConvChatCompletionsRequestOfficial error: %v", err)
+			return response, err
+		}
 	}
 
 	var bytes []byte
@@ -39,8 +47,8 @@ func (a *Anthropic) ChatCompletions(ctx context.Context, data []byte) (response 
 	if a.isAws {
 
 		chatCompletionReq := model.AnthropicChatCompletionReq{}
-		if err = json.Unmarshal(request, &chatCompletionReq); err != nil {
-			logger.Errorf(ctx, "ChatCompletions Anthropic model: %s, request: %s, json.Unmarshal error: %v", a.Model, request, err)
+		if err = json.Unmarshal(data.([]byte), &chatCompletionReq); err != nil {
+			logger.Errorf(ctx, "ChatCompletions Anthropic model: %s, request: %s, json.Unmarshal error: %v", a.Model, data, err)
 			return response, err
 		}
 
@@ -73,21 +81,21 @@ func (a *Anthropic) ChatCompletions(ctx context.Context, data []byte) (response 
 		bytes = invokeModelOutput.Body
 
 	} else {
-		if bytes, err = util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, request, nil, a.Timeout, a.ProxyUrl, a.requestErrorHandler); err != nil {
+		if bytes, err = util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, nil, a.Timeout, a.ProxyUrl, a.requestErrorHandler); err != nil {
 			logger.Errorf(ctx, "ChatCompletions Anthropic model: %s, error: %v", a.Model, err)
 			return response, err
 		}
 	}
 
-	if response, err = a.ConvChatCompletionsResponseOfficial(ctx, bytes); err != nil {
-		logger.Errorf(ctx, "ChatCompletions Anthropic ConvChatCompletionsResponseOfficial error: %v", err)
+	if response, err = a.ConvChatCompletionsResponse(ctx, bytes); err != nil {
+		logger.Errorf(ctx, "ChatCompletions Anthropic ConvChatCompletionsResponse error: %v", err)
 		return response, err
 	}
 
 	return response, nil
 }
 
-func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (responseChan chan *model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletionsStream Anthropic model: %s start", a.Model)
 
@@ -98,17 +106,25 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data []byte) (res
 		}
 	}()
 
-	request, err := a.ConvChatCompletionsRequestOfficial(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream Anthropic ConvChatCompletionsRequest error: %v", err)
-		return nil, err
+	if !a.IsOfficial {
+
+		chatCompletionsRequest, err := a.ConvChatCompletionsRequest(ctx, data)
+		if err != nil {
+			logger.Errorf(ctx, "ChatCompletionsStream Anthropic ConvChatCompletionsRequest error: %v", err)
+			return nil, err
+		}
+
+		if data, err = a.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+			logger.Errorf(ctx, "ChatCompletionsStream Anthropic ConvChatCompletionsRequest error: %v", err)
+			return nil, err
+		}
 	}
 
 	if a.isAws {
 
 		chatCompletionReq := model.AnthropicChatCompletionReq{}
-		if err = json.Unmarshal(request, &chatCompletionReq); err != nil {
-			logger.Errorf(ctx, "ChatCompletionsStream Anthropic model: %s, request: %s, json.Unmarshal error: %v", a.Model, request, err)
+		if err = json.Unmarshal(data.([]byte), &chatCompletionReq); err != nil {
+			logger.Errorf(ctx, "ChatCompletionsStream Anthropic model: %s, request: %s, json.Unmarshal error: %v", a.Model, data, err)
 			return nil, err
 		}
 
@@ -209,9 +225,9 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data []byte) (res
 					return
 				}
 
-				response, err := a.ConvChatCompletionsStreamResponseOfficial(ctx, bytes)
+				response, err := a.ConvChatCompletionsStreamResponse(ctx, bytes)
 				if err != nil {
-					logger.Errorf(ctx, "ChatCompletionsStream Anthropic ConvChatCompletionsStreamResponseOfficial error: %v", err)
+					logger.Errorf(ctx, "ChatCompletionsStream Anthropic ConvChatCompletionsStreamResponse error: %v", err)
 
 					end := gtime.TimestampMilli()
 					responseChan <- &model.ChatCompletionResponse{
@@ -245,7 +261,7 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data []byte) (res
 
 	} else {
 
-		stream, err := util.SSEClient(ctx, a.BaseUrl+a.Path, a.header, request, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
+		stream, err := util.SSEClient(ctx, a.BaseUrl+a.Path, a.header, data, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Anthropic model: %s, error: %v", a.Model, err)
 			return responseChan, err
@@ -291,9 +307,9 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data []byte) (res
 					return
 				}
 
-				response, err := a.ConvChatCompletionsStreamResponseOfficial(ctx, responseBytes)
+				response, err := a.ConvChatCompletionsStreamResponse(ctx, responseBytes)
 				if err != nil {
-					logger.Errorf(ctx, "ChatCompletionsStream Anthropic ConvChatCompletionsStreamResponseOfficial error: %v", err)
+					logger.Errorf(ctx, "ChatCompletionsStream Anthropic ConvChatCompletionsStreamResponse error: %v", err)
 
 					end := gtime.TimestampMilli()
 					responseChan <- &model.ChatCompletionResponse{

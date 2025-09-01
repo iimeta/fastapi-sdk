@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/errors"
@@ -13,7 +12,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (d *DeepSeek) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+func (d *DeepSeek) ChatCompletions(ctx context.Context, data any) (response model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletions DeepSeek model: %s start", d.Model)
 
@@ -23,13 +22,14 @@ func (d *DeepSeek) ChatCompletions(ctx context.Context, data []byte) (response m
 		logger.Infof(ctx, "ChatCompletions DeepSeek model: %s totalTime: %d ms", d.Model, response.TotalTime)
 	}()
 
-	request, err := d.ConvChatCompletionsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions DeepSeek ConvChatCompletionsRequest error: %v", err)
-		return response, err
+	if !d.IsOfficial {
+		if data, err = d.ConvChatCompletionsRequest(ctx, data); err != nil {
+			logger.Errorf(ctx, "ChatCompletions DeepSeek ConvChatCompletionsRequest error: %v", err)
+			return response, err
+		}
 	}
 
-	bytes, err := util.HttpPost(ctx, d.BaseUrl+d.Path, d.header, request, nil, d.Timeout, d.ProxyUrl, d.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, d.BaseUrl+d.Path, d.header, data, nil, d.Timeout, d.ProxyUrl, d.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions DeepSeek model: %s, error: %v", d.Model, err)
 		return response, err
@@ -45,7 +45,7 @@ func (d *DeepSeek) ChatCompletions(ctx context.Context, data []byte) (response m
 	return response, nil
 }
 
-func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data any) (responseChan chan *model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletionsStream DeepSeek model: %s start", d.Model)
 
@@ -56,13 +56,14 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data []byte) (resp
 		}
 	}()
 
-	request, err := d.ConvChatCompletionsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream DeepSeek ConvChatCompletionsRequest error: %v", err)
-		return nil, err
+	if !d.IsOfficial {
+		if data, err = d.ConvChatCompletionsRequest(ctx, data); err != nil {
+			logger.Errorf(ctx, "ChatCompletionsStream DeepSeek ConvChatCompletionsRequest error: %v", err)
+			return nil, err
+		}
 	}
 
-	stream, err := util.SSEClient(ctx, d.BaseUrl+d.Path, d.header, gjson.MustEncode(request), d.Timeout, d.ProxyUrl, d.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, d.BaseUrl+d.Path, d.header, data, d.Timeout, d.ProxyUrl, d.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, error: %v", d.Model, err)
 		return responseChan, err

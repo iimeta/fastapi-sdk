@@ -22,15 +22,15 @@ import (
 )
 
 type Converter interface {
-	ConvChatCompletionsRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error)
+	ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error)
 	ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
 	ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
 
-	ConvChatCompletionsRequestOfficial(ctx context.Context, data []byte) ([]byte, error)
-	ConvChatCompletionsResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
-	ConvChatCompletionsStreamResponseOfficial(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
+	ConvChatCompletionsRequestOfficial(ctx context.Context, request model.ChatCompletionRequest) ([]byte, error)
+	ConvChatCompletionsResponseOfficial(ctx context.Context, response model.ChatCompletionResponse) ([]byte, error)
+	ConvChatCompletionsStreamResponseOfficial(ctx context.Context, response model.ChatCompletionResponse) ([]byte, error)
 
-	ConvChatResponsesRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error)
+	ConvChatResponsesRequest(ctx context.Context, data []byte) (request model.ChatCompletionRequest, err error)
 	ConvChatResponsesResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
 	ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
 

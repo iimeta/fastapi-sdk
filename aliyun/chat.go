@@ -12,7 +12,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (a *Aliyun) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+func (a *Aliyun) ChatCompletions(ctx context.Context, data any) (response model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletions Aliyun model: %s start", a.Model)
 
@@ -22,27 +22,35 @@ func (a *Aliyun) ChatCompletions(ctx context.Context, data []byte) (response mod
 		logger.Infof(ctx, "ChatCompletions Aliyun model: %s totalTime: %d ms", a.Model, response.TotalTime)
 	}()
 
-	request, err := a.ConvChatCompletionsRequestOfficial(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions Aliyun ConvChatCompletionsRequestOfficial error: %v", err)
-		return response, err
+	if !a.IsOfficial {
+
+		chatCompletionsRequest, err := a.ConvChatCompletionsRequest(ctx, data)
+		if err != nil {
+			logger.Errorf(ctx, "ChatCompletions Aliyun ConvChatCompletionsRequest error: %v", err)
+			return response, err
+		}
+
+		if data, err = a.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+			logger.Errorf(ctx, "ChatCompletions Aliyun ConvChatCompletionsRequestOfficial error: %v", err)
+			return response, err
+		}
 	}
 
-	bytes, err := util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, request, nil, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, nil, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions Aliyun model: %s, error: %v", a.Model, err)
 		return response, err
 	}
 
-	if response, err = a.ConvChatCompletionsResponseOfficial(ctx, bytes); err != nil {
-		logger.Errorf(ctx, "ChatCompletions Aliyun ConvChatCompletionsResponseOfficial error: %v", err)
+	if response, err = a.ConvChatCompletionsResponse(ctx, bytes); err != nil {
+		logger.Errorf(ctx, "ChatCompletions Aliyun ConvChatCompletionsResponse error: %v", err)
 		return response, err
 	}
 
 	return response, nil
 }
 
-func (a *Aliyun) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (a *Aliyun) ChatCompletionsStream(ctx context.Context, data any) (responseChan chan *model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletionsStream Aliyun model: %s start", a.Model)
 
@@ -53,13 +61,21 @@ func (a *Aliyun) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 		}
 	}()
 
-	request, err := a.ConvChatCompletionsRequestOfficial(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream Aliyun ConvChatCompletionsRequestOfficial error: %v", err)
-		return nil, err
+	if !a.IsOfficial {
+
+		chatCompletionsRequest, err := a.ConvChatCompletionsRequest(ctx, data)
+		if err != nil {
+			logger.Errorf(ctx, "ChatCompletionsStream Aliyun ConvChatCompletionsRequest error: %v", err)
+			return responseChan, err
+		}
+
+		if data, err = a.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+			logger.Errorf(ctx, "ChatCompletionsStream Aliyun ConvChatCompletionsRequestOfficial error: %v", err)
+			return responseChan, err
+		}
 	}
 
-	stream, err := util.SSEClient(ctx, a.BaseUrl+a.Path, a.header, request, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, a.BaseUrl+a.Path, a.header, data, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream Aliyun model: %s, error: %v", a.Model, err)
 		return responseChan, err
@@ -102,9 +118,9 @@ func (a *Aliyun) ChatCompletionsStream(ctx context.Context, data []byte) (respon
 				return
 			}
 
-			response, err := a.ConvChatCompletionsStreamResponseOfficial(ctx, responseBytes)
+			response, err := a.ConvChatCompletionsStreamResponse(ctx, responseBytes)
 			if err != nil {
-				logger.Errorf(ctx, "ChatCompletionsStream Aliyun ConvChatCompletionsStreamResponseOfficial error: %v", err)
+				logger.Errorf(ctx, "ChatCompletionsStream Aliyun ConvChatCompletionsStreamResponse error: %v", err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{

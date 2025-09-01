@@ -5,57 +5,126 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/common"
+	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 )
 
-func (x *Xfyun) ConvChatCompletionsRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
+func (x *Xfyun) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {
 
-	chatCompletionRequest := model.ChatCompletionRequest{}
-	if err := json.Unmarshal(data, &chatCompletionRequest); err != nil {
-		logger.Error(ctx, err)
-		return chatCompletionRequest, err
+	request = model.ChatCompletionRequest{}
+
+	if v, ok := data.(model.ChatCompletionRequest); ok {
+		request = v
+	} else if v, ok := data.([]byte); ok {
+		if err = json.Unmarshal(v, &request); err != nil {
+			logger.Error(ctx, err)
+			return request, err
+		}
+	} else {
+		if err = json.Unmarshal(gjson.MustEncode(data), &request); err != nil {
+			logger.Error(ctx, err)
+			return request, err
+		}
 	}
 
 	if x.IsSupportSystemRole != nil {
-		chatCompletionRequest.Messages = common.HandleMessages(chatCompletionRequest.Messages, *x.IsSupportSystemRole)
+		request.Messages = common.HandleMessages(request.Messages, *x.IsSupportSystemRole)
 	} else {
-		chatCompletionRequest.Messages = common.HandleMessages(chatCompletionRequest.Messages, true)
+		request.Messages = common.HandleMessages(request.Messages, true)
 	}
 
-	return chatCompletionRequest, nil
+	return request, nil
 }
 
 func (x *Xfyun) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	chatCompletionResponse := model.ChatCompletionResponse{
+	chatCompletionRes := model.XfyunChatCompletionRes{}
+	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
+		logger.Error(ctx, err)
+		return response, err
+	}
+
+	if chatCompletionRes.Header.Code != 0 {
+		logger.Errorf(ctx, "ConvChatCompletionsResponse Xfyun model: %s, chatCompletionRes: %s", x.Model, gjson.MustEncodeString(chatCompletionRes))
+
+		err = x.apiErrorHandler(&chatCompletionRes)
+		logger.Errorf(ctx, "ConvChatCompletionsResponse Xfyun model: %s, error: %v", x.Model, err)
+
+		return response, err
+	}
+
+	response = model.ChatCompletionResponse{
+		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Header.Sid,
+		Object:  consts.COMPLETION_OBJECT,
+		Created: gtime.Timestamp(),
+		Model:   x.Model,
+		Choices: []model.ChatCompletionChoice{{
+			Index: chatCompletionRes.Payload.Choices.Seq,
+			Message: &model.ChatCompletionMessage{
+				Role:         chatCompletionRes.Payload.Choices.Text[0].Role,
+				FunctionCall: chatCompletionRes.Payload.Choices.Text[0].FunctionCall,
+			},
+		}},
+		Usage: &model.Usage{
+			PromptTokens:     chatCompletionRes.Payload.Usage.Text.PromptTokens,
+			CompletionTokens: chatCompletionRes.Payload.Usage.Text.CompletionTokens,
+			TotalTokens:      chatCompletionRes.Payload.Usage.Text.TotalTokens,
+		},
 		ResponseBytes: data,
 	}
 
-	if err = json.Unmarshal(data, &chatCompletionResponse); err != nil {
-		logger.Error(ctx, err)
-		return chatCompletionResponse, err
-	}
-
-	return chatCompletionResponse, nil
+	return response, nil
 }
 
 func (x *Xfyun) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	chatCompletionResponse := model.ChatCompletionResponse{
+	chatCompletionRes := model.XfyunChatCompletionRes{}
+	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
+		logger.Error(ctx, err)
+		return response, err
+	}
+
+	if chatCompletionRes.Header.Code != 0 {
+		logger.Errorf(ctx, "ConvChatCompletionsStreamResponse Xfyun model: %s, chatCompletionRes: %s", x.Model, gjson.MustEncodeString(chatCompletionRes))
+
+		err = x.apiErrorHandler(&chatCompletionRes)
+		logger.Errorf(ctx, "ConvChatCompletionsStreamResponse Xfyun model: %s, error: %v", x.Model, err)
+
+		return response, err
+	}
+
+	response = model.ChatCompletionResponse{
+		Id:      consts.COMPLETION_ID_PREFIX + chatCompletionRes.Header.Sid,
+		Object:  consts.COMPLETION_STREAM_OBJECT,
+		Created: gtime.Timestamp(),
+		Model:   x.Model,
+		Choices: []model.ChatCompletionChoice{{
+			Index: chatCompletionRes.Payload.Choices.Seq,
+			Delta: &model.ChatCompletionStreamChoiceDelta{
+				Role:         chatCompletionRes.Payload.Choices.Text[0].Role,
+				Content:      chatCompletionRes.Payload.Choices.Text[0].Content,
+				FunctionCall: chatCompletionRes.Payload.Choices.Text[0].FunctionCall,
+			},
+		}},
 		ResponseBytes: data,
 	}
 
-	if err = json.Unmarshal(data, &chatCompletionResponse); err != nil {
-		logger.Error(ctx, err)
-		return chatCompletionResponse, err
+	if chatCompletionRes.Payload.Usage != nil {
+		response.Usage = &model.Usage{
+			PromptTokens:     chatCompletionRes.Payload.Usage.Text.PromptTokens,
+			CompletionTokens: chatCompletionRes.Payload.Usage.Text.CompletionTokens,
+			TotalTokens:      chatCompletionRes.Payload.Usage.Text.TotalTokens,
+		}
 	}
 
-	return chatCompletionResponse, nil
+	return response, nil
 }
 
-func (x *Xfyun) ConvChatResponsesRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
+func (x *Xfyun) ConvChatResponsesRequest(ctx context.Context, data []byte) (request model.ChatCompletionRequest, err error) {
 	//TODO implement me
 	panic("implement me")
 }

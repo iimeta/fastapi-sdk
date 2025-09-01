@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/consts"
@@ -12,12 +13,22 @@ import (
 	"github.com/iimeta/fastapi-sdk/model"
 )
 
-func (v *VolcEngine) ConvChatCompletionsRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
+func (v *VolcEngine) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {
 
-	request := model.ChatCompletionRequest{}
-	if err := json.Unmarshal(data, &request); err != nil {
-		logger.Error(ctx, err)
-		return request, err
+	request = model.ChatCompletionRequest{}
+
+	if v, ok := data.(model.ChatCompletionRequest); ok {
+		request = v
+	} else if v, ok := data.([]byte); ok {
+		if err = json.Unmarshal(v, &request); err != nil {
+			logger.Error(ctx, err)
+			return request, err
+		}
+	} else {
+		if err = json.Unmarshal(gjson.MustEncode(data), &request); err != nil {
+			logger.Error(ctx, err)
+			return request, err
+		}
 	}
 
 	if v.IsSupportSystemRole != nil {
@@ -65,7 +76,7 @@ func (v *VolcEngine) ConvChatCompletionsStreamResponse(ctx context.Context, data
 	return response, nil
 }
 
-func (v *VolcEngine) ConvChatResponsesRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
+func (v *VolcEngine) ConvChatResponsesRequest(ctx context.Context, data []byte) (request model.ChatCompletionRequest, err error) {
 	//TODO implement me
 	panic("implement me")
 }

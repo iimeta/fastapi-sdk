@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 
-	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/errors"
@@ -13,7 +12,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (v *VolcEngine) ChatCompletions(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+func (v *VolcEngine) ChatCompletions(ctx context.Context, data any) (response model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletions VolcEngine model: %s start", v.Model)
 
@@ -23,13 +22,14 @@ func (v *VolcEngine) ChatCompletions(ctx context.Context, data []byte) (response
 		logger.Infof(ctx, "ChatCompletions VolcEngine model: %s totalTime: %d ms", v.Model, response.TotalTime)
 	}()
 
-	request, err := v.ConvChatCompletionsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletions VolcEngine ConvChatCompletionsRequest error: %v", err)
-		return response, err
+	if !v.IsOfficial {
+		if data, err = v.ConvChatCompletionsRequest(ctx, data); err != nil {
+			logger.Errorf(ctx, "ChatCompletions VolcEngine ConvChatCompletionsRequest error: %v", err)
+			return response, err
+		}
 	}
 
-	bytes, err := util.HttpPost(ctx, v.BaseUrl+v.Path, v.header, request, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, v.BaseUrl+v.Path, v.header, data, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions VolcEngine model: %s, error: %v", v.Model, err)
 		return response, err
@@ -45,7 +45,7 @@ func (v *VolcEngine) ChatCompletions(ctx context.Context, data []byte) (response
 	return response, nil
 }
 
-func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data []byte) (responseChan chan *model.ChatCompletionResponse, err error) {
+func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data any) (responseChan chan *model.ChatCompletionResponse, err error) {
 
 	logger.Infof(ctx, "ChatCompletionsStream VolcEngine model: %s start", v.Model)
 
@@ -56,13 +56,14 @@ func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data []byte) (re
 		}
 	}()
 
-	request, err := v.ConvChatCompletionsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStream VolcEngine ConvChatCompletionsRequest error: %v", err)
-		return nil, err
+	if !v.IsOfficial {
+		if data, err = v.ConvChatCompletionsRequest(ctx, data); err != nil {
+			logger.Errorf(ctx, "ChatCompletionsStream VolcEngine ConvChatCompletionsRequest error: %v", err)
+			return nil, err
+		}
 	}
 
-	stream, err := util.SSEClient(ctx, v.BaseUrl+v.Path, v.header, gjson.MustEncode(request), v.Timeout, v.ProxyUrl, v.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, v.BaseUrl+v.Path, v.header, data, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream VolcEngine model: %s, error: %v", v.Model, err)
 		return responseChan, err

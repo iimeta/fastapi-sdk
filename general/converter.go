@@ -5,18 +5,29 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/consts"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
 )
 
-func (g *General) ConvChatCompletionsRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
+func (g *General) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {
 
-	request := model.ChatCompletionRequest{}
-	if err := json.Unmarshal(data, &request); err != nil {
-		logger.Error(ctx, err)
-		return request, err
+	request = model.ChatCompletionRequest{}
+
+	if v, ok := data.(model.ChatCompletionRequest); ok {
+		request = v
+	} else if v, ok := data.([]byte); ok {
+		if err = json.Unmarshal(v, &request); err != nil {
+			logger.Error(ctx, err)
+			return request, err
+		}
+	} else {
+		if err = json.Unmarshal(gjson.MustEncode(data), &request); err != nil {
+			logger.Error(ctx, err)
+			return request, err
+		}
 	}
 
 	if g.IsSupportSystemRole != nil {
@@ -65,7 +76,7 @@ func (g *General) ConvChatCompletionsStreamResponse(ctx context.Context, data []
 	return response, nil
 }
 
-func (g *General) ConvChatResponsesRequest(ctx context.Context, data []byte) (model.ChatCompletionRequest, error) {
+func (g *General) ConvChatResponsesRequest(ctx context.Context, data []byte) (request model.ChatCompletionRequest, err error) {
 	//TODO implement me
 	panic("implement me")
 }
