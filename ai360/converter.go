@@ -14,8 +14,6 @@ import (
 
 func (a *AI360) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {
 
-	request = model.ChatCompletionRequest{}
-
 	if v, ok := data.(model.ChatCompletionRequest); ok {
 		request = v
 	} else if v, ok := data.([]byte); ok {
@@ -41,9 +39,7 @@ func (a *AI360) ConvChatCompletionsRequest(ctx context.Context, data any) (reque
 
 func (a *AI360) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response = model.ChatCompletionResponse{
-		ResponseBytes: data,
-	}
+	response.ResponseBytes = data
 
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
@@ -55,9 +51,7 @@ func (a *AI360) ConvChatCompletionsResponse(ctx context.Context, data []byte) (r
 
 func (a *AI360) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response = model.ChatCompletionResponse{
-		ResponseBytes: data,
-	}
+	response.ResponseBytes = data
 
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)

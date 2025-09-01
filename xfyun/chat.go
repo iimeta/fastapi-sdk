@@ -29,13 +29,13 @@ func (x *Xfyun) ChatCompletions(ctx context.Context, data any) (response model.C
 
 	if !x.IsOfficial {
 
-		chatCompletionsRequest, err := x.ConvChatCompletionsRequest(ctx, data)
+		request, err := x.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletions Xfyun ConvChatCompletionsRequest error: %v", err)
 			return response, err
 		}
 
-		if data, err = x.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+		if data, err = x.ConvChatCompletionsRequestOfficial(ctx, request); err != nil {
 			logger.Errorf(ctx, "ChatCompletions Xfyun ConvChatCompletionsRequestOfficial error: %v", err)
 			return response, err
 		}
@@ -126,15 +126,15 @@ func (x *Xfyun) ChatCompletionsStream(ctx context.Context, data any) (responseCh
 
 	if !x.IsOfficial {
 
-		chatCompletionsRequest, err := x.ConvChatCompletionsRequest(ctx, data)
+		request, err := x.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Xfyun ConvChatCompletionsRequest error: %v", err)
-			return nil, err
+			return responseChan, err
 		}
 
-		if data, err = x.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+		if data, err = x.ConvChatCompletionsRequestOfficial(ctx, request); err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Xfyun ConvChatCompletionsRequestOfficial error: %v", err)
-			return nil, err
+			return responseChan, err
 		}
 	}
 

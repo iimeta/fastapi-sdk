@@ -24,13 +24,13 @@ func (z *ZhipuAI) ChatCompletions(ctx context.Context, data any) (response model
 
 	if !z.IsOfficial {
 
-		chatCompletionsRequest, err := z.ConvChatCompletionsRequest(ctx, data)
+		request, err := z.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletions ZhipuAI ConvChatCompletionsRequest error: %v", err)
 			return response, err
 		}
 
-		if data, err = z.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+		if data, err = z.ConvChatCompletionsRequestOfficial(ctx, request); err != nil {
 			logger.Errorf(ctx, "ChatCompletions ZhipuAI ConvChatCompletionsRequestOfficial error: %v", err)
 			return response, err
 		}
@@ -63,13 +63,13 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data any) (response
 
 	if !z.IsOfficial {
 
-		chatCompletionsRequest, err := z.ConvChatCompletionsRequest(ctx, data)
+		request, err := z.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI ConvChatCompletionsRequest error: %v", err)
 			return responseChan, err
 		}
 
-		if data, err = z.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+		if data, err = z.ConvChatCompletionsRequestOfficial(ctx, request); err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI ConvChatCompletionsRequestOfficial error: %v", err)
 			return responseChan, err
 		}

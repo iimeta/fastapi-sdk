@@ -15,8 +15,6 @@ import (
 
 func (v *VolcEngine) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {
 
-	request = model.ChatCompletionRequest{}
-
 	if v, ok := data.(model.ChatCompletionRequest); ok {
 		request = v
 	} else if v, ok := data.([]byte); ok {
@@ -42,9 +40,7 @@ func (v *VolcEngine) ConvChatCompletionsRequest(ctx context.Context, data any) (
 
 func (v *VolcEngine) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response = model.ChatCompletionResponse{
-		ResponseBytes: data,
-	}
+	response.ResponseBytes = data
 
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
@@ -60,9 +56,7 @@ func (v *VolcEngine) ConvChatCompletionsResponse(ctx context.Context, data []byt
 
 func (v *VolcEngine) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response = model.ChatCompletionResponse{
-		ResponseBytes: data,
-	}
+	response.ResponseBytes = data
 
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)

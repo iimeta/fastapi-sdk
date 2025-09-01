@@ -15,8 +15,6 @@ import (
 
 func (d *DeepSeek) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {
 
-	request = model.ChatCompletionRequest{}
-
 	if v, ok := data.(model.ChatCompletionRequest); ok {
 		request = v
 	} else if v, ok := data.([]byte); ok {
@@ -40,9 +38,7 @@ func (d *DeepSeek) ConvChatCompletionsRequest(ctx context.Context, data any) (re
 
 func (d *DeepSeek) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response = model.ChatCompletionResponse{
-		ResponseBytes: data,
-	}
+	response.ResponseBytes = data
 
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
@@ -58,9 +54,7 @@ func (d *DeepSeek) ConvChatCompletionsResponse(ctx context.Context, data []byte)
 
 func (d *DeepSeek) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response = model.ChatCompletionResponse{
-		ResponseBytes: data,
-	}
+	response.ResponseBytes = data
 
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)

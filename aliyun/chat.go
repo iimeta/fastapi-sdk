@@ -24,13 +24,13 @@ func (a *Aliyun) ChatCompletions(ctx context.Context, data any) (response model.
 
 	if !a.IsOfficial {
 
-		chatCompletionsRequest, err := a.ConvChatCompletionsRequest(ctx, data)
+		request, err := a.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletions Aliyun ConvChatCompletionsRequest error: %v", err)
 			return response, err
 		}
 
-		if data, err = a.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+		if data, err = a.ConvChatCompletionsRequestOfficial(ctx, request); err != nil {
 			logger.Errorf(ctx, "ChatCompletions Aliyun ConvChatCompletionsRequestOfficial error: %v", err)
 			return response, err
 		}
@@ -63,13 +63,13 @@ func (a *Aliyun) ChatCompletionsStream(ctx context.Context, data any) (responseC
 
 	if !a.IsOfficial {
 
-		chatCompletionsRequest, err := a.ConvChatCompletionsRequest(ctx, data)
+		request, err := a.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Aliyun ConvChatCompletionsRequest error: %v", err)
 			return responseChan, err
 		}
 
-		if data, err = a.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+		if data, err = a.ConvChatCompletionsRequestOfficial(ctx, request); err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Aliyun ConvChatCompletionsRequestOfficial error: %v", err)
 			return responseChan, err
 		}

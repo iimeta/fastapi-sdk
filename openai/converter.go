@@ -18,8 +18,6 @@ import (
 
 func (o *OpenAI) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {
 
-	request = model.ChatCompletionRequest{}
-
 	if v, ok := data.(model.ChatCompletionRequest); ok {
 		request = v
 	} else if v, ok := data.([]byte); ok {
@@ -34,15 +32,15 @@ func (o *OpenAI) ConvChatCompletionsRequest(ctx context.Context, data any) (requ
 		}
 	}
 
-	//for _, message := range request.Messages {
-	//	if message.Role == consts.ROLE_SYSTEM && (gstr.HasPrefix(request.Model, "o1") || gstr.HasPrefix(request.Model, "o3")) {
-	//		message.Role = consts.ROLE_DEVELOPER
-	//	}
-	//}
+	for _, message := range request.Messages {
+		if message.Role == consts.ROLE_SYSTEM && (gstr.HasPrefix(request.Model, "o1") || gstr.HasPrefix(request.Model, "o3")) {
+			message.Role = consts.ROLE_DEVELOPER
+		}
+	}
 
 	if request.Stream {
 		// 默认让流式返回usage
-		if request.StreamOptions == nil { // request.Tools == nil &&
+		if request.StreamOptions == nil {
 			request.StreamOptions = &model.StreamOptions{
 				IncludeUsage: true,
 			}
@@ -65,9 +63,7 @@ func (o *OpenAI) ConvChatCompletionsRequest(ctx context.Context, data any) (requ
 
 func (o *OpenAI) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response = model.ChatCompletionResponse{
-		ResponseBytes: data,
-	}
+	response.ResponseBytes = data
 
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
@@ -85,9 +81,7 @@ func (o *OpenAI) ConvChatCompletionsResponse(ctx context.Context, data []byte) (
 
 func (o *OpenAI) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	response = model.ChatCompletionResponse{
-		ResponseBytes: data,
-	}
+	response.ResponseBytes = data
 
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)

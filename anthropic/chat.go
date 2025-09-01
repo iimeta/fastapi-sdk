@@ -30,13 +30,13 @@ func (a *Anthropic) ChatCompletions(ctx context.Context, data any) (response mod
 
 	if !a.IsOfficial {
 
-		chatCompletionsRequest, err := a.ConvChatCompletionsRequest(ctx, data)
+		request, err := a.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletions Anthropic ConvChatCompletionsRequest error: %v", err)
 			return response, err
 		}
 
-		if data, err = a.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+		if data, err = a.ConvChatCompletionsRequestOfficial(ctx, request); err != nil {
 			logger.Errorf(ctx, "ChatCompletions Anthropic ConvChatCompletionsRequestOfficial error: %v", err)
 			return response, err
 		}
@@ -108,15 +108,15 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 
 	if !a.IsOfficial {
 
-		chatCompletionsRequest, err := a.ConvChatCompletionsRequest(ctx, data)
+		request, err := a.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Anthropic ConvChatCompletionsRequest error: %v", err)
-			return nil, err
+			return responseChan, err
 		}
 
-		if data, err = a.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+		if data, err = a.ConvChatCompletionsRequestOfficial(ctx, request); err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Anthropic ConvChatCompletionsRequest error: %v", err)
-			return nil, err
+			return responseChan, err
 		}
 	}
 
@@ -125,7 +125,7 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 		chatCompletionReq := model.AnthropicChatCompletionReq{}
 		if err = json.Unmarshal(data.([]byte), &chatCompletionReq); err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Anthropic model: %s, request: %s, json.Unmarshal error: %v", a.Model, data, err)
-			return nil, err
+			return responseChan, err
 		}
 
 		chatCompletionReq.AnthropicVersion = "bedrock-2023-05-31"

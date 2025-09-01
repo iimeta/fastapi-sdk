@@ -25,13 +25,13 @@ func (b *Baidu) ChatCompletions(ctx context.Context, data any) (response model.C
 
 	if !b.IsOfficial {
 
-		chatCompletionsRequest, err := b.ConvChatCompletionsRequest(ctx, data)
+		request, err := b.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletions Baidu ConvChatCompletionsRequest error: %v", err)
 			return response, err
 		}
 
-		if data, err = b.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+		if data, err = b.ConvChatCompletionsRequestOfficial(ctx, request); err != nil {
 			logger.Errorf(ctx, "ChatCompletions Baidu ConvChatCompletionsRequestOfficial error: %v", err)
 			return response, err
 		}
@@ -64,13 +64,13 @@ func (b *Baidu) ChatCompletionsStream(ctx context.Context, data any) (responseCh
 
 	if !b.IsOfficial {
 
-		chatCompletionsRequest, err := b.ConvChatCompletionsRequest(ctx, data)
+		request, err := b.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Baidu ConvChatCompletionsRequest error: %v", err)
 			return responseChan, err
 		}
 
-		if data, err = b.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+		if data, err = b.ConvChatCompletionsRequestOfficial(ctx, request); err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Baidu ConvChatCompletionsRequestOfficial error: %v", err)
 			return responseChan, err
 		}

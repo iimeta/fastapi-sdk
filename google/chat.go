@@ -25,13 +25,13 @@ func (g *Google) ChatCompletions(ctx context.Context, data any) (response model.
 
 	if !g.IsOfficial {
 
-		chatCompletionsRequest, err := g.ConvChatCompletionsRequest(ctx, data)
+		request, err := g.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletions Google ConvChatCompletionsRequest error: %v", err)
 			return response, err
 		}
 
-		if data, err = g.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+		if data, err = g.ConvChatCompletionsRequestOfficial(ctx, request); err != nil {
 			logger.Errorf(ctx, "ChatCompletions Google ConvChatCompletionsRequestOfficial error: %v", err)
 			return response, err
 		}
@@ -72,15 +72,15 @@ func (g *Google) ChatCompletionsStream(ctx context.Context, data any) (responseC
 
 	if !g.IsOfficial {
 
-		chatCompletionsRequest, err := g.ConvChatCompletionsRequest(ctx, data)
+		request, err := g.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Google ConvChatCompletionsRequest error: %v", err)
-			return nil, err
+			return responseChan, err
 		}
 
-		if data, err = g.ConvChatCompletionsRequestOfficial(ctx, chatCompletionsRequest); err != nil {
+		if data, err = g.ConvChatCompletionsRequestOfficial(ctx, request); err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Google ConvChatCompletionsRequestOfficial error: %v", err)
-			return nil, err
+			return responseChan, err
 		}
 	}
 
