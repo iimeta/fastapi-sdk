@@ -27,7 +27,7 @@ func (x *Xfyun) ChatCompletions(ctx context.Context, data any) (response model.C
 		logger.Infof(ctx, "ChatCompletions Xfyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", x.Model, response.ConnTime, response.Duration, response.TotalTime)
 	}()
 
-	if !x.IsOfficial {
+	if !x.IsOfficialFormatRequest {
 
 		request, err := x.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
@@ -124,7 +124,7 @@ func (x *Xfyun) ChatCompletionsStream(ctx context.Context, data any) (responseCh
 		}
 	}()
 
-	if !x.IsOfficial {
+	if !x.IsOfficialFormatRequest {
 
 		request, err := x.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {

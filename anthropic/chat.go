@@ -28,7 +28,7 @@ func (a *Anthropic) ChatCompletions(ctx context.Context, data any) (response mod
 		logger.Infof(ctx, "ChatCompletions Anthropic model: %s totalTime: %d ms", a.Model, response.TotalTime)
 	}()
 
-	if !a.IsOfficial {
+	if !a.IsOfficialFormatRequest {
 
 		request, err := a.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
@@ -106,7 +106,7 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 		}
 	}()
 
-	if !a.IsOfficial {
+	if !a.IsOfficialFormatRequest {
 
 		request, err := a.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {

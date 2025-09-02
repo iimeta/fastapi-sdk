@@ -23,7 +23,7 @@ func (b *Baidu) ChatCompletions(ctx context.Context, data any) (response model.C
 		logger.Infof(ctx, "ChatCompletions Baidu model: %s totalTime: %d ms", b.Model, response.TotalTime)
 	}()
 
-	if !b.IsOfficial {
+	if !b.IsOfficialFormatRequest {
 
 		request, err := b.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
@@ -62,7 +62,7 @@ func (b *Baidu) ChatCompletionsStream(ctx context.Context, data any) (responseCh
 		}
 	}()
 
-	if !b.IsOfficial {
+	if !b.IsOfficialFormatRequest {
 
 		request, err := b.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {

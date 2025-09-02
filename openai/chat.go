@@ -24,7 +24,7 @@ func (o *OpenAI) ChatCompletions(ctx context.Context, data any) (response model.
 		logger.Infof(ctx, "ChatCompletions OpenAI model: %s totalTime: %d ms", o.Model, response.TotalTime)
 	}()
 
-	if !o.IsOfficial {
+	if !o.IsOfficialFormatRequest {
 		if data, err = o.ConvChatCompletionsRequest(ctx, data); err != nil {
 			logger.Errorf(ctx, "ChatCompletions OpenAI ConvChatCompletionsRequest error: %v", err)
 			return response, err
@@ -58,7 +58,7 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data any) (responseC
 		}
 	}()
 
-	if !o.IsOfficial {
+	if !o.IsOfficialFormatRequest {
 		if data, err = o.ConvChatCompletionsRequest(ctx, data); err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream OpenAI ConvChatCompletionsRequest error: %v", err)
 			return nil, err

@@ -22,7 +22,7 @@ func (z *ZhipuAI) ChatCompletions(ctx context.Context, data any) (response model
 		logger.Infof(ctx, "ChatCompletions ZhipuAI model: %s totalTime: %d ms", z.Model, response.TotalTime)
 	}()
 
-	if !z.IsOfficial {
+	if !z.IsOfficialFormatRequest {
 
 		request, err := z.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
@@ -61,7 +61,7 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data any) (response
 		}
 	}()
 
-	if !z.IsOfficial {
+	if !z.IsOfficialFormatRequest {
 
 		request, err := z.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {

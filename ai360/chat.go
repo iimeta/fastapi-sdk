@@ -22,7 +22,7 @@ func (a *AI360) ChatCompletions(ctx context.Context, data any) (response model.C
 		logger.Infof(ctx, "ChatCompletions 360AI model: %s totalTime: %d ms", a.Model, response.TotalTime)
 	}()
 
-	if !a.IsOfficial {
+	if !a.IsOfficialFormatRequest {
 		if data, err = a.ConvChatCompletionsRequest(ctx, data); err != nil {
 			logger.Errorf(ctx, "ChatCompletions 360AI ConvChatCompletionsRequest error: %v", err)
 			return response, err
@@ -56,7 +56,7 @@ func (a *AI360) ChatCompletionsStream(ctx context.Context, data any) (responseCh
 		}
 	}()
 
-	if !a.IsOfficial {
+	if !a.IsOfficialFormatRequest {
 		if data, err = a.ConvChatCompletionsRequest(ctx, data); err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream 360AI ConvChatCompletionsRequest error: %v", err)
 			return responseChan, err

@@ -22,7 +22,7 @@ func (a *Aliyun) ChatCompletions(ctx context.Context, data any) (response model.
 		logger.Infof(ctx, "ChatCompletions Aliyun model: %s totalTime: %d ms", a.Model, response.TotalTime)
 	}()
 
-	if !a.IsOfficial {
+	if !a.IsOfficialFormatRequest {
 
 		request, err := a.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
@@ -61,7 +61,7 @@ func (a *Aliyun) ChatCompletionsStream(ctx context.Context, data any) (responseC
 		}
 	}()
 
-	if !a.IsOfficial {
+	if !a.IsOfficialFormatRequest {
 
 		request, err := a.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {

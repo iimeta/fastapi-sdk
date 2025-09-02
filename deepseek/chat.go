@@ -22,7 +22,7 @@ func (d *DeepSeek) ChatCompletions(ctx context.Context, data any) (response mode
 		logger.Infof(ctx, "ChatCompletions DeepSeek model: %s totalTime: %d ms", d.Model, response.TotalTime)
 	}()
 
-	if !d.IsOfficial {
+	if !d.IsOfficialFormatRequest {
 		if data, err = d.ConvChatCompletionsRequest(ctx, data); err != nil {
 			logger.Errorf(ctx, "ChatCompletions DeepSeek ConvChatCompletionsRequest error: %v", err)
 			return response, err
@@ -56,7 +56,7 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data any) (respons
 		}
 	}()
 
-	if !d.IsOfficial {
+	if !d.IsOfficialFormatRequest {
 		if data, err = d.ConvChatCompletionsRequest(ctx, data); err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream DeepSeek ConvChatCompletionsRequest error: %v", err)
 			return nil, err

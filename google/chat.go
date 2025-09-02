@@ -23,7 +23,7 @@ func (g *Google) ChatCompletions(ctx context.Context, data any) (response model.
 		logger.Infof(ctx, "ChatCompletions Google model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	if !g.IsOfficial {
+	if !g.IsOfficialFormatRequest {
 
 		request, err := g.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
@@ -70,7 +70,7 @@ func (g *Google) ChatCompletionsStream(ctx context.Context, data any) (responseC
 		}
 	}()
 
-	if !g.IsOfficial {
+	if !g.IsOfficialFormatRequest {
 
 		request, err := g.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {

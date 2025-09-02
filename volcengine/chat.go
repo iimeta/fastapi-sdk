@@ -22,7 +22,7 @@ func (v *VolcEngine) ChatCompletions(ctx context.Context, data any) (response mo
 		logger.Infof(ctx, "ChatCompletions VolcEngine model: %s totalTime: %d ms", v.Model, response.TotalTime)
 	}()
 
-	if !v.IsOfficial {
+	if !v.IsOfficialFormatRequest {
 		if data, err = v.ConvChatCompletionsRequest(ctx, data); err != nil {
 			logger.Errorf(ctx, "ChatCompletions VolcEngine ConvChatCompletionsRequest error: %v", err)
 			return response, err
@@ -56,7 +56,7 @@ func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data any) (respo
 		}
 	}()
 
-	if !v.IsOfficial {
+	if !v.IsOfficialFormatRequest {
 		if data, err = v.ConvChatCompletionsRequest(ctx, data); err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream VolcEngine ConvChatCompletionsRequest error: %v", err)
 			return nil, err
