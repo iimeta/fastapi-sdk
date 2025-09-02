@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
@@ -15,9 +17,8 @@ import (
 
 type OpenAI struct {
 	*options.AdapterOptions
-	header     map[string]string
-	isAzure    bool
-	apiVersion string
+	header  map[string]string
+	isAzure bool
 }
 
 func NewAdapter(ctx context.Context, options *options.AdapterOptions) *OpenAI {
@@ -49,17 +50,22 @@ func NewAzureAdapter(ctx context.Context, options *options.AdapterOptions) *Open
 		header: g.MapStrStr{
 			"api-key": options.Key,
 		},
-		isAzure:    true,
-		apiVersion: "2024-10-01-preview",
+		isAzure: true,
+	}
+
+	if gstr.HasSuffix(azure.BaseUrl, "/openai/deployments") {
+		azure.BaseUrl = azure.BaseUrl + "/" + options.Model
+	} else if !gstr.HasSuffix(azure.BaseUrl, "/models") {
+
+		azure.BaseUrl = strings.TrimRight(azure.BaseUrl, "/")
+
+		if parse, _ := url.Parse(azure.BaseUrl); parse == nil || parse.Path == "" {
+			azure.BaseUrl = azure.BaseUrl + "/openai/deployments/" + options.Model
+		}
 	}
 
 	if azure.Path == "" {
-		azure.Path = "/chat/completions"
-	}
-
-	split := gstr.Split(azure.Path, "?api-version=")
-	if len(split) > 1 && split[1] != "" {
-		azure.apiVersion = split[1]
+		azure.Path = "/chat/completions?api-version=2024-05-01-preview"
 	}
 
 	logger.Infof(ctx, "NewAzureAdapter OpenAI model: %s, baseUrl: %s, key: %s", azure.Model, azure.BaseUrl, azure.Key)
