@@ -283,7 +283,7 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 			}()
 
 			var id string
-			var promptTokens int
+			//var promptTokens int
 
 			for {
 
@@ -328,18 +328,18 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 
 				response.Id = consts.COMPLETION_ID_PREFIX + id
 
-				if response.Usage != nil {
-					if response.Usage.InputTokens != 0 {
-						promptTokens = response.Usage.InputTokens
-					}
-					response.Usage = &model.Usage{
-						PromptTokens:             promptTokens,
-						CompletionTokens:         response.Usage.OutputTokens,
-						TotalTokens:              promptTokens + response.Usage.OutputTokens,
-						CacheCreationInputTokens: response.Usage.CacheCreationInputTokens,
-						CacheReadInputTokens:     response.Usage.CacheReadInputTokens,
-					}
-				}
+				//if response.Usage != nil {
+				//	if response.Usage.InputTokens != 0 {
+				//		promptTokens = response.Usage.InputTokens
+				//	}
+				//	response.Usage = &model.Usage{
+				//		PromptTokens:             promptTokens,
+				//		CompletionTokens:         response.Usage.OutputTokens,
+				//		TotalTokens:              promptTokens + response.Usage.OutputTokens,
+				//		CacheCreationInputTokens: response.Usage.CacheCreationInputTokens,
+				//		CacheReadInputTokens:     response.Usage.CacheReadInputTokens,
+				//	}
+				//}
 
 				end := gtime.TimestampMilli()
 
