@@ -134,6 +134,8 @@ func (a *Anthropic) ConvChatCompletionsStreamResponse(ctx context.Context, data 
 	if chatCompletionRes.Message.Usage != nil {
 		response.Usage = &model.Usage{
 			PromptTokens:             chatCompletionRes.Message.Usage.InputTokens,
+			CompletionTokens:         chatCompletionRes.Message.Usage.OutputTokens,
+			TotalTokens:              chatCompletionRes.Message.Usage.InputTokens + chatCompletionRes.Message.Usage.OutputTokens,
 			CacheCreationInputTokens: chatCompletionRes.Message.Usage.CacheCreationInputTokens,
 			CacheReadInputTokens:     chatCompletionRes.Message.Usage.CacheReadInputTokens,
 		}

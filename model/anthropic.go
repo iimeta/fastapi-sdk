@@ -79,6 +79,11 @@ type AnthropicUsage struct {
 	OutputTokens             int `json:"output_tokens"`
 	CacheCreationInputTokens int `json:"cache_creation_input_tokens"`
 	CacheReadInputTokens     int `json:"cache_read_input_tokens"`
+	CacheCreation            struct {
+		Ephemeral5MInputTokens int `json:"ephemeral_5m_input_tokens"`
+		Ephemeral1HInputTokens int `json:"ephemeral_1h_input_tokens"`
+	} `json:"cache_creation"`
+	ServiceTier string `json:"service_tier"`
 }
 
 type AnthropicError struct {

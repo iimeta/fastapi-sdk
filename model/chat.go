@@ -55,13 +55,13 @@ type ChatCompletionMessage struct {
 	Role             string        `json:"role"`
 	Content          any           `json:"content"`
 	ReasoningContent any           `json:"reasoning_content,omitempty"`
-	Refusal          *string       `json:"refusal"`
+	Refusal          *string       `json:"refusal,omitempty"`
 	Name             string        `json:"name,omitempty"`
 	FunctionCall     *FunctionCall `json:"function_call,omitempty"`
 	ToolCalls        any           `json:"tool_calls,omitempty"`
 	ToolCallId       string        `json:"tool_call_id,omitempty"`
 	Audio            *Audio        `json:"audio,omitempty"`
-	Annotations      []any         `json:"annotations"`
+	Annotations      []any         `json:"annotations,omitempty"`
 	Prefix           bool          `json:"prefix,omitempty"`
 }
 
