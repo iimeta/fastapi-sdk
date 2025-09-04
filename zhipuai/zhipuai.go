@@ -98,7 +98,7 @@ func (z *ZhipuAI) requestErrorHandler(ctx context.Context, response *http.Respon
 		return errors.ERR_INSUFFICIENT_QUOTA
 	}
 
-	return errors.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, gjson.MustEncodeString(errRes.Error))))
+	return errors.NewRequestError(response.StatusCode, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, gjson.MustEncodeString(errRes.Error))))
 }
 
 func (z *ZhipuAI) apiErrorHandler(response *model.ZhipuAIChatCompletionRes) error {

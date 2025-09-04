@@ -90,7 +90,7 @@ func (c *ModerationClient) requestErrorHandler(ctx context.Context, response *ht
 	if err != nil {
 		return err
 	}
-	return errors.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
+	return errors.NewRequestError(response.StatusCode, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
 }
 
 func (c *ModerationClient) apiErrorHandler(response *model.XfyunChatCompletionRes) error {

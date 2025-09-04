@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -74,11 +75,21 @@ func NewAzureAdapter(ctx context.Context, options *options.AdapterOptions) *Open
 }
 
 func (o *OpenAI) requestErrorHandler(ctx context.Context, response *http.Response) (err error) {
+
 	bytes, err := io.ReadAll(response.Body)
 	if err != nil {
 		return err
 	}
-	return errors.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
+
+	errorResponse := errors.ErrorResponse{}
+	if err := json.Unmarshal(bytes, &errorResponse); err != nil || errorResponse.Error == nil {
+		return &errors.RequestError{
+			HttpStatusCode: response.StatusCode,
+			Err:            errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)),
+		}
+	}
+
+	return errors.NewApiError(response.StatusCode, errorResponse.Error.Code, errorResponse.Error.Message, errorResponse.Error.Type, *errorResponse.Error.Param)
 }
 
 func (o *OpenAI) apiErrorHandler(err error) error {

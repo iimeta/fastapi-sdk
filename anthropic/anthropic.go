@@ -130,7 +130,7 @@ func (a *Anthropic) requestErrorHandler(ctx context.Context, response *http.Resp
 	switch errRes.Error.Type {
 	}
 
-	return errors.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, gjson.MustEncodeString(errRes.Error))))
+	return errors.NewRequestError(response.StatusCode, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, gjson.MustEncodeString(errRes.Error))))
 }
 
 func (a *Anthropic) apiErrorHandler(response *model.AnthropicChatCompletionRes) error {

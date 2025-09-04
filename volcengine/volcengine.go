@@ -50,7 +50,7 @@ func (v *VolcEngine) requestErrorHandler(ctx context.Context, response *http.Res
 	if err != nil {
 		return err
 	}
-	return errors.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
+	return errors.NewRequestError(response.StatusCode, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
 }
 
 func (v *VolcEngine) apiErrorHandler(err error) error {

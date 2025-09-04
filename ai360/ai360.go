@@ -44,7 +44,7 @@ func (a *AI360) requestErrorHandler(ctx context.Context, response *http.Response
 	if err != nil {
 		return err
 	}
-	return errors.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
+	return errors.NewRequestError(response.StatusCode, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
 }
 
 func (a *AI360) apiErrorHandler(err error) error {
