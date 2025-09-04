@@ -67,9 +67,9 @@ func (g *Google) requestErrorHandler(ctx context.Context, response *http.Respons
 	if err != nil {
 		return err
 	}
-	return errors.NewRequestError(500, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
+	return errors.NewRequestError(response.StatusCode, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes)))
 }
 
 func (g *Google) apiErrorHandler(response *model.GoogleChatCompletionRes) error {
-	return errors.NewApiError(500, response.Error.Code, gjson.MustEncodeString(response), "api_error", "")
+	return errors.NewApiError(response.Error.Code, response.Error.Code, gjson.MustEncodeString(response), "api_error", "")
 }

@@ -80,6 +80,18 @@ func (g *Google) ConvChatCompletionsResponse(ctx context.Context, data []byte) (
 		})
 	}
 
+	for _, promptTokensDetail := range chatCompletionRes.UsageMetadata.PromptTokensDetails {
+		if promptTokensDetail.Modality == "TEXT" {
+			response.Usage.PromptTokensDetails.TextTokens = promptTokensDetail.TokenCount
+		}
+	}
+
+	for _, candidatesTokensDetail := range chatCompletionRes.UsageMetadata.CandidatesTokensDetails {
+		if candidatesTokensDetail.Modality == "TEXT" {
+			response.Usage.CompletionTokensDetails.TextTokens = candidatesTokensDetail.TokenCount
+		}
+	}
+
 	return response, nil
 }
 
@@ -119,10 +131,23 @@ func (g *Google) ConvChatCompletionsStreamResponse(ctx context.Context, data []b
 	}
 
 	if chatCompletionRes.UsageMetadata != nil {
+
 		response.Usage = &model.Usage{
 			PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
 			CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
 			TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
+		}
+
+		for _, promptTokensDetail := range chatCompletionRes.UsageMetadata.PromptTokensDetails {
+			if promptTokensDetail.Modality == "TEXT" {
+				response.Usage.PromptTokensDetails.TextTokens = promptTokensDetail.TokenCount
+			}
+		}
+
+		for _, candidatesTokensDetail := range chatCompletionRes.UsageMetadata.CandidatesTokensDetails {
+			if candidatesTokensDetail.Modality == "TEXT" {
+				response.Usage.CompletionTokensDetails.TextTokens = candidatesTokensDetail.TokenCount
+			}
 		}
 	}
 

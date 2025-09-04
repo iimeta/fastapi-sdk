@@ -39,7 +39,7 @@ type ChatCompletionResponse struct {
 	Created           int64                  `json:"created"`
 	Model             string                 `json:"model"`
 	Choices           []ChatCompletionChoice `json:"choices"`
-	Usage             *Usage                 `json:"usage"`
+	Usage             *Usage                 `json:"usage,omitempty"`
 	ServiceTier       string                 `json:"service_tier,omitempty"`
 	SystemFingerprint string                 `json:"system_fingerprint,omitempty"`
 	Obfuscation       string                 `json:"obfuscation,omitempty"`
@@ -77,42 +77,42 @@ type Usage struct {
 	PromptTokens             int                     `json:"prompt_tokens"`
 	CompletionTokens         int                     `json:"completion_tokens"`
 	TotalTokens              int                     `json:"total_tokens"`
-	PromptTokensDetails      PromptTokensDetails     `json:"prompt_tokens_details"`
-	CompletionTokensDetails  CompletionTokensDetails `json:"completion_tokens_details"`
+	PromptTokensDetails      PromptTokensDetails     `json:"prompt_tokens_details,omitempty"`
+	CompletionTokensDetails  CompletionTokensDetails `json:"completion_tokens_details,omitempty"`
 	SearchTokens             int                     `json:"search_tokens,omitempty"`
 	CacheCreationInputTokens int                     `json:"cache_creation_input_tokens,omitempty"`
 	CacheReadInputTokens     int                     `json:"cache_read_input_tokens,omitempty"`
-	InputTokens              int                     `json:"input_tokens"`
-	OutputTokens             int                     `json:"output_tokens"`
-	InputTokensDetails       InputTokensDetails      `json:"input_tokens_details"`
-	OutputTokensDetails      OutputTokensDetails     `json:"output_tokens_details"`
+	InputTokens              int                     `json:"input_tokens,omitempty"`
+	OutputTokens             int                     `json:"output_tokens,omitempty"`
+	InputTokensDetails       InputTokensDetails      `json:"input_tokens_details,omitempty"`
+	OutputTokensDetails      OutputTokensDetails     `json:"output_tokens_details,omitempty"`
 }
 type PromptTokensDetails struct {
-	AudioTokens     int `json:"audio_tokens"`
-	CachedTokens    int `json:"cached_tokens"`
-	ReasoningTokens int `json:"reasoning_tokens"`
-	TextTokens      int `json:"text_tokens"`
+	AudioTokens     int `json:"audio_tokens,omitempty"`
+	CachedTokens    int `json:"cached_tokens,omitempty"`
+	ReasoningTokens int `json:"reasoning_tokens,omitempty"`
+	TextTokens      int `json:"text_tokens,omitempty"`
 }
 
 type CompletionTokensDetails struct {
-	AudioTokens              int `json:"audio_tokens"`
-	ReasoningTokens          int `json:"reasoning_tokens"`
-	CachedTokens             int `json:"cached_tokens"`
-	CachedTokensInternal     int `json:"cached_tokens_internal"`
-	TextTokens               int `json:"text_tokens"`
-	ImageTokens              int `json:"image_tokens"`
-	AcceptedPredictionTokens int `json:"accepted_prediction_tokens"`
-	RejectedPredictionTokens int `json:"rejected_prediction_tokens"`
+	AudioTokens              int `json:"audio_tokens,omitempty"`
+	ReasoningTokens          int `json:"reasoning_tokens,omitempty"`
+	CachedTokens             int `json:"cached_tokens,omitempty"`
+	CachedTokensInternal     int `json:"cached_tokens_internal,omitempty"`
+	TextTokens               int `json:"text_tokens,omitempty"`
+	ImageTokens              int `json:"image_tokens,omitempty"`
+	AcceptedPredictionTokens int `json:"accepted_prediction_tokens,omitempty"`
+	RejectedPredictionTokens int `json:"rejected_prediction_tokens,omitempty"`
 }
 
 type InputTokensDetails struct {
-	TextTokens   int `json:"text_tokens"`
-	ImageTokens  int `json:"image_tokens"`
-	CachedTokens int `json:"cached_tokens"`
+	TextTokens   int `json:"text_tokens,omitempty"`
+	ImageTokens  int `json:"image_tokens,omitempty"`
+	CachedTokens int `json:"cached_tokens,omitempty"`
 }
 
 type OutputTokensDetails struct {
-	ReasoningTokens int `json:"reasoning_tokens"`
+	ReasoningTokens int `json:"reasoning_tokens,omitempty"`
 }
 
 type ChatCompletionStreamChoiceDelta struct {

@@ -69,6 +69,14 @@ type UsageMetadata struct {
 	PromptTokenCount     int `json:"promptTokenCount"`
 	CandidatesTokenCount int `json:"candidatesTokenCount"`
 	TotalTokenCount      int `json:"totalTokenCount"`
+	PromptTokensDetails  []struct {
+		Modality   string `json:"modality"`
+		TokenCount int    `json:"tokenCount"`
+	} `json:"promptTokensDetails"`
+	CandidatesTokensDetails []struct {
+		Modality   string `json:"modality"`
+		TokenCount int    `json:"tokenCount"`
+	} `json:"candidatesTokensDetails"`
 }
 
 type GenerationConfig struct {
