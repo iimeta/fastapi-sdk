@@ -30,10 +30,6 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *AI360 {
 		ai360.BaseUrl = "https://api.360.cn/v1"
 	}
 
-	if ai360.Path == "" {
-		ai360.Path = "/chat/completions"
-	}
-
 	logger.Infof(ctx, "NewAdapter 360AI model: %s, key: %s", ai360.Model, ai360.Key)
 
 	return ai360

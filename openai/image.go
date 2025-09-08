@@ -25,7 +25,15 @@ func (o *OpenAI) ImageGenerations(ctx context.Context, data []byte) (response mo
 		logger.Infof(ctx, "ImageGenerations OpenAI model: %s totalTime: %d ms", o.Model, gtime.TimestampMilli()-now)
 	}()
 
-	bytes, err := util.HttpPost(ctx, o.BaseUrl+"/images/generations", o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	if o.Path == "" {
+		if o.isAzure {
+			o.Path = "/images/generations?api-version=" + o.apiVersion
+		} else {
+			o.Path = "/images/generations"
+		}
+	}
+
+	bytes, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageGenerations OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
@@ -55,7 +63,15 @@ func (o *OpenAI) ImageEdits(ctx context.Context, request model.ImageEditRequest)
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, o.BaseUrl+"/images/edits", o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	if o.Path == "" {
+		if o.isAzure {
+			o.Path = "/images/edits?api-version=" + o.apiVersion
+		} else {
+			o.Path = "/images/edits"
+		}
+	}
+
+	bytes, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageEdits OpenAI model: %s, error: %v", o.Model, err)
 		return response, err

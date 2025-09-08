@@ -31,10 +31,6 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *DeepSeek 
 		deepseek.BaseUrl = "https://api.deepseek.com/v1"
 	}
 
-	if deepseek.Path == "" {
-		deepseek.Path = "/chat/completions"
-	}
-
 	logger.Infof(ctx, "NewAdapter DeepSeek model: %s, key: %s", deepseek.Model, deepseek.Key)
 
 	return deepseek
@@ -55,10 +51,6 @@ func NewAdapterBaidu(ctx context.Context, options *options.AdapterOptions) *Deep
 
 	if baidu.BaseUrl == "" {
 		baidu.BaseUrl = "https://qianfan.baidubce.com/v2"
-	}
-
-	if baidu.Path == "" {
-		baidu.Path = "/chat/completions"
 	}
 
 	logger.Infof(ctx, "NewAdapterBaidu DeepSeek model: %s, key: %s", baidu.Model, baidu.Key)

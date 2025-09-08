@@ -29,6 +29,10 @@ func (a *AI360) ChatCompletions(ctx context.Context, data any) (response model.C
 		}
 	}
 
+	if a.Path == "" {
+		a.Path = "/chat/completions"
+	}
+
 	bytes, err := util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, nil, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions 360AI model: %s, error: %v", a.Model, err)
@@ -61,6 +65,10 @@ func (a *AI360) ChatCompletionsStream(ctx context.Context, data any) (responseCh
 			logger.Errorf(ctx, "ChatCompletionsStream 360AI ConvChatCompletionsRequest error: %v", err)
 			return responseChan, err
 		}
+	}
+
+	if a.Path == "" {
+		a.Path = "/chat/completions"
 	}
 
 	stream, err := util.SSEClient(ctx, a.BaseUrl+a.Path, a.header, data, a.Timeout, a.ProxyUrl, a.requestErrorHandler)

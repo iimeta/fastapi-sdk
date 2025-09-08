@@ -45,7 +45,7 @@ func (a *Anthropic) ChatCompletionOfficial(ctx context.Context, data []byte) (re
 		delete(request, "metadata")
 
 		invokeModelInput := &bedrockruntime.InvokeModelInput{
-			ModelId:     aws.String(AwsModelIDMap[gconv.String(request["model"])]),
+			ModelId:     aws.String(gconv.String(request["model"])),
 			Accept:      aws.String("application/json"),
 			ContentType: aws.String("application/json"),
 		}
@@ -116,7 +116,7 @@ func (a *Anthropic) ChatCompletionStreamOfficial(ctx context.Context, data []byt
 		delete(request, "stream")
 
 		invokeModelStreamInput := &bedrockruntime.InvokeModelWithResponseStreamInput{
-			ModelId:     aws.String(AwsModelIDMap[gconv.String(request["model"])]),
+			ModelId:     aws.String(gconv.String(request["model"])),
 			Accept:      aws.String("application/json"),
 			ContentType: aws.String("application/json"),
 		}

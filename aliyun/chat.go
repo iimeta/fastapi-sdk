@@ -36,6 +36,10 @@ func (a *Aliyun) ChatCompletions(ctx context.Context, data any) (response model.
 		}
 	}
 
+	if a.Path == "" {
+		a.Path = "/services/aigc/text-generation/generation"
+	}
+
 	bytes, err := util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, nil, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions Aliyun model: %s, error: %v", a.Model, err)
@@ -73,6 +77,10 @@ func (a *Aliyun) ChatCompletionsStream(ctx context.Context, data any) (responseC
 			logger.Errorf(ctx, "ChatCompletionsStream Aliyun ConvChatCompletionsRequestOfficial error: %v", err)
 			return responseChan, err
 		}
+	}
+
+	if a.Path == "" {
+		a.Path = "/services/aigc/text-generation/generation"
 	}
 
 	stream, err := util.SSEClient(ctx, a.BaseUrl+a.Path, a.header, data, a.Timeout, a.ProxyUrl, a.requestErrorHandler)

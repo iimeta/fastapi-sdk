@@ -29,6 +29,10 @@ func (d *DeepSeek) ChatCompletions(ctx context.Context, data any) (response mode
 		}
 	}
 
+	if d.Path == "" {
+		d.Path = "/chat/completions"
+	}
+
 	bytes, err := util.HttpPost(ctx, d.BaseUrl+d.Path, d.header, data, nil, d.Timeout, d.ProxyUrl, d.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions DeepSeek model: %s, error: %v", d.Model, err)
@@ -61,6 +65,10 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data any) (respons
 			logger.Errorf(ctx, "ChatCompletionsStream DeepSeek ConvChatCompletionsRequest error: %v", err)
 			return nil, err
 		}
+	}
+
+	if d.Path == "" {
+		d.Path = "/chat/completions"
 	}
 
 	stream, err := util.SSEClient(ctx, d.BaseUrl+d.Path, d.header, data, d.Timeout, d.ProxyUrl, d.requestErrorHandler)

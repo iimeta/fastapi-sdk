@@ -30,10 +30,6 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Google {
 		google.BaseUrl = "https://generativelanguage.googleapis.com/v1beta"
 	}
 
-	if google.Path == "" {
-		google.Path = "/models/" + google.Model
-	}
-
 	logger.Infof(ctx, "NewAdapter Google model: %s, key: %s", google.Model, google.Key)
 
 	return google
@@ -53,9 +49,9 @@ func NewGcpAdapter(ctx context.Context, options *options.AdapterOptions) *Google
 		gcp.BaseUrl = "https://us-east5-aiplatform.googleapis.com/v1"
 	}
 
-	if gcp.Path == "" {
-		gcp.Path = "/projects/%s/locations/us-east5/publishers/google/models/%s"
-	}
+	//if gcp.Path == "" {
+	//	gcp.Path = "/projects/%s/locations/us-east5/publishers/google/models/%s"
+	//}
 
 	logger.Infof(ctx, "NewGcpAdapter Google model: %s, key: %s", gcp.Model, gcp.Key)
 

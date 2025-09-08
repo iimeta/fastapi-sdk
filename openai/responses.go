@@ -26,7 +26,15 @@ func (o *OpenAI) Responses(ctx context.Context, data []byte) (res model.OpenAIRe
 		logger.Infof(ctx, "Responses OpenAI model: %s totalTime: %d ms", o.Model, res.TotalTime)
 	}()
 
-	if res.ResponseBytes, err = util.HttpPost(ctx, fmt.Sprintf("%s%s", o.BaseUrl, o.Path), o.header, data, &res, o.Timeout, o.ProxyUrl, o.requestErrorHandler); err != nil {
+	if o.Path == "" {
+		if o.isAzure {
+			o.Path = "/openai/responses?api-version=" + o.apiVersion
+		} else {
+			o.Path = "/responses"
+		}
+	}
+
+	if res.ResponseBytes, err = util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, &res, o.Timeout, o.ProxyUrl, o.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "Responses OpenAI model: %s, error: %v", o.Model, err)
 		return res, err
 	}
@@ -58,7 +66,15 @@ func (o *OpenAI) ResponsesStream(ctx context.Context, data []byte) (responseChan
 		return o.ResponsesStreamToNonStream(ctx, data)
 	}
 
-	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s%s", o.BaseUrl, o.Path), o.header, data, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	if o.Path == "" {
+		if o.isAzure {
+			o.Path = "/openai/responses?api-version=" + o.apiVersion
+		} else {
+			o.Path = "/responses"
+		}
+	}
+
+	stream, err := util.SSEClient(ctx, o.BaseUrl+o.Path, o.header, data, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ResponsesStream OpenAI model: %s, error: %v", o.Model, err)
 		return responseChan, err

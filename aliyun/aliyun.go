@@ -33,10 +33,6 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Aliyun {
 		aliyun.BaseUrl = "https://dashscope.aliyuncs.com/api/v1"
 	}
 
-	if aliyun.Path == "" {
-		aliyun.Path = "/services/aigc/text-generation/generation"
-	}
-
 	logger.Infof(ctx, "NewAdapter Aliyun model: %s, key: %s", aliyun.Model, aliyun.Key)
 
 	return aliyun

@@ -2,7 +2,6 @@ package baidu
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	"github.com/gogf/gf/v2/os/grpool"
@@ -37,7 +36,7 @@ func (b *Baidu) ChatCompletions(ctx context.Context, data any) (response model.C
 		}
 	}
 
-	bytes, err := util.HttpPost(ctx, fmt.Sprintf("%s?access_token=%s", b.BaseUrl+b.Path, b.accessToken), b.header, data, nil, b.Timeout, b.ProxyUrl, b.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, b.BaseUrl+b.Path, b.header, data, nil, b.Timeout, b.ProxyUrl, b.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions Baidu model: %s, error: %v", b.Model, err)
 		return response, err
@@ -76,7 +75,7 @@ func (b *Baidu) ChatCompletionsStream(ctx context.Context, data any) (responseCh
 		}
 	}
 
-	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s?access_token=%s", b.BaseUrl+b.Path, b.accessToken), b.header, data, b.Timeout, b.ProxyUrl, b.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, b.BaseUrl+b.Path, b.header, data, b.Timeout, b.ProxyUrl, b.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletionsStream Baidu model: %s, error: %v", b.Model, err)
 		return responseChan, err

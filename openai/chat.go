@@ -31,6 +31,14 @@ func (o *OpenAI) ChatCompletions(ctx context.Context, data any) (response model.
 		}
 	}
 
+	if o.Path == "" {
+		if o.isAzure {
+			o.Path = "/chat/completions?api-version=" + o.apiVersion
+		} else {
+			o.Path = "/chat/completions"
+		}
+	}
+
 	bytes, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions OpenAI model: %s, error: %v", o.Model, err)
@@ -67,6 +75,14 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data any) (responseC
 
 	if (o.IsSupportStream != nil && !*o.IsSupportStream) || (gstr.HasPrefix(o.Model, "o") && o.isAzure) {
 		return o.ChatCompletionStreamToNonStream(ctx, data)
+	}
+
+	if o.Path == "" {
+		if o.isAzure {
+			o.Path = "/chat/completions?api-version=" + o.apiVersion
+		} else {
+			o.Path = "/chat/completions"
+		}
 	}
 
 	stream, err := util.SSEClient(ctx, o.BaseUrl+o.Path, o.header, data, o.Timeout, o.ProxyUrl, o.requestErrorHandler)

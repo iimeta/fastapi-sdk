@@ -29,6 +29,10 @@ func (v *VolcEngine) ChatCompletions(ctx context.Context, data any) (response mo
 		}
 	}
 
+	if v.Path == "" {
+		v.Path = "/chat/completions"
+	}
+
 	bytes, err := util.HttpPost(ctx, v.BaseUrl+v.Path, v.header, data, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions VolcEngine model: %s, error: %v", v.Model, err)
@@ -61,6 +65,10 @@ func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data any) (respo
 			logger.Errorf(ctx, "ChatCompletionsStream VolcEngine ConvChatCompletionsRequest error: %v", err)
 			return nil, err
 		}
+	}
+
+	if v.Path == "" {
+		v.Path = "/chat/completions"
 	}
 
 	stream, err := util.SSEClient(ctx, v.BaseUrl+v.Path, v.header, data, v.Timeout, v.ProxyUrl, v.requestErrorHandler)

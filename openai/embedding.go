@@ -25,7 +25,15 @@ func (o *OpenAI) TextEmbeddings(ctx context.Context, data []byte) (response mode
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, o.BaseUrl+"/embeddings", o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	if o.Path == "" {
+		if o.isAzure {
+			o.Path = "/embeddings?api-version=" + o.apiVersion
+		} else {
+			o.Path = "/embeddings"
+		}
+	}
+
+	bytes, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "TextEmbeddings OpenAI model: %s, error: %v", o.Model, err)
 		return response, err

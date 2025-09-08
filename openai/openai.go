@@ -18,8 +18,9 @@ import (
 
 type OpenAI struct {
 	*options.AdapterOptions
-	header  map[string]string
-	isAzure bool
+	header     map[string]string
+	isAzure    bool
+	apiVersion string
 }
 
 func NewAdapter(ctx context.Context, options *options.AdapterOptions) *OpenAI {
@@ -35,10 +36,6 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *OpenAI {
 		openai.BaseUrl = "https://api.openai.com/v1"
 	}
 
-	if openai.Path == "" {
-		openai.Path = "/chat/completions"
-	}
-
 	logger.Infof(ctx, "NewAdapter OpenAI model: %s, key: %s", openai.Model, openai.Key)
 
 	return openai
@@ -51,7 +48,8 @@ func NewAzureAdapter(ctx context.Context, options *options.AdapterOptions) *Open
 		header: g.MapStrStr{
 			"api-key": options.Key,
 		},
-		isAzure: true,
+		isAzure:    true,
+		apiVersion: "2025-04-01-preview",
 	}
 
 	if gstr.HasSuffix(azure.BaseUrl, "/openai/deployments") {
@@ -65,8 +63,22 @@ func NewAzureAdapter(ctx context.Context, options *options.AdapterOptions) *Open
 		}
 	}
 
-	if azure.Path == "" {
-		azure.Path = "/chat/completions?api-version=2024-05-01-preview"
+	if azure.Path != "" {
+
+		split := gstr.Split(azure.Path, "?api-version=")
+		if len(split) != 2 {
+			split = gstr.Split(azure.Path, "api-version=")
+		}
+
+		azure.Path = split[0]
+
+		if len(split) > 1 && split[1] != "" {
+			azure.apiVersion = split[1]
+		}
+
+		if azure.Path != "" {
+			azure.Path += "?api-version=" + azure.apiVersion
+		}
 	}
 
 	logger.Infof(ctx, "NewAzureAdapter OpenAI model: %s, baseUrl: %s, key: %s", azure.Model, azure.BaseUrl, azure.Key)

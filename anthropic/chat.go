@@ -63,10 +63,6 @@ func (a *Anthropic) ChatCompletions(ctx context.Context, data any) (response mod
 			ContentType: aws.String("application/json"),
 		}
 
-		if modelId, ok := AwsModelIDMap[chatCompletionReq.Model]; ok {
-			invokeModelInput.ModelId = aws.String(modelId)
-		}
-
 		chatCompletionReq.Model = ""
 
 		if invokeModelInput.Body, err = gjson.Marshal(chatCompletionReq); err != nil {
@@ -83,6 +79,11 @@ func (a *Anthropic) ChatCompletions(ctx context.Context, data any) (response mod
 		bytes = invokeModelOutput.Body
 
 	} else {
+
+		if a.Path == "" {
+			a.Path = "/messages"
+		}
+
 		if bytes, err = util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, nil, a.Timeout, a.ProxyUrl, a.requestErrorHandler); err != nil {
 			logger.Errorf(ctx, "ChatCompletions Anthropic model: %s, error: %v", a.Model, err)
 			return response, err
@@ -140,10 +141,6 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 			ModelId:     aws.String(chatCompletionReq.Model),
 			Accept:      aws.String("application/json"),
 			ContentType: aws.String("application/json"),
-		}
-
-		if modelId, ok := AwsModelIDMap[chatCompletionReq.Model]; ok {
-			invokeModelStreamInput.ModelId = aws.String(modelId)
 		}
 
 		chatCompletionReq.Model = ""
@@ -300,6 +297,10 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 		}
 
 	} else {
+
+		if a.Path == "" {
+			a.Path = "/messages"
+		}
 
 		stream, err := util.SSEClient(ctx, a.BaseUrl+a.Path, a.header, data, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
 		if err != nil {

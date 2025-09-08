@@ -3,7 +3,7 @@ package options
 import "time"
 
 type AdapterOptions struct {
-	Corp                    string
+	Provider                string
 	Model                   string
 	Key                     string
 	BaseUrl                 string

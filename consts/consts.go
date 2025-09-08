@@ -1,22 +1,22 @@
 package consts
 
 const (
-	CORP_OPENAI         = "OpenAI"
-	CORP_AZURE          = "Azure"
-	CORP_BAIDU          = "Baidu"
-	CORP_XFYUN          = "Xfyun"
-	CORP_ALIYUN         = "Aliyun"
-	CORP_ZHIPUAI        = "ZhipuAI"
-	CORP_GOOGLE         = "Google"
-	CORP_DEEPSEEK       = "DeepSeek"
-	CORP_DEEPSEEK_BAIDU = "DeepSeek-Baidu"
-	CORP_360AI          = "360AI"
-	CORP_MIDJOURNEY     = "Midjourney"
-	CORP_ANTHROPIC      = "Anthropic"
-	CORP_GCP_CLAUDE     = "GCPClaude"
-	CORP_AWS_CLAUDE     = "AWSClaude"
-	CORP_VOLC_ENGINE    = "VolcEngine"
-	CORP_GCP_GEMINI     = "GCPGemini"
+	PROVIDER_OPENAI         = "OpenAI"
+	PROVIDER_ANTHROPIC      = "Anthropic"
+	PROVIDER_GOOGLE         = "Google"
+	PROVIDER_AZURE          = "Azure"
+	PROVIDER_DEEPSEEK       = "DeepSeek"
+	PROVIDER_DEEPSEEK_BAIDU = "DeepSeek-Baidu"
+	PROVIDER_BAIDU          = "Baidu"
+	PROVIDER_ALIYUN         = "Aliyun"
+	PROVIDER_XFYUN          = "Xfyun"
+	PROVIDER_ZHIPUAI        = "ZhipuAI"
+	PROVIDER_VOLC_ENGINE    = "VolcEngine"
+	PROVIDER_360AI          = "360AI"
+	PROVIDER_AWS_CLAUDE     = "AWSClaude"
+	PROVIDER_GCP_CLAUDE     = "GCPClaude"
+	PROVIDER_GCP_GEMINI     = "GCPGemini"
+	PROVIDER_MIDJOURNEY     = "Midjourney"
 )
 
 const (

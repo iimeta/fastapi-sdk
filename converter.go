@@ -48,46 +48,42 @@ type Converter interface {
 	ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (model.EmbeddingResponse, error)
 }
 
-func NewConverter(ctx context.Context, corp string, opts ...*options.AdapterOptions) Converter {
+func NewConverter(ctx context.Context, options *options.AdapterOptions) Converter {
 
-	logger.Infof(ctx, "NewConverter corp: %s", corp)
+	logger.Infof(ctx, "NewConverter provider: %s", options.Provider)
 
-	if len(opts) == 0 {
-		opts = append(opts, &options.AdapterOptions{})
+	switch options.Provider {
+	case consts.PROVIDER_OPENAI:
+		return &openai.OpenAI{AdapterOptions: options}
+	case consts.PROVIDER_ANTHROPIC:
+		return &anthropic.Anthropic{AdapterOptions: options}
+	case consts.PROVIDER_GOOGLE:
+		return &google.Google{AdapterOptions: options}
+	case consts.PROVIDER_AZURE:
+		return &openai.OpenAI{AdapterOptions: options}
+	case consts.PROVIDER_DEEPSEEK:
+		return &deepseek.DeepSeek{AdapterOptions: options}
+	case consts.PROVIDER_DEEPSEEK_BAIDU:
+		return &deepseek.DeepSeek{AdapterOptions: options}
+	case consts.PROVIDER_BAIDU:
+		return &baidu.Baidu{AdapterOptions: options}
+	case consts.PROVIDER_ALIYUN:
+		return &aliyun.Aliyun{AdapterOptions: options}
+	case consts.PROVIDER_XFYUN:
+		return &xfyun.Xfyun{AdapterOptions: options}
+	case consts.PROVIDER_ZHIPUAI:
+		return &zhipuai.ZhipuAI{AdapterOptions: options}
+	case consts.PROVIDER_VOLC_ENGINE:
+		return &volcengine.VolcEngine{AdapterOptions: options}
+	case consts.PROVIDER_360AI:
+		return &ai360.AI360{AdapterOptions: options}
+	case consts.PROVIDER_AWS_CLAUDE:
+		return &anthropic.Anthropic{AdapterOptions: options}
+	case consts.PROVIDER_GCP_CLAUDE:
+		return &anthropic.Anthropic{AdapterOptions: options}
+	case consts.PROVIDER_GCP_GEMINI:
+		return &google.Google{AdapterOptions: options}
 	}
 
-	switch corp {
-	case consts.CORP_OPENAI:
-		return &openai.OpenAI{AdapterOptions: opts[0]}
-	case consts.CORP_AZURE:
-		return &openai.OpenAI{AdapterOptions: opts[0]}
-	case consts.CORP_BAIDU:
-		return &baidu.Baidu{AdapterOptions: opts[0]}
-	case consts.CORP_XFYUN:
-		return &xfyun.Xfyun{AdapterOptions: opts[0]}
-	case consts.CORP_ALIYUN:
-		return &aliyun.Aliyun{AdapterOptions: opts[0]}
-	case consts.CORP_ZHIPUAI:
-		return &zhipuai.ZhipuAI{AdapterOptions: opts[0]}
-	case consts.CORP_GOOGLE:
-		return &google.Google{AdapterOptions: opts[0]}
-	case consts.CORP_GCP_GEMINI:
-		return &google.Google{AdapterOptions: opts[0]}
-	case consts.CORP_DEEPSEEK:
-		return &deepseek.DeepSeek{AdapterOptions: opts[0]}
-	case consts.CORP_DEEPSEEK_BAIDU:
-		return &deepseek.DeepSeek{AdapterOptions: opts[0]}
-	case consts.CORP_360AI:
-		return &ai360.AI360{AdapterOptions: opts[0]}
-	case consts.CORP_ANTHROPIC:
-		return &anthropic.Anthropic{AdapterOptions: opts[0]}
-	case consts.CORP_GCP_CLAUDE:
-		return &anthropic.Anthropic{AdapterOptions: opts[0]}
-	case consts.CORP_AWS_CLAUDE:
-		return &anthropic.Anthropic{AdapterOptions: opts[0]}
-	case consts.CORP_VOLC_ENGINE:
-		return &volcengine.VolcEngine{AdapterOptions: opts[0]}
-	}
-
-	return &general.General{AdapterOptions: opts[0]}
+	return &general.General{AdapterOptions: options}
 }

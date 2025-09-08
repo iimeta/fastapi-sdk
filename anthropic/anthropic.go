@@ -27,19 +27,6 @@ type Anthropic struct {
 	awsClient *bedrockruntime.Client
 }
 
-// https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html
-var AwsModelIDMap = map[string]string{
-	"claude-2.0":                 "anthropic.claude-v2",
-	"claude-2.1":                 "anthropic.claude-v2:1",
-	"claude-3-sonnet-20240229":   "anthropic.claude-3-sonnet-20240229-v1:0",
-	"claude-3-5-sonnet-20240620": "anthropic.claude-3-5-sonnet-20240620-v1:0",
-	"claude-3-5-sonnet-20241022": "anthropic.claude-3-5-sonnet-20241022-v2:0",
-	"claude-3-haiku-20240307":    "anthropic.claude-3-haiku-20240307-v1:0",
-	"claude-3-5-haiku-20241022":  "anthropic.claude-3-5-haiku-20241022-v1:0",
-	"claude-3-opus-20240229":     "anthropic.claude-3-opus-20240229-v1:0",
-	"claude-instant-1.2":         "anthropic.claude-instant-v1",
-}
-
 func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Anthropic {
 
 	anthropic := &Anthropic{
@@ -53,10 +40,6 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Anthropic
 
 	if anthropic.BaseUrl == "" {
 		anthropic.BaseUrl = "https://api.anthropic.com/v1"
-	}
-
-	if anthropic.Path == "" {
-		anthropic.Path = "/messages"
 	}
 
 	logger.Infof(ctx, "NewAdapter Anthropic model: %s, key: %s", anthropic.Model, anthropic.Key)
@@ -78,9 +61,9 @@ func NewGcpAdapter(ctx context.Context, options *options.AdapterOptions) *Anthro
 		gcp.BaseUrl = "https://us-east5-aiplatform.googleapis.com/v1"
 	}
 
-	if gcp.Path == "" {
-		gcp.Path = "/projects/%s/locations/us-east5/publishers/anthropic/models/%s:streamRawPredict"
-	}
+	//if gcp.Path == "" {
+	//	gcp.Path = "/projects/%s/locations/us-east5/publishers/anthropic/models/%s:streamRawPredict"
+	//}
 
 	logger.Infof(ctx, "NewGcpAdapter Anthropic model: %s, key: %s", gcp.Model, gcp.Key)
 

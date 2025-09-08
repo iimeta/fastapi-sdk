@@ -25,7 +25,15 @@ func (o *OpenAI) AudioSpeech(ctx context.Context, data []byte) (response model.S
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, o.BaseUrl+"/audio/speech", o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	if o.Path == "" {
+		if o.isAzure {
+			o.Path = "/audio/speech?api-version=" + o.apiVersion
+		} else {
+			o.Path = "/audio/speech"
+		}
+	}
+
+	bytes, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "AudioSpeech OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
@@ -57,7 +65,15 @@ func (o *OpenAI) AudioTranscriptions(ctx context.Context, request model.AudioReq
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, o.BaseUrl+"/audio/transcriptions", o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	if o.Path == "" {
+		if o.isAzure {
+			o.Path = "/audio/transcriptions?api-version=" + o.apiVersion
+		} else {
+			o.Path = "/audio/transcriptions"
+		}
+	}
+
+	bytes, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "AudioTranscriptions OpenAI model: %s, error: %v", o.Model, err)
 		return response, err

@@ -33,10 +33,6 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *ZhipuAI {
 		zhipuai.BaseUrl = "https://open.bigmodel.cn/api/paas/v4"
 	}
 
-	if zhipuai.Path == "" {
-		zhipuai.Path = "/chat/completions"
-	}
-
 	zhipuai.header = g.MapStrStr{
 		"Authorization": "Bearer " + zhipuai.generateToken(ctx),
 	}

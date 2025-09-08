@@ -2,7 +2,6 @@ package google
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	"github.com/gogf/gf/v2/os/grpool"
@@ -37,15 +36,19 @@ func (g *Google) ChatCompletions(ctx context.Context, data any) (response model.
 		}
 	}
 
+	if g.Path == "" {
+		g.Path = "/models/" + g.Model
+	}
+
 	var bytes []byte
 
 	if g.isGcp {
-		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent", g.BaseUrl+g.Path), g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
+		if bytes, err = util.HttpPost(ctx, g.BaseUrl+g.Path+":generateContent", g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
 			logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", g.Model, err)
 			return response, err
 		}
 	} else {
-		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", g.BaseUrl+g.Path, g.Key), g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
+		if bytes, err = util.HttpPost(ctx, g.BaseUrl+g.Path+":generateContent?key="+g.Key, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
 			logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", g.Model, err)
 			return response, err
 		}
@@ -84,16 +87,20 @@ func (g *Google) ChatCompletionsStream(ctx context.Context, data any) (responseC
 		}
 	}
 
+	if g.Path == "" {
+		g.Path = "/models/" + g.Model
+	}
+
 	var stream *util.StreamReader
 
 	if g.isGcp {
-		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse", g.BaseUrl+g.Path), g.header, data, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+		stream, err = util.SSEClient(ctx, g.BaseUrl+g.Path+":streamGenerateContent?alt=sse", g.header, data, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.Model, err)
 			return responseChan, err
 		}
 	} else {
-		stream, err = util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", g.BaseUrl+g.Path, g.Key), g.header, data, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+		stream, err = util.SSEClient(ctx, g.BaseUrl+g.Path+":streamGenerateContent?alt=sse&key="+g.Key, g.header, data, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 		if err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Google model: %s, error: %v", g.Model, err)
 			return responseChan, err

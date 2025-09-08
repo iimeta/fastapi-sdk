@@ -36,6 +36,10 @@ func (z *ZhipuAI) ChatCompletions(ctx context.Context, data any) (response model
 		}
 	}
 
+	if z.Path == "" {
+		z.Path = "/chat/completions"
+	}
+
 	bytes, err := util.HttpPost(ctx, z.BaseUrl+z.Path, z.header, data, nil, z.Timeout, z.ProxyUrl, z.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions ZhipuAI model: %s, error: %v", z.Model, err)
@@ -73,6 +77,10 @@ func (z *ZhipuAI) ChatCompletionsStream(ctx context.Context, data any) (response
 			logger.Errorf(ctx, "ChatCompletionsStream ZhipuAI ConvChatCompletionsRequestOfficial error: %v", err)
 			return responseChan, err
 		}
+	}
+
+	if z.Path == "" {
+		z.Path = "/chat/completions"
 	}
 
 	stream, err := util.SSEClient(ctx, z.BaseUrl+z.Path, z.header, data, z.Timeout, z.ProxyUrl, z.requestErrorHandler)

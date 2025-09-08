@@ -15,24 +15,20 @@ import (
 
 type Baidu struct {
 	*options.AdapterOptions
-	header      map[string]string
-	accessToken string
+	header map[string]string
 }
 
 func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Baidu {
 
 	baidu := &Baidu{
 		AdapterOptions: options,
-		accessToken:    options.Key,
 	}
 
 	if baidu.BaseUrl == "" {
 		baidu.BaseUrl = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1"
 	}
 
-	if baidu.Path == "" {
-		baidu.Path = "/wenxinworkshop/chat/completions_pro"
-	}
+	baidu.Path += "?access_token=" + options.Key
 
 	logger.Infof(ctx, "NewAdapter Baidu model: %s, key: %s", baidu.Model, baidu.Key)
 
