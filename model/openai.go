@@ -103,8 +103,8 @@ type OpenAIResponsesResponse struct {
 }
 
 type OpenAIResponsesInput struct {
-	Role    string                   `json:"role"`
-	Content []OpenAIResponsesContent `json:"content"`
+	Role    string `json:"role"`
+	Content any    `json:"content"`
 }
 
 type OpenAIResponsesReasoning struct {
