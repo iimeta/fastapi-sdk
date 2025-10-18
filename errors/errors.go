@@ -17,10 +17,10 @@ var (
 
 type ApiError struct {
 	HttpStatusCode int    `json:"-"`
-	Code           any    `json:"code,omitempty"`
+	Code           any    `json:"code"`
 	Message        string `json:"message"`
 	Type           string `json:"type"`
-	Param          string `json:"param,omitempty"`
+	Param          any    `json:"param"`
 }
 
 type RequestError struct {
@@ -41,49 +41,42 @@ func (e *ApiError) Error() string {
 }
 
 func (e *ApiError) UnmarshalJSON(data []byte) (err error) {
+
 	var rawMap map[string]json.RawMessage
-	err = json.Unmarshal(data, &rawMap)
-	if err != nil {
-		return
+
+	if err = json.Unmarshal(data, &rawMap); err != nil {
+		return err
 	}
 
-	err = json.Unmarshal(rawMap["message"], &e.Message)
-	if err != nil {
-		var messages []string
-		err = json.Unmarshal(rawMap["message"], &messages)
-		if err != nil {
-			return
+	if _, ok := rawMap["code"]; ok {
+		if err = json.Unmarshal(rawMap["code"], &e.Code); err != nil {
+			return err
 		}
-		e.Message = strings.Join(messages, ", ")
+	}
+
+	if err = json.Unmarshal(rawMap["message"], &e.Message); err != nil {
+
+		var messages []string
+		if err = json.Unmarshal(rawMap["message"], &messages); err != nil {
+			return err
+		}
+
+		e.Message = strings.Join(messages, "; ")
 	}
 
 	if _, ok := rawMap["type"]; ok {
-		err = json.Unmarshal(rawMap["type"], &e.Type)
-		if err != nil {
-			return
+		if err = json.Unmarshal(rawMap["type"], &e.Type); err != nil {
+			return err
 		}
 	}
 
-	// optional fields
 	if _, ok := rawMap["param"]; ok {
-		err = json.Unmarshal(rawMap["param"], &e.Param)
-		if err != nil {
-			return
+		if err = json.Unmarshal(rawMap["param"], &e.Param); err != nil {
+			return err
 		}
 	}
 
-	if _, ok := rawMap["code"]; !ok {
-		return nil
-	}
-
-	var intCode int
-	err = json.Unmarshal(rawMap["code"], &intCode)
-	if err == nil {
-		e.Code = intCode
-		return nil
-	}
-
-	return json.Unmarshal(rawMap["code"], &e.Code)
+	return nil
 }
 
 func (e *RequestError) Error() string {
@@ -94,7 +87,7 @@ func (e *RequestError) Unwrap() error {
 	return e.Err
 }
 
-func NewApiError(httpStatusCode int, code any, message, typ, param string) error {
+func NewApiError(httpStatusCode int, code any, message, typ string, param any) error {
 	return &ApiError{
 		HttpStatusCode: httpStatusCode,
 		Code:           code,
