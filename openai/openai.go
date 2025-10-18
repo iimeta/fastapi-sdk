@@ -101,7 +101,7 @@ func (o *OpenAI) requestErrorHandler(ctx context.Context, response *http.Respons
 		}
 	}
 
-	return errors.NewApiError(response.StatusCode, errorResponse.Error.Code, errorResponse.Error.Message, errorResponse.Error.Type, *errorResponse.Error.Param)
+	return errors.NewApiError(response.StatusCode, errorResponse.Error.Code, errorResponse.Error.Message, errorResponse.Error.Type, errorResponse.Error.Param)
 }
 
 func (o *OpenAI) apiErrorHandler(err error) error {

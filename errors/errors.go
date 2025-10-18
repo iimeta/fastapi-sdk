@@ -16,11 +16,11 @@ var (
 )
 
 type ApiError struct {
-	HttpStatusCode int     `json:"-"`
-	Code           any     `json:"code,omitempty"`
-	Message        string  `json:"message"`
-	Type           string  `json:"type"`
-	Param          *string `json:"param,omitempty"`
+	HttpStatusCode int    `json:"-"`
+	Code           any    `json:"code,omitempty"`
+	Message        string `json:"message"`
+	Type           string `json:"type"`
+	Param          string `json:"param,omitempty"`
 }
 
 type RequestError struct {
@@ -100,7 +100,7 @@ func NewApiError(httpStatusCode int, code any, message, typ, param string) error
 		Code:           code,
 		Message:        message,
 		Type:           typ,
-		Param:          &param,
+		Param:          param,
 	}
 }
 
