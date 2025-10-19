@@ -31,6 +31,7 @@ type ChatCompletionRequest struct {
 	Modalities          []string                      `json:"modalities,omitempty"`
 	Audio               *Audio                        `json:"audio,omitempty"`
 	WebSearchOptions    any                           `json:"web_search_options,omitempty"`
+	EnableThinking      *bool                         `json:"enable_thinking,omitempty"`
 }
 
 type ChatCompletionResponse struct {
