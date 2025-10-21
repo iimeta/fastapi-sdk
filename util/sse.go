@@ -54,7 +54,7 @@ func SSEClient(ctx context.Context, rawURL string, header map[string]string, dat
 		}
 	}
 
-	request, err := http.NewRequest("POST", rawURL, bodyReader)
+	request, err := http.NewRequestWithContext(ctx, "POST", rawURL, bodyReader)
 	if err != nil {
 		logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
 		return nil, err

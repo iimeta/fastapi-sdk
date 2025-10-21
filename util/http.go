@@ -46,7 +46,7 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 		}
 	}
 
-	request, err := http.NewRequest(method, rawURL, bodyReader)
+	request, err := http.NewRequestWithContext(ctx, method, rawURL, bodyReader)
 	if err != nil {
 		logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", method, rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
 		return nil, err
