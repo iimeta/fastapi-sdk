@@ -29,6 +29,7 @@ type ChatCompletionRequest struct {
 	Metadata            map[string]string             `json:"metadata,omitempty"`
 	ReasoningEffort     string                        `json:"reasoning_effort,omitempty"`
 	Modalities          []string                      `json:"modalities,omitempty"`
+	ServiceTier         string                        `json:"service_tier,omitempty"`
 	Audio               *Audio                        `json:"audio,omitempty"`
 	WebSearchOptions    any                           `json:"web_search_options,omitempty"`
 	EnableThinking      *bool                         `json:"enable_thinking,omitempty"`
