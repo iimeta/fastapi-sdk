@@ -7,6 +7,7 @@ import (
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-sdk/common"
 	"github.com/iimeta/fastapi-sdk/consts"
@@ -70,12 +71,35 @@ func (g *Google) ConvChatCompletionsResponse(ctx context.Context, data []byte) (
 	}
 
 	for i, part := range chatCompletionRes.Candidates[0].Content.Parts {
+
+		message := &model.ChatCompletionMessage{
+			Role:    consts.ROLE_ASSISTANT,
+			Content: part.Text,
+		}
+
+		if part.FunctionCall != nil {
+			if functionCall, ok := part.FunctionCall.(map[string]any); ok {
+				message.ToolCalls = []any{
+					map[string]any{
+						"id":   "call_" + grand.S(24),
+						"type": "function",
+						"function": map[string]any{
+							"name":      functionCall["name"],
+							"arguments": gconv.String(functionCall["args"]),
+						},
+						"extra_content": map[string]any{
+							"google": map[string]any{
+								"thought_signature": part.ThoughtSignature,
+							},
+						},
+					},
+				}
+			}
+		}
+
 		response.Choices = append(response.Choices, model.ChatCompletionChoice{
-			Index: i,
-			Message: &model.ChatCompletionMessage{
-				Role:    consts.ROLE_ASSISTANT,
-				Content: part.Text,
-			},
+			Index:        i,
+			Message:      message,
 			FinishReason: consts.FinishReasonStop,
 		})
 	}

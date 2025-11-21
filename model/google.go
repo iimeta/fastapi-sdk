@@ -41,6 +41,7 @@ type Part struct {
 	FileData         *FileData   `json:"file_data,omitempty"`
 	FunctionCall     any         `json:"functionCall,omitempty"`
 	FunctionResponse any         `json:"functionResponse,omitempty"`
+	ThoughtSignature any         `json:"thoughtSignature,omitempty"`
 }
 
 type InlineData struct {

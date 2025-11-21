@@ -83,7 +83,26 @@ func (g *Google) ConvChatCompletionsRequestOfficial(ctx context.Context, request
 			Temperature:     request.Temperature,
 			TopP:            request.TopP,
 		},
-		Tools: request.Tools,
+	}
+
+	if request.Tools != nil {
+		if tools, ok := request.Tools.([]interface{}); ok {
+
+			var functionDeclarations []interface{}
+
+			for _, value := range tools {
+				if tool, ok := value.(map[string]interface{}); ok {
+					functionDeclarations = append(functionDeclarations, tool["function"])
+				}
+			}
+
+			chatCompletionReq.Tools = map[string]any{
+				"functionDeclarations": functionDeclarations,
+			}
+
+		} else {
+			chatCompletionReq.Tools = request.Tools
+		}
 	}
 
 	return gjson.MustEncode(chatCompletionReq), nil
