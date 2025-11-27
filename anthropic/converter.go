@@ -143,6 +143,7 @@ func (a *Anthropic) ConvChatCompletionsStreamResponse(ctx context.Context, data 
 
 	if chatCompletionRes.Delta.StopReason != "" {
 		response.Choices = append(response.Choices, model.ChatCompletionChoice{
+			Delta:        &model.ChatCompletionStreamChoiceDelta{},
 			FinishReason: consts.FinishReasonStop,
 		})
 	} else {
