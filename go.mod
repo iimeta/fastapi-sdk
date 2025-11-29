@@ -4,8 +4,8 @@ go 1.25
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.40.0
-	github.com/aws/aws-sdk-go-v2/credentials v1.19.1
-	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.45.0
+	github.com/aws/aws-sdk-go-v2/credentials v1.19.2
+	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.46.0
 	github.com/gogf/gf/v2 v2.9.5
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/gorilla/websocket v1.5.3
