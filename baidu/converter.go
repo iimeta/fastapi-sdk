@@ -176,3 +176,13 @@ func (b *Baidu) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (mo
 	//TODO implement me
 	panic("implement me")
 }
+
+func (b *Baidu) ConvVideoRequest(ctx context.Context, request model.VideoRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvVideoResponse(ctx context.Context, data []byte) (model.VideoResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

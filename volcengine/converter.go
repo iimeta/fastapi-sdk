@@ -134,3 +134,13 @@ func (v *VolcEngine) ConvTextEmbeddingsResponse(ctx context.Context, data []byte
 	//TODO implement me
 	panic("implement me")
 }
+
+func (v *VolcEngine) ConvVideoRequest(ctx context.Context, request model.VideoRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (v *VolcEngine) ConvVideoResponse(ctx context.Context, data []byte) (model.VideoResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

@@ -46,6 +46,9 @@ type Converter interface {
 
 	ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (model.EmbeddingRequest, error)
 	ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (model.EmbeddingResponse, error)
+
+	ConvVideoRequest(ctx context.Context, request model.VideoRequest) (*bytes.Buffer, error)
+	ConvVideoResponse(ctx context.Context, data []byte) (model.VideoResponse, error)
 }
 
 func NewConverter(ctx context.Context, options *options.AdapterOptions) Converter {

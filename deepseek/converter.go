@@ -132,3 +132,13 @@ func (d *DeepSeek) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) 
 	//TODO implement me
 	panic("implement me")
 }
+
+func (d *DeepSeek) ConvVideoRequest(ctx context.Context, request model.VideoRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (d *DeepSeek) ConvVideoResponse(ctx context.Context, data []byte) (model.VideoResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

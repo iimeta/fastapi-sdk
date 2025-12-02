@@ -134,3 +134,13 @@ func (g *General) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (
 	//TODO implement me
 	panic("implement me")
 }
+
+func (g *General) ConvVideoRequest(ctx context.Context, request model.VideoRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *General) ConvVideoResponse(ctx context.Context, data []byte) (model.VideoResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

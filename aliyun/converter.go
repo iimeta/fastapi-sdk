@@ -190,3 +190,13 @@ func (a *Aliyun) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (m
 	//TODO implement me
 	panic("implement me")
 }
+
+func (a *Aliyun) ConvVideoRequest(ctx context.Context, request model.VideoRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *Aliyun) ConvVideoResponse(ctx context.Context, data []byte) (model.VideoResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

@@ -242,3 +242,13 @@ func (g *Google) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (m
 	//TODO implement me
 	panic("implement me")
 }
+
+func (g *Google) ConvVideoRequest(ctx context.Context, request model.VideoRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *Google) ConvVideoResponse(ctx context.Context, data []byte) (model.VideoResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

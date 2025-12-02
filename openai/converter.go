@@ -351,3 +351,62 @@ func (o *OpenAI) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (m
 
 	return response, nil
 }
+
+func (o *OpenAI) ConvVideoRequest(ctx context.Context, request model.VideoRequest) (*bytes.Buffer, error) {
+
+	data := &bytes.Buffer{}
+	builder := util.NewFormBuilder(data)
+
+	if err := builder.WriteField("model", request.Model); err != nil {
+		logger.Errorf(ctx, "ConvVideoRequest OpenAI model: %s, error: %v", o.Model, err)
+		return data, err
+	}
+
+	if request.Prompt != "" {
+		if err := builder.WriteField("prompt", request.Prompt); err != nil {
+			logger.Errorf(ctx, "ConvVideoRequest OpenAI model: %s, error: %v", o.Model, err)
+			return data, err
+		}
+	}
+
+	if request.InputReference != nil {
+		if err := builder.CreateFormFileHeader("input_reference", request.InputReference); err != nil {
+			logger.Errorf(ctx, "ConvVideoRequest OpenAI model: %s, error: %v", o.Model, err)
+			return data, err
+		}
+	}
+
+	if request.Seconds != "" {
+		if err := builder.WriteField("seconds", request.Seconds); err != nil {
+			logger.Errorf(ctx, "ConvVideoRequest OpenAI model: %s, error: %v", o.Model, err)
+			return data, err
+		}
+	}
+
+	if request.Size != "" {
+		if err := builder.WriteField("size", request.Size); err != nil {
+			logger.Errorf(ctx, "ConvVideoRequest OpenAI model: %s, error: %v", o.Model, err)
+			return data, err
+		}
+	}
+
+	if err := builder.Close(); err != nil {
+		logger.Errorf(ctx, "ConvVideoRequest OpenAI model: %s, error: %v", o.Model, err)
+		return data, err
+	}
+
+	o.header["Content-Type"] = builder.FormDataContentType()
+
+	return data, nil
+}
+
+func (o *OpenAI) ConvVideoResponse(ctx context.Context, data []byte) (model.VideoResponse, error) {
+
+	response := model.VideoResponse{}
+	if err := json.Unmarshal(data, &response); err != nil {
+		logger.Error(ctx, err)
+		return response, err
+	}
+
+	return response, nil
+}

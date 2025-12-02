@@ -134,3 +134,13 @@ func (a *AI360) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (mo
 	//TODO implement me
 	panic("implement me")
 }
+
+func (a *AI360) ConvVideoRequest(ctx context.Context, request model.VideoRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *AI360) ConvVideoResponse(ctx context.Context, data []byte) (model.VideoResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

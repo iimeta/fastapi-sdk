@@ -235,3 +235,13 @@ func (a *Anthropic) ConvTextEmbeddingsResponse(ctx context.Context, data []byte)
 	//TODO implement me
 	panic("implement me")
 }
+
+func (a *Anthropic) ConvVideoRequest(ctx context.Context, request model.VideoRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *Anthropic) ConvVideoResponse(ctx context.Context, data []byte) (model.VideoResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

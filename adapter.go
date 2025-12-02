@@ -36,6 +36,8 @@ type Adapter interface {
 	AudioTranscriptions(ctx context.Context, request model.AudioRequest) (response model.AudioResponse, err error)
 
 	TextEmbeddings(ctx context.Context, data []byte) (response model.EmbeddingResponse, err error)
+
+	VideoCreate(ctx context.Context, request model.VideoRequest) (response model.VideoResponse, err error)
 }
 
 func NewAdapter(ctx context.Context, options *options.AdapterOptions) AdapterGroup {
