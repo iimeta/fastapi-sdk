@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/net/gtrace"
 	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
 )
@@ -56,6 +57,8 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 	if contentType == "" && method == http.MethodPost {
 		request.Header.Set("Content-Type", "application/json")
 	}
+
+	request.Header.Set("Trace-Id", gtrace.GetTraceID(ctx))
 
 	if header != nil {
 		for k, v := range header {
