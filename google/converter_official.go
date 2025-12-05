@@ -23,15 +23,15 @@ func (g *Google) ConvChatCompletionsRequestOfficial(ctx context.Context, request
 
 		parts := make([]model.Part, 0)
 
-		if contents, ok := message.Content.([]interface{}); ok {
+		if contents, ok := message.Content.([]any); ok {
 
 			for _, value := range contents {
 
-				if content, ok := value.(map[string]interface{}); ok {
+				if content, ok := value.(map[string]any); ok {
 
 					if content["type"] == "image_url" {
 
-						if imageUrl, ok := content["image_url"].(map[string]interface{}); ok {
+						if imageUrl, ok := content["image_url"].(map[string]any); ok {
 
 							mimeType, data := common.GetMime(gconv.String(imageUrl["url"]))
 
@@ -44,7 +44,7 @@ func (g *Google) ConvChatCompletionsRequestOfficial(ctx context.Context, request
 						}
 
 					} else if content["type"] == "video_url" {
-						if videoUrl, ok := content["video_url"].(map[string]interface{}); ok {
+						if videoUrl, ok := content["video_url"].(map[string]any); ok {
 
 							url := gconv.String(videoUrl["url"])
 							format := gconv.String(videoUrl["format"])
@@ -86,12 +86,12 @@ func (g *Google) ConvChatCompletionsRequestOfficial(ctx context.Context, request
 	}
 
 	if request.Tools != nil {
-		if tools, ok := request.Tools.([]interface{}); ok {
+		if tools, ok := request.Tools.([]any); ok {
 
-			var functionDeclarations []interface{}
+			var functionDeclarations []any
 
 			for _, value := range tools {
-				if tool, ok := value.(map[string]interface{}); ok {
+				if tool, ok := value.(map[string]any); ok {
 					functionDeclarations = append(functionDeclarations, tool["function"])
 				}
 			}

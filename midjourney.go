@@ -39,7 +39,7 @@ func NewMidjourneyClient(ctx context.Context, baseURL, path, apiSecret, apiSecre
 	return client
 }
 
-func (c *MidjourneyClient) Request(ctx context.Context, data interface{}) (res model.MidjourneyResponse, err error) {
+func (c *MidjourneyClient) Request(ctx context.Context, data any) (res model.MidjourneyResponse, err error) {
 
 	logger.Infof(ctx, "Midjourney Request data: %s start", gjson.MustEncodeString(data))
 
@@ -57,7 +57,7 @@ func (c *MidjourneyClient) Request(ctx context.Context, data interface{}) (res m
 	return res, nil
 }
 
-func request(ctx context.Context, method, url, apiSecretHeader, apiSecret string, data interface{}, proxyURL string) ([]byte, error) {
+func request(ctx context.Context, method, url, apiSecretHeader, apiSecret string, data any, proxyURL string) ([]byte, error) {
 
 	logger.Debugf(ctx, "Midjourney Request url: %s, apiSecretHeader: %s, apiSecret: %s, data: %s, proxyURL: %v", url, apiSecretHeader, apiSecret, gjson.MustEncodeString(data), proxyURL)
 

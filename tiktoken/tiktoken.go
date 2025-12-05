@@ -77,14 +77,14 @@ func NumTokensFromContent(tkm *tiktoken.Tiktoken, model string, content any) (nu
 	// 传入base64图片内容
 	if gstr.Contains(text, "data:image/") {
 
-		var data interface{}
+		var data any
 		if err := json.Unmarshal([]byte(text), &data); err != nil {
 			return len(tkm.Encode(text, nil, nil))
 		}
 
-		if result, ok := data.([]interface{}); ok {
+		if result, ok := data.([]any); ok {
 			for _, value := range result {
-				if content, ok := value.(map[string]interface{}); ok {
+				if content, ok := value.(map[string]any); ok {
 					if content["type"] == "text" {
 						numTokens += len(tkm.Encode(gconv.String(content["text"]), nil, nil))
 					} else if content["type"] == "image_url" || content["type"] == "image" {

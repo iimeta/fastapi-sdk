@@ -29,7 +29,7 @@ func (a *Anthropic) ChatCompletionOfficial(ctx context.Context, data []byte) (re
 		logger.Infof(ctx, "ChatCompletionOfficial Anthropic model: %s totalTime: %d ms", a.Model, res.TotalTime)
 	}()
 
-	request := make(map[string]interface{})
+	request := make(map[string]any)
 	if err = json.Unmarshal(data, &request); err != nil {
 		logger.Errorf(ctx, "ChatCompletionOfficial Anthropic model: %s, data: %s, json.Unmarshal error: %v", a.Model, data, err)
 		return res, err
@@ -100,7 +100,7 @@ func (a *Anthropic) ChatCompletionStreamOfficial(ctx context.Context, data []byt
 		}
 	}()
 
-	request := make(map[string]interface{})
+	request := make(map[string]any)
 	if err = json.Unmarshal(data, &request); err != nil {
 		logger.Errorf(ctx, "ChatCompletionStreamOfficial Anthropic model: %s, data: %s, json.Unmarshal error: %v", a.Model, data, err)
 		return responseChan, err

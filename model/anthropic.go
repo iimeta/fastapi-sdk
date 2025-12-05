@@ -51,9 +51,9 @@ type AnthropicMessage struct {
 	Type         string          `json:"type"`
 	Role         string          `json:"role"`
 	Model        string          `json:"model"`
-	Content      []interface{}   `json:"content"`
-	StopReason   interface{}     `json:"stop_reason"`
-	StopSequence interface{}     `json:"stop_sequence"`
+	Content      []any           `json:"content"`
+	StopReason   any             `json:"stop_reason"`
+	StopSequence any             `json:"stop_sequence"`
 	Usage        *AnthropicUsage `json:"usage"`
 }
 

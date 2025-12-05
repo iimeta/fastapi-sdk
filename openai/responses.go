@@ -184,7 +184,7 @@ func (o *OpenAI) ResponsesStreamToNonStream(ctx context.Context, data []byte) (r
 			logger.Infof(ctx, "ResponsesStreamToNonStream OpenAI model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", o.Model, duration-now, end-duration, end-now)
 		}()
 
-		request := make(map[string]interface{})
+		request := make(map[string]any)
 		if err = json.Unmarshal(data, &request); err != nil {
 			logger.Errorf(ctx, "ResponsesStreamToNonStream OpenAI model: %s, data: %s, error: %v", o.Model, data, err)
 

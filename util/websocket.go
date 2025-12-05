@@ -106,7 +106,7 @@ func (c *WebSocketConn) WriteMessage(ctx context.Context, messageType int, messa
 	return nil
 }
 
-func (c *WebSocketConn) WriteJSON(ctx context.Context, message interface{}) error {
+func (c *WebSocketConn) WriteJSON(ctx context.Context, message any) error {
 
 	if message != nil {
 		if err := c.conn.WriteJSON(message); err != nil {

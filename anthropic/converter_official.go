@@ -42,15 +42,15 @@ func (a *Anthropic) ConvChatCompletionsRequestOfficial(ctx context.Context, requ
 
 	for _, message := range chatCompletionReq.Messages {
 
-		if contents, ok := message.Content.([]interface{}); ok {
+		if contents, ok := message.Content.([]any); ok {
 
 			for _, value := range contents {
 
-				if content, ok := value.(map[string]interface{}); ok {
+				if content, ok := value.(map[string]any); ok {
 
 					if content["type"] == "image_url" {
 
-						if imageUrl, ok := content["image_url"].(map[string]interface{}); ok {
+						if imageUrl, ok := content["image_url"].(map[string]any); ok {
 
 							mimeType, data := common.GetMime(gconv.String(imageUrl["url"]))
 
