@@ -25,6 +25,10 @@ func (o *OpenAI) VideoCreate(ctx context.Context, request model.VideoRequest) (r
 		return response, err
 	}
 
+	if o.Path == "" {
+		o.Path = "/videos"
+	}
+
 	bytes, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoCreate OpenAI model: %s, error: %v", o.Model, err)
