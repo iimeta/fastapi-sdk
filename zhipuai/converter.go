@@ -162,12 +162,22 @@ func (z *ZhipuAI) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvVideoRequest(ctx context.Context, request model.VideoRequest) (*bytes.Buffer, error) {
+func (z *ZhipuAI) ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (*bytes.Buffer, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvVideoResponse(ctx context.Context, data []byte) (model.VideoResponse, error) {
+func (z *ZhipuAI) ConvVideoListResponse(ctx context.Context, data []byte) (model.VideoListResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (z *ZhipuAI) ConvVideoContentResponse(ctx context.Context, data []byte) (model.VideoContentResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (z *ZhipuAI) ConvVideoJobResponse(ctx context.Context, data []byte) (model.VideoJobResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }

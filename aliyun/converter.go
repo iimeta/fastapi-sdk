@@ -191,12 +191,22 @@ func (a *Aliyun) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (m
 	panic("implement me")
 }
 
-func (a *Aliyun) ConvVideoRequest(ctx context.Context, request model.VideoRequest) (*bytes.Buffer, error) {
+func (a *Aliyun) ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (*bytes.Buffer, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (a *Aliyun) ConvVideoResponse(ctx context.Context, data []byte) (model.VideoResponse, error) {
+func (a *Aliyun) ConvVideoListResponse(ctx context.Context, data []byte) (model.VideoListResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *Aliyun) ConvVideoContentResponse(ctx context.Context, data []byte) (model.VideoContentResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *Aliyun) ConvVideoJobResponse(ctx context.Context, data []byte) (model.VideoJobResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }

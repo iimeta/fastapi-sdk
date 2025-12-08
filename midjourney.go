@@ -67,7 +67,7 @@ func request(ctx context.Context, method, url, apiSecretHeader, apiSecret string
 		err      error
 	)
 
-	client.SetHeaderMap(g.MapStrStr{apiSecretHeader: apiSecret})
+	client.SetHeaderMap(map[string]string{apiSecretHeader: apiSecret})
 
 	if proxyURL != "" {
 		client.SetProxy(proxyURL)

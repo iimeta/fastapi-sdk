@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
-	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/iimeta/fastapi-sdk/errors"
@@ -33,7 +32,7 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *ZhipuAI {
 		zhipuai.BaseUrl = "https://open.bigmodel.cn/api/paas/v4"
 	}
 
-	zhipuai.header = g.MapStrStr{
+	zhipuai.header = map[string]string{
 		"Authorization": "Bearer " + zhipuai.generateToken(ctx),
 	}
 

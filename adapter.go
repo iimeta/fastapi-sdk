@@ -37,7 +37,12 @@ type Adapter interface {
 
 	TextEmbeddings(ctx context.Context, data []byte) (response model.EmbeddingResponse, err error)
 
-	VideoCreate(ctx context.Context, request model.VideoRequest) (response model.VideoResponse, err error)
+	VideoCreate(ctx context.Context, request model.VideoCreateRequest) (response model.VideoJobResponse, err error)
+	VideoRemix(ctx context.Context, request model.VideoRemixRequest) (response model.VideoJobResponse, err error)
+	VideoList(ctx context.Context, request model.VideoListRequest) (response model.VideoListResponse, err error)
+	VideoRetrieve(ctx context.Context, request model.VideoRetrieveRequest) (response model.VideoJobResponse, err error)
+	VideoDelete(ctx context.Context, request model.VideoDeleteRequest) (response model.VideoJobResponse, err error)
+	VideoContent(ctx context.Context, request model.VideoContentRequest) (response model.VideoContentResponse, err error)
 }
 
 func NewAdapter(ctx context.Context, options *options.AdapterOptions) AdapterGroup {

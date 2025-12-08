@@ -18,13 +18,13 @@ type ImageGenerationRequest struct {
 }
 
 type ImageResponse struct {
-	Created   int64                    `json:"created,omitempty"`
-	Data      []ImageResponseDataInner `json:"data,omitempty"`
-	Usage     Usage                    `json:"usage,omitempty"`
-	TotalTime int64                    `json:"-"`
+	Created   int64               `json:"created,omitempty"`
+	Data      []ImageResponseData `json:"data,omitempty"`
+	Usage     Usage               `json:"usage,omitempty"`
+	TotalTime int64               `json:"-"`
 }
 
-type ImageResponseDataInner struct {
+type ImageResponseData struct {
 	Url           string `json:"url,omitempty"`
 	B64Json       string `json:"b64_json,omitempty"`
 	RevisedPrompt string `json:"revised_prompt,omitempty"`

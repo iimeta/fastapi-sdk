@@ -192,12 +192,22 @@ func (x *Xfyun) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (mo
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvVideoRequest(ctx context.Context, request model.VideoRequest) (*bytes.Buffer, error) {
+func (x *Xfyun) ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (*bytes.Buffer, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvVideoResponse(ctx context.Context, data []byte) (model.VideoResponse, error) {
+func (x *Xfyun) ConvVideoListResponse(ctx context.Context, data []byte) (model.VideoListResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (x *Xfyun) ConvVideoContentResponse(ctx context.Context, data []byte) (model.VideoContentResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (x *Xfyun) ConvVideoJobResponse(ctx context.Context, data []byte) (model.VideoJobResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }

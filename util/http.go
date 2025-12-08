@@ -139,3 +139,7 @@ func HttpGet(ctx context.Context, rawURL string, header map[string]string, data,
 func HttpPost(ctx context.Context, rawURL string, header map[string]string, data, result any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) ([]byte, error) {
 	return HttpDo(ctx, http.MethodPost, rawURL, header, data, result, timeout, proxyURL, requestErrorHandler)
 }
+
+func HttpDelete(ctx context.Context, rawURL string, header map[string]string, data, result any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) ([]byte, error) {
+	return HttpDo(ctx, http.MethodDelete, rawURL, header, data, result, timeout, proxyURL, requestErrorHandler)
+}

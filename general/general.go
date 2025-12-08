@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gogf/gf/v2/frame/g"
 	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/options"
@@ -21,7 +20,7 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *General {
 
 	general := &General{
 		AdapterOptions: options,
-		header: g.MapStrStr{
+		header: map[string]string{
 			"Authorization": "Bearer " + options.Key,
 		},
 	}

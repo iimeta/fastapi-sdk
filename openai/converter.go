@@ -352,46 +352,46 @@ func (o *OpenAI) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (m
 	return response, nil
 }
 
-func (o *OpenAI) ConvVideoRequest(ctx context.Context, request model.VideoRequest) (*bytes.Buffer, error) {
+func (o *OpenAI) ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (*bytes.Buffer, error) {
 
 	data := &bytes.Buffer{}
 	builder := util.NewFormBuilder(data)
 
 	if err := builder.WriteField("model", request.Model); err != nil {
-		logger.Errorf(ctx, "ConvVideoRequest OpenAI model: %s, error: %v", o.Model, err)
+		logger.Errorf(ctx, "ConvVideoCreateRequest OpenAI model: %s, error: %v", o.Model, err)
 		return data, err
 	}
 
 	if request.Prompt != "" {
 		if err := builder.WriteField("prompt", request.Prompt); err != nil {
-			logger.Errorf(ctx, "ConvVideoRequest OpenAI model: %s, error: %v", o.Model, err)
+			logger.Errorf(ctx, "ConvVideoCreateRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
 	}
 
 	if request.InputReference != nil {
 		if err := builder.CreateFormFileHeader("input_reference", request.InputReference); err != nil {
-			logger.Errorf(ctx, "ConvVideoRequest OpenAI model: %s, error: %v", o.Model, err)
+			logger.Errorf(ctx, "ConvVideoCreateRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
 	}
 
 	if request.Seconds != "" {
 		if err := builder.WriteField("seconds", request.Seconds); err != nil {
-			logger.Errorf(ctx, "ConvVideoRequest OpenAI model: %s, error: %v", o.Model, err)
+			logger.Errorf(ctx, "ConvVideoCreateRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
 	}
 
 	if request.Size != "" {
 		if err := builder.WriteField("size", request.Size); err != nil {
-			logger.Errorf(ctx, "ConvVideoRequest OpenAI model: %s, error: %v", o.Model, err)
+			logger.Errorf(ctx, "ConvVideoCreateRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
 	}
 
 	if err := builder.Close(); err != nil {
-		logger.Errorf(ctx, "ConvVideoRequest OpenAI model: %s, error: %v", o.Model, err)
+		logger.Errorf(ctx, "ConvVideoCreateRequest OpenAI model: %s, error: %v", o.Model, err)
 		return data, err
 	}
 
@@ -400,9 +400,26 @@ func (o *OpenAI) ConvVideoRequest(ctx context.Context, request model.VideoReques
 	return data, nil
 }
 
-func (o *OpenAI) ConvVideoResponse(ctx context.Context, data []byte) (model.VideoResponse, error) {
+func (o *OpenAI) ConvVideoListResponse(ctx context.Context, data []byte) (model.VideoListResponse, error) {
 
-	response := model.VideoResponse{}
+	response := model.VideoListResponse{}
+	if err := json.Unmarshal(data, &response); err != nil {
+		logger.Error(ctx, err)
+		return response, err
+	}
+
+	return response, nil
+}
+
+func (o *OpenAI) ConvVideoContentResponse(ctx context.Context, data []byte) (model.VideoContentResponse, error) {
+	return model.VideoContentResponse{
+		Data: data,
+	}, nil
+}
+
+func (o *OpenAI) ConvVideoJobResponse(ctx context.Context, data []byte) (model.VideoJobResponse, error) {
+
+	response := model.VideoJobResponse{}
 	if err := json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err

@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
@@ -22,7 +21,7 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *DeepSeek 
 
 	deepseek := &DeepSeek{
 		AdapterOptions: options,
-		header: g.MapStrStr{
+		header: map[string]string{
 			"Authorization": "Bearer " + options.Key,
 		},
 	}
@@ -42,7 +41,7 @@ func NewAdapterBaidu(ctx context.Context, options *options.AdapterOptions) *Deep
 
 	baidu := &DeepSeek{
 		AdapterOptions: options,
-		header: g.MapStrStr{
+		header: map[string]string{
 			"appid": split[0],
 		},
 	}

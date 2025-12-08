@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
@@ -24,7 +23,7 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *VolcEngin
 
 	volcengine := &VolcEngine{
 		AdapterOptions: options,
-		header: g.MapStrStr{
+		header: map[string]string{
 			"Authorization": "Bearer " + split[1],
 		},
 	}

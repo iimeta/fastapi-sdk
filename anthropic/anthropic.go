@@ -11,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
 	"github.com/gogf/gf/v2/encoding/gjson"
-	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
@@ -31,7 +30,7 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Anthropic
 
 	anthropic := &Anthropic{
 		AdapterOptions: options,
-		header: g.MapStrStr{
+		header: map[string]string{
 			"x-api-key":         options.Key,
 			"anthropic-version": "2023-06-01",
 			"anthropic-beta":    "prompt-caching-2024-07-31",
@@ -51,7 +50,7 @@ func NewGcpAdapter(ctx context.Context, options *options.AdapterOptions) *Anthro
 
 	gcp := &Anthropic{
 		AdapterOptions: options,
-		header: g.MapStrStr{
+		header: map[string]string{
 			"Authorization": "Bearer " + options.Key,
 		},
 		isGcp: true,

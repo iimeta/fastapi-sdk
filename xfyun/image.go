@@ -89,7 +89,7 @@ func (x *Xfyun) ImageGenerations(ctx context.Context, data []byte) (response mod
 
 	response = model.ImageResponse{
 		Created: gtime.Timestamp(),
-		Data: []model.ImageResponseDataInner{{
+		Data: []model.ImageResponseData{{
 			B64Json: imageRes.Payload.Choices.Text[0].Content,
 		}},
 	}

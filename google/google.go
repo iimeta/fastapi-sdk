@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
-	"github.com/gogf/gf/v2/frame/g"
 	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
 	"github.com/iimeta/fastapi-sdk/model"
@@ -39,7 +38,7 @@ func NewGcpAdapter(ctx context.Context, options *options.AdapterOptions) *Google
 
 	gcp := &Google{
 		AdapterOptions: options,
-		header: g.MapStrStr{
+		header: map[string]string{
 			"Authorization": "Bearer " + options.Key,
 		},
 		isGcp: true,
