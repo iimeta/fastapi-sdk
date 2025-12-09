@@ -66,6 +66,9 @@ func (g *Google) ConvChatCompletionsResponse(ctx context.Context, data []byte) (
 			PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
 			CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
 			TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
+			OutputTokensDetails: model.OutputTokensDetails{
+				ReasoningTokens: chatCompletionRes.UsageMetadata.ThoughtsTokenCount,
+			},
 		},
 		ResponseBytes: data,
 	}
@@ -160,6 +163,9 @@ func (g *Google) ConvChatCompletionsStreamResponse(ctx context.Context, data []b
 			PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
 			CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
 			TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
+			OutputTokensDetails: model.OutputTokensDetails{
+				ReasoningTokens: chatCompletionRes.UsageMetadata.ThoughtsTokenCount,
+			},
 		}
 
 		for _, promptTokensDetail := range chatCompletionRes.UsageMetadata.PromptTokensDetails {

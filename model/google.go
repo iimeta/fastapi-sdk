@@ -78,6 +78,7 @@ type UsageMetadata struct {
 		Modality   string `json:"modality"`
 		TokenCount int    `json:"tokenCount"`
 	} `json:"candidatesTokensDetails"`
+	ThoughtsTokenCount int `json:"thoughtsTokenCount"`
 }
 
 type GenerationConfig struct {
