@@ -48,19 +48,24 @@ type VideoContentResponse struct {
 }
 
 type VideoJobResponse struct {
-	Id                 string                `json:"id"`
-	Object             string                `json:"object"`
-	Model              string                `json:"model"`
-	Status             string                `json:"status"`
-	Progress           int                   `json:"progress"`
-	CreatedAt          int                   `json:"created_at"`
-	CompletedAt        int                   `json:"completed_at"`
-	ExpiresAt          int                   `json:"expires_at"`
-	Size               string                `json:"size"`
-	Prompt             string                `json:"prompt"`
-	Seconds            string                `json:"seconds"`
-	Quality            string                `json:"quality"`
-	RemixedFromVideoId string                `json:"remixed_from_video_id"`
-	Error              *OpenAIResponsesError `json:"error"`
-	TotalTime          int64                 `json:"-"`
+	Id                 string      `json:"id"`
+	Object             string      `json:"object"`
+	Model              string      `json:"model"`
+	Status             string      `json:"status"`
+	Progress           int         `json:"progress"`
+	CreatedAt          int         `json:"created_at"`
+	CompletedAt        int         `json:"completed_at"`
+	ExpiresAt          int         `json:"expires_at"`
+	Size               string      `json:"size"`
+	Prompt             string      `json:"prompt"`
+	Seconds            string      `json:"seconds"`
+	Quality            string      `json:"quality"`
+	RemixedFromVideoId string      `json:"remixed_from_video_id"`
+	Error              *VideoError `json:"error"`
+	TotalTime          int64       `json:"-"`
+}
+
+type VideoError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
 }
