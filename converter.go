@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 
-	"github.com/iimeta/fastapi-sdk/ai360"
 	"github.com/iimeta/fastapi-sdk/aliyun"
 	"github.com/iimeta/fastapi-sdk/anthropic"
 	"github.com/iimeta/fastapi-sdk/baidu"
@@ -80,15 +79,13 @@ func NewConverter(ctx context.Context, options *options.AdapterOptions) Converte
 		return &zhipuai.ZhipuAI{AdapterOptions: options}
 	case consts.PROVIDER_VOLC_ENGINE:
 		return &volcengine.VolcEngine{AdapterOptions: options}
-	case consts.PROVIDER_360AI:
-		return &ai360.AI360{AdapterOptions: options}
 	case consts.PROVIDER_AWS_CLAUDE:
 		return &anthropic.Anthropic{AdapterOptions: options}
 	case consts.PROVIDER_GCP_CLAUDE:
 		return &anthropic.Anthropic{AdapterOptions: options}
 	case consts.PROVIDER_GCP_GEMINI:
 		return &google.Google{AdapterOptions: options}
+	default:
+		return &general.General{AdapterOptions: options}
 	}
-
-	return &general.General{AdapterOptions: options}
 }

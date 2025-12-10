@@ -97,7 +97,7 @@ func (o *OpenAI) ResponsesStream(ctx context.Context, data []byte) (responseChan
 
 		for {
 
-			streamResponse, err := stream.Recv()
+			responseBytes, err := stream.Recv()
 			if err != nil {
 
 				if errors.Is(err, io.EOF) {
@@ -118,15 +118,15 @@ func (o *OpenAI) ResponsesStream(ctx context.Context, data []byte) (responseChan
 			}
 
 			responsesRes := model.OpenAIResponsesStreamRes{}
-			if err := json.Unmarshal(streamResponse, &responsesRes); err != nil {
-				logger.Errorf(ctx, "ResponsesStream OpenAI model: %s, streamResponse: %s, error: %v", o.Model, streamResponse, err)
+			if err := json.Unmarshal(responseBytes, &responsesRes); err != nil {
+				logger.Errorf(ctx, "ResponsesStream OpenAI model: %s, response: %s, error: %v", o.Model, responseBytes, err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.OpenAIResponsesStreamRes{
 					ConnTime:  duration - now,
 					Duration:  end - duration,
 					TotalTime: end - now,
-					Err:       errors.New(fmt.Sprintf("streamResponse: %s, error: %v", streamResponse, err)),
+					Err:       errors.New(fmt.Sprintf("response: %s, error: %v", responseBytes, err)),
 				}
 
 				return
@@ -150,7 +150,7 @@ func (o *OpenAI) ResponsesStream(ctx context.Context, data []byte) (responseChan
 			}
 
 			response := &model.OpenAIResponsesStreamRes{
-				ResponseBytes: streamResponse,
+				ResponseBytes: responseBytes,
 				ConnTime:      duration - now,
 			}
 
@@ -230,7 +230,7 @@ func (o *OpenAI) ResponsesStreamToNonStream(ctx context.Context, data []byte) (r
 				ConnTime:  duration - now,
 				Duration:  end - duration,
 				TotalTime: end - now,
-				Err:       errors.New(fmt.Sprintf("streamResponse: %s, error: %v", responses.ResponseBytes, err)),
+				Err:       errors.New(fmt.Sprintf("response: %s, error: %v", responses.ResponseBytes, err)),
 			}
 
 			return

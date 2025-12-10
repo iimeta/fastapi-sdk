@@ -15,26 +15,34 @@ import (
 	"github.com/iimeta/fastapi-sdk/util"
 )
 
-func (g *Google) ChatCompletionOfficial(ctx context.Context, data []byte) (res model.GoogleChatCompletionRes, err error) {
+func (g *Google) ChatCompletionsOfficial(ctx context.Context, data []byte) (response any, err error) {
 
-	logger.Infof(ctx, "ChatCompletionOfficial Google model: %s start", g.Model)
+	logger.Infof(ctx, "ChatCompletionsOfficial Google model: %s start", g.Model)
 
-	now := gtime.TimestampMilli()
+	var (
+		now = gtime.TimestampMilli()
+		res = &model.GoogleChatCompletionRes{}
+	)
+
 	defer func() {
 		res.TotalTime = gtime.TimestampMilli() - now
-		logger.Infof(ctx, "ChatCompletionOfficial Google model: %s totalTime: %d ms", g.Model, res.TotalTime)
+		logger.Infof(ctx, "ChatCompletionsOfficial Google model: %s totalTime: %d ms", g.Model, res.TotalTime)
 	}()
 
+	if g.Path == "" {
+		g.Path = "/models/" + g.Model
+	}
+
 	if res.ResponseBytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", g.BaseUrl+g.Path, g.Key), g.header, data, &res, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
-		logger.Errorf(ctx, "ChatCompletionOfficial Google model: %s, error: %v", g.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsOfficial Google model: %s, error: %v", g.Model, err)
 		return res, err
 	}
 
 	if res.Error.Code != 0 || res.Candidates[0].FinishReason != "STOP" {
-		logger.Errorf(ctx, "ChatCompletionOfficial Google model: %s, chatCompletionRes: %s", g.Model, gjson.MustEncodeString(res))
+		logger.Errorf(ctx, "ChatCompletionsOfficial Google model: %s, chatCompletionRes: %s", g.Model, gjson.MustEncodeString(res))
 
-		err = g.apiErrorHandler(&res)
-		logger.Errorf(ctx, "ChatCompletionOfficial Google model: %s, error: %v", g.Model, err)
+		err = g.apiErrorHandler(res)
+		logger.Errorf(ctx, "ChatCompletionsOfficial Google model: %s, error: %v", g.Model, err)
 
 		return res, err
 	}
@@ -42,35 +50,39 @@ func (g *Google) ChatCompletionOfficial(ctx context.Context, data []byte) (res m
 	return res, nil
 }
 
-func (g *Google) ChatCompletionStreamOfficial(ctx context.Context, data []byte) (responseChan chan *model.GoogleChatCompletionRes, err error) {
+func (g *Google) ChatCompletionsStreamOfficial(ctx context.Context, data []byte) (responseChan chan any, err error) {
 
-	logger.Infof(ctx, "ChatCompletionStreamOfficial Google model: %s start", g.Model)
+	logger.Infof(ctx, "ChatCompletionsStreamOfficial Google model: %s start", g.Model)
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		if err != nil {
-			logger.Infof(ctx, "ChatCompletionStreamOfficial Google model: %s totalTime: %d ms", g.Model, gtime.TimestampMilli()-now)
+			logger.Infof(ctx, "ChatCompletionsStreamOfficial Google model: %s totalTime: %d ms", g.Model, gtime.TimestampMilli()-now)
 		}
 	}()
 
+	if g.Path == "" {
+		g.Path = "/models/" + g.Model
+	}
+
 	stream, err := util.SSEClient(ctx, fmt.Sprintf("%s:streamGenerateContent?alt=sse&key=%s", g.BaseUrl+g.Path, g.Key), nil, data, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
-		logger.Errorf(ctx, "ChatCompletionStreamOfficial Google model: %s, error: %v", g.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStreamOfficial Google model: %s, error: %v", g.Model, err)
 		return responseChan, err
 	}
 
 	duration := gtime.TimestampMilli()
 
-	responseChan = make(chan *model.GoogleChatCompletionRes)
+	responseChan = make(chan any)
 
 	if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
 
 		defer func() {
 			end := gtime.TimestampMilli()
-			logger.Infof(ctx, "ChatCompletionStreamOfficial Google model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", g.Model, duration-now, end-duration, end-now)
+			logger.Infof(ctx, "ChatCompletionsStreamOfficial Google model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", g.Model, duration-now, end-duration, end-now)
 
 			if err := stream.Close(); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStreamOfficial Google model: %s, stream.Close error: %v", g.Model, err)
+				logger.Errorf(ctx, "ChatCompletionsStreamOfficial Google model: %s, stream.Close error: %v", g.Model, err)
 			}
 		}()
 
@@ -80,13 +92,13 @@ func (g *Google) ChatCompletionStreamOfficial(ctx context.Context, data []byte) 
 
 		for {
 
-			streamResponse, err := stream.Recv()
+			responseBytes, err := stream.Recv()
 			if err != nil {
 
 				if errors.Is(err, io.EOF) {
-					logger.Infof(ctx, "ChatCompletionStreamOfficial Google model: %s finished", g.Model)
+					logger.Infof(ctx, "ChatCompletionsStreamOfficial Google model: %s finished", g.Model)
 				} else {
-					logger.Errorf(ctx, "ChatCompletionStreamOfficial Google model: %s, error: %v", g.Model, err)
+					logger.Errorf(ctx, "ChatCompletionsStreamOfficial Google model: %s, error: %v", g.Model, err)
 				}
 
 				end := gtime.TimestampMilli()
@@ -102,25 +114,25 @@ func (g *Google) ChatCompletionStreamOfficial(ctx context.Context, data []byte) 
 			}
 
 			chatCompletionRes := model.GoogleChatCompletionRes{}
-			if err := json.Unmarshal(streamResponse, &chatCompletionRes); err != nil {
-				logger.Errorf(ctx, "ChatCompletionStreamOfficial Google model: %s, streamResponse: %s, error: %v", g.Model, streamResponse, err)
+			if err := json.Unmarshal(responseBytes, &chatCompletionRes); err != nil {
+				logger.Errorf(ctx, "ChatCompletionsStreamOfficial Google model: %s, response: %s, error: %v", g.Model, responseBytes, err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.GoogleChatCompletionRes{
 					ConnTime:  duration - now,
 					Duration:  end - duration,
 					TotalTime: end - now,
-					Err:       errors.New(fmt.Sprintf("streamResponse: %s, error: %v", streamResponse, err)),
+					Err:       errors.New(fmt.Sprintf("response: %s, error: %v", responseBytes, err)),
 				}
 
 				return
 			}
 
 			if chatCompletionRes.Error.Code != 0 {
-				logger.Errorf(ctx, "ChatCompletionStreamOfficial Google model: %s, chatCompletionRes: %s", g.Model, gjson.MustEncodeString(chatCompletionRes))
+				logger.Errorf(ctx, "ChatCompletionsStreamOfficial Google model: %s, chatCompletionRes: %s", g.Model, gjson.MustEncodeString(chatCompletionRes))
 
 				err = g.apiErrorHandler(&chatCompletionRes)
-				logger.Errorf(ctx, "ChatCompletionStreamOfficial Google model: %s, error: %v", g.Model, err)
+				logger.Errorf(ctx, "ChatCompletionsStreamOfficial Google model: %s, error: %v", g.Model, err)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.GoogleChatCompletionRes{
@@ -141,7 +153,7 @@ func (g *Google) ChatCompletionStreamOfficial(ctx context.Context, data []byte) 
 				Candidates:    chatCompletionRes.Candidates,
 				UsageMetadata: chatCompletionRes.UsageMetadata,
 				Error:         chatCompletionRes.Error,
-				ResponseBytes: streamResponse,
+				ResponseBytes: responseBytes,
 				ConnTime:      duration - now,
 			}
 
@@ -152,7 +164,7 @@ func (g *Google) ChatCompletionStreamOfficial(ctx context.Context, data []byte) 
 			responseChan <- response
 		}
 	}, nil); err != nil {
-		logger.Errorf(ctx, "ChatCompletionStreamOfficial Google model: %s, error: %v", g.Model, err)
+		logger.Errorf(ctx, "ChatCompletionsStreamOfficial Google model: %s, error: %v", g.Model, err)
 		return responseChan, err
 	}
 

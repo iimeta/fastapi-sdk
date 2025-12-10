@@ -3,7 +3,6 @@ package sdk
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-sdk/ai360"
 	"github.com/iimeta/fastapi-sdk/aliyun"
 	"github.com/iimeta/fastapi-sdk/anthropic"
 	"github.com/iimeta/fastapi-sdk/baidu"
@@ -72,15 +71,13 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) AdapterGro
 		return zhipuai.NewAdapter(ctx, options)
 	case consts.PROVIDER_VOLC_ENGINE:
 		return volcengine.NewAdapter(ctx, options)
-	case consts.PROVIDER_360AI:
-		return ai360.NewAdapter(ctx, options)
 	case consts.PROVIDER_AWS_CLAUDE:
 		return anthropic.NewAwsAdapter(ctx, options)
 	case consts.PROVIDER_GCP_CLAUDE:
 		return anthropic.NewGcpAdapter(ctx, options)
 	case consts.PROVIDER_GCP_GEMINI:
 		return google.NewGcpAdapter(ctx, options)
+	default:
+		return general.NewAdapter(ctx, options)
 	}
-
-	return general.NewAdapter(ctx, options)
 }
