@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/net/gtrace"
 	"github.com/iimeta/fastapi-sdk/errors"
 	"github.com/iimeta/fastapi-sdk/logger"
 )
@@ -64,6 +65,7 @@ func SSEClient(ctx context.Context, rawURL string, header map[string]string, dat
 	request.Header.Set("Cache-Control", "no-cache")
 	request.Header.Set("Connection", "keep-alive")
 	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Trace-Id", gtrace.GetTraceID(ctx))
 
 	if header != nil {
 		for k, v := range header {
