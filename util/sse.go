@@ -37,7 +37,7 @@ type StreamReader struct {
 
 func SSEClient(ctx context.Context, rawURL string, header map[string]string, data any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) (stream *StreamReader, err error) {
 
-	logger.Debugf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s", rawURL, header, gjson.MustEncodeString(data), proxyURL)
+	logger.Debugf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s", rawURL, header, mustEncodeString(data), proxyURL)
 
 	client := &http.Client{
 		Timeout: timeout,
@@ -57,7 +57,7 @@ func SSEClient(ctx context.Context, rawURL string, header map[string]string, dat
 
 	request, err := http.NewRequestWithContext(ctx, "POST", rawURL, bodyReader)
 	if err != nil {
-		logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
+		logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, mustEncodeString(data), proxyURL, err)
 		return nil, err
 	}
 
@@ -75,7 +75,7 @@ func SSEClient(ctx context.Context, rawURL string, header map[string]string, dat
 
 	if proxyURL != "" {
 		if proxyUrl, err := url.Parse(proxyURL); err != nil {
-			logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
+			logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, mustEncodeString(data), proxyURL, err)
 			return nil, err
 		} else {
 			client.Transport = &http.Transport{
@@ -86,7 +86,7 @@ func SSEClient(ctx context.Context, rawURL string, header map[string]string, dat
 
 	response, err := client.Do(request)
 	if err != nil {
-		logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
+		logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, mustEncodeString(data), proxyURL, err)
 		if response != nil {
 			if err := response.Body.Close(); err != nil {
 				logger.Error(ctx, err)
@@ -109,7 +109,7 @@ func SSEClient(ctx context.Context, rawURL string, header map[string]string, dat
 
 		bytes, err := io.ReadAll(response.Body)
 		if err != nil {
-			logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
+			logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, mustEncodeString(data), proxyURL, err)
 			return nil, err
 		}
 
@@ -179,4 +179,18 @@ func (stream *StreamReader) Close() error {
 
 func isFailureStatusCode(resp *http.Response) bool {
 	return resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusBadRequest
+}
+
+func mustEncodeString(data any) string {
+
+	if data != nil {
+		if v, ok := data.([]byte); ok {
+			return string(v)
+		} else if v, ok := data.(string); ok {
+			return v
+		}
+		return gjson.MustEncodeString(data)
+	}
+
+	return ""
 }

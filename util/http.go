@@ -18,7 +18,7 @@ import (
 
 func HttpDo(ctx context.Context, method, rawURL string, header map[string]string, data, result any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) ([]byte, error) {
 
-	logger.Debugf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s", method, rawURL, header, gjson.MustEncodeString(data), proxyURL)
+	logger.Debugf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s", method, rawURL, header, mustEncodeString(data), proxyURL)
 
 	client := &http.Client{
 		Timeout: timeout,
@@ -26,7 +26,7 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 
 	if proxyURL != "" {
 		if proxyUrl, err := url.Parse(proxyURL); err != nil {
-			logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", method, rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
+			logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", method, rawURL, header, mustEncodeString(data), proxyURL, err)
 			return nil, err
 		} else {
 			client.Transport = &http.Transport{
@@ -49,7 +49,7 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 
 	request, err := http.NewRequestWithContext(ctx, method, rawURL, bodyReader)
 	if err != nil {
-		logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", method, rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
+		logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", method, rawURL, header, mustEncodeString(data), proxyURL, err)
 		return nil, err
 	}
 
@@ -73,7 +73,7 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 
 			bytes, _ := io.ReadAll(response.Body)
 
-			logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, statusCode: %d, header: %+v, response: %s, error: %v", method, rawURL, header, gjson.MustEncodeString(data), proxyURL, response.StatusCode, response.Header, bytes, err)
+			logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, statusCode: %d, header: %+v, response: %s, error: %v", method, rawURL, header, mustEncodeString(data), proxyURL, response.StatusCode, response.Header, bytes, err)
 
 			if err := response.Body.Close(); err != nil {
 				logger.Error(ctx, err)
@@ -82,7 +82,7 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 			return nil, err
 		}
 
-		logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", method, rawURL, header, gjson.MustEncodeString(data), proxyURL, err)
+		logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", method, rawURL, header, mustEncodeString(data), proxyURL, err)
 
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 
 		bytes, err := io.ReadAll(response.Body)
 		if err != nil {
-			logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, statusCode: %d, header: %+v, error: %v", method, rawURL, header, gjson.MustEncodeString(data), proxyURL, response.StatusCode, response.Header, err)
+			logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, statusCode: %d, header: %+v, error: %v", method, rawURL, header, mustEncodeString(data), proxyURL, response.StatusCode, response.Header, err)
 			return nil, err
 		}
 
@@ -116,15 +116,15 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 
 	bytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, statusCode: %d, header: %+v, error: %v", method, rawURL, header, gjson.MustEncodeString(data), proxyURL, response.StatusCode, response.Header, err)
+		logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, statusCode: %d, header: %+v, error: %v", method, rawURL, header, mustEncodeString(data), proxyURL, response.StatusCode, response.Header, err)
 		return nil, err
 	}
 
-	logger.Debugf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, statusCode: %d, header: %+v, response: %s", method, rawURL, header, gjson.MustEncodeString(data), proxyURL, response.StatusCode, response.Header, bytes)
+	logger.Debugf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, statusCode: %d, header: %+v, response: %s", method, rawURL, header, mustEncodeString(data), proxyURL, response.StatusCode, response.Header, bytes)
 
 	if bytes != nil && len(bytes) > 0 && result != nil {
 		if err = json.Unmarshal(bytes, result); err != nil {
-			logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, statusCode: %d, header: %+v, response: %s, error: %v", method, rawURL, header, gjson.MustEncodeString(data), proxyURL, response.StatusCode, response.Header, bytes, err)
+			logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, statusCode: %d, header: %+v, response: %s, error: %v", method, rawURL, header, mustEncodeString(data), proxyURL, response.StatusCode, response.Header, bytes, err)
 			return bytes, errors.New(fmt.Sprintf("response: %s, error: %v", bytes, err))
 		}
 	}
