@@ -129,7 +129,7 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 
 		if v, ok := data.([]byte); ok {
 			if err = json.Unmarshal(v, &chatCompletionReq); err != nil {
-				logger.Errorf(ctx, "ChatCompletionsStream Anthropic model: %s, request: %s, json.Unmarshal error: %v", a.Model, data, err)
+				logger.Errorf(ctx, "ChatCompletionsStream Anthropic AWS model: %s, request: %s, json.Unmarshal error: %v", a.Model, data, err)
 				return responseChan, err
 			}
 		}
@@ -166,11 +166,11 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 
 			defer func() {
 				if err := stream.Close(); err != nil {
-					logger.Errorf(ctx, "ChatCompletionsStream Anthropic model: %s, stream.Close error: %v", a.Model, err)
+					logger.Errorf(ctx, "ChatCompletionsStream Anthropic AWS model: %s, stream.Close error: %v", a.Model, err)
 				}
 
 				end := gtime.TimestampMilli()
-				logger.Infof(ctx, "ChatCompletionsStream Anthropic model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", a.Model, duration-now, end-duration, end-now)
+				logger.Infof(ctx, "ChatCompletionsStream Anthropic AWS model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", a.Model, duration-now, end-duration, end-now)
 			}()
 
 			var id string
@@ -181,7 +181,7 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 				event, ok := <-stream.Events()
 				if !ok {
 
-					logger.Errorf(ctx, "ChatCompletionsStream Anthropic model: %s, error: %v", a.Model, context.Canceled)
+					logger.Errorf(ctx, "ChatCompletionsStream Anthropic AWS model: %s, error: %v", a.Model, context.Canceled)
 
 					end := gtime.TimestampMilli()
 					responseChan <- &model.ChatCompletionResponse{
@@ -227,7 +227,7 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 
 				response, err := a.ConvChatCompletionsStreamResponse(ctx, bytes)
 				if err != nil {
-					logger.Errorf(ctx, "ChatCompletionsStream Anthropic ConvChatCompletionsStreamResponse error: %v", err)
+					logger.Errorf(ctx, "ChatCompletionsStream Anthropic AWS ConvChatCompletionsStreamResponse error: %v", err)
 
 					end := gtime.TimestampMilli()
 					responseChan <- &model.ChatCompletionResponse{
@@ -260,7 +260,7 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 				}
 
 				if len(response.Choices) > 0 && response.Choices[0].FinishReason != "" {
-					logger.Infof(ctx, "ChatCompletionsStream Anthropic model: %s, finishReason: %s finished", a.Model, response.Choices[0].FinishReason)
+					logger.Infof(ctx, "ChatCompletionsStream Anthropic AWS model: %s, finishReason: %s finished", a.Model, response.Choices[0].FinishReason)
 
 					end := gtime.TimestampMilli()
 
@@ -288,7 +288,7 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 				responseChan <- &response
 			}
 		}, nil); err != nil {
-			logger.Errorf(ctx, "ChatCompletionsStream Anthropic model: %s, error: %v", a.Model, err)
+			logger.Errorf(ctx, "ChatCompletionsStream Anthropic AWS model: %s, error: %v", a.Model, err)
 			return responseChan, err
 		}
 

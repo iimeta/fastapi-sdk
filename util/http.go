@@ -16,6 +16,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/logger"
 )
 
+// d
 func HttpDo(ctx context.Context, method, rawURL string, header map[string]string, data, result any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) ([]byte, error) {
 
 	logger.Debugf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s", method, rawURL, header, mustEncodeString(data), proxyURL)

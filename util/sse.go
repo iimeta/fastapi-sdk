@@ -35,6 +35,7 @@ type StreamReader struct {
 	isFinished         bool
 }
 
+// a
 func SSEClient(ctx context.Context, rawURL string, header map[string]string, data any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) (stream *StreamReader, err error) {
 
 	logger.Debugf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s", rawURL, header, mustEncodeString(data), proxyURL)
