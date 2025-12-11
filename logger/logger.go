@@ -9,7 +9,6 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 )
 
-// d
 func Debug(ctx context.Context, v ...any) {
 	_ = grpool.AddWithRecover(gctx.NeverDone(ctx), func(ctx context.Context) {
 		var compactV []any
