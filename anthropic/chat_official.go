@@ -75,6 +75,11 @@ func (a *Anthropic) ChatCompletionsOfficial(ctx context.Context, data []byte) (r
 		res.ResponseBytes = invokeModelOutput.Body
 
 	} else {
+
+		if a.Path == "" {
+			a.Path = "/messages"
+		}
+
 		if res.ResponseBytes, err = util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, request, &res, a.Timeout, a.ProxyUrl, a.requestErrorHandler); err != nil {
 			logger.Errorf(ctx, "ChatCompletionsOfficial Anthropic model: %s, error: %v", a.Model, err)
 			return res, err
@@ -287,6 +292,10 @@ func (a *Anthropic) ChatCompletionsStreamOfficial(ctx context.Context, data []by
 		}
 
 	} else {
+
+		if a.Path == "" {
+			a.Path = "/messages"
+		}
 
 		stream, err := util.SSEClient(ctx, a.BaseUrl+a.Path, a.header, gjson.MustEncode(request), a.Timeout, a.ProxyUrl, a.requestErrorHandler)
 		if err != nil {

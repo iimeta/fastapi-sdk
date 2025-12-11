@@ -89,6 +89,7 @@ type Usage struct {
 	InputTokensDetails       InputTokensDetails      `json:"input_tokens_details,omitempty"`
 	OutputTokensDetails      OutputTokensDetails     `json:"output_tokens_details,omitempty"`
 }
+
 type PromptTokensDetails struct {
 	AudioTokens     int `json:"audio_tokens,omitempty"`
 	CachedTokens    int `json:"cached_tokens,omitempty"`
@@ -162,14 +163,17 @@ type Hate struct {
 	Filtered bool   `json:"filtered"`
 	Severity string `json:"severity,omitempty"`
 }
+
 type SelfHarm struct {
 	Filtered bool   `json:"filtered"`
 	Severity string `json:"severity,omitempty"`
 }
+
 type Sexual struct {
 	Filtered bool   `json:"filtered"`
 	Severity string `json:"severity,omitempty"`
 }
+
 type Violence struct {
 	Filtered bool   `json:"filtered"`
 	Severity string `json:"severity,omitempty"`
