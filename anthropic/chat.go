@@ -179,20 +179,16 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 			for {
 
 				event, ok := <-stream.Events()
-				if !ok { // todo
+				if !ok {
 
-					if errors.Is(err, io.EOF) {
-						logger.Infof(ctx, "ChatCompletionsStream Anthropic AWS model: %s finished", a.Model)
-					} else {
-						logger.Errorf(ctx, "ChatCompletionsStream Anthropic AWS model: %s, error: %v", a.Model, err)
-					}
+					logger.Errorf(ctx, "ChatCompletionsStream Anthropic AWS model: %s, error: %v", a.Model, context.Canceled)
 
 					end := gtime.TimestampMilli()
 					responseChan <- &model.ChatCompletionResponse{
 						ConnTime:  duration - now,
 						Duration:  end - duration,
 						TotalTime: end - now,
-						Error:     err,
+						Error:     context.Canceled,
 					}
 
 					return
