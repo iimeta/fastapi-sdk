@@ -19,13 +19,16 @@ type VideoRemixRequest struct {
 
 type VideoListRequest struct {
 	After string `json:"after"`
-	Limit int    `json:"limit"`
+	Limit int64  `json:"limit"`
 	Order string `json:"order"`
 }
 
 type VideoListResponse struct {
-	Data      []VideoJobResponse `json:"data"`
 	Object    string             `json:"object"`
+	Data      []VideoJobResponse `json:"data"`
+	FirstId   *string            `json:"first_id"`
+	LastId    *string            `json:"last_id"`
+	HasMore   bool               `json:"has_more"`
 	TotalTime int64              `json:"-"`
 }
 
@@ -53,14 +56,15 @@ type VideoJobResponse struct {
 	Model              string      `json:"model"`
 	Status             string      `json:"status"`
 	Progress           int         `json:"progress"`
-	CreatedAt          int         `json:"created_at"`
-	CompletedAt        int         `json:"completed_at"`
-	ExpiresAt          int         `json:"expires_at"`
+	CreatedAt          int64       `json:"created_at"`
+	CompletedAt        *int64      `json:"completed_at"`
+	ExpiresAt          *int64      `json:"expires_at"`
 	Size               string      `json:"size"`
 	Prompt             string      `json:"prompt"`
 	Seconds            string      `json:"seconds"`
-	Quality            string      `json:"quality"`
-	RemixedFromVideoId string      `json:"remixed_from_video_id"`
+	RemixedFromVideoId *string     `json:"remixed_from_video_id"`
+	VideoUrl           string      `json:"video_url,omitempty"` // 视频地址
+	Deleted            bool        `json:"deleted,omitempty"`
 	Error              *VideoError `json:"error"`
 	TotalTime          int64       `json:"-"`
 }
