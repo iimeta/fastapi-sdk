@@ -50,6 +50,15 @@ type Converter interface {
 	ConvVideoListResponse(ctx context.Context, data []byte) (model.VideoListResponse, error)
 	ConvVideoContentResponse(ctx context.Context, data []byte) (model.VideoContentResponse, error)
 	ConvVideoJobResponse(ctx context.Context, data []byte) (model.VideoJobResponse, error)
+
+	ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (*bytes.Buffer, error)
+	ConvFileListResponse(ctx context.Context, data []byte) (model.FileListResponse, error)
+	ConvFileContentResponse(ctx context.Context, data []byte) (model.FileContentResponse, error)
+	ConvFileResponse(ctx context.Context, data []byte) (model.FileResponse, error)
+
+	ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (*bytes.Buffer, error)
+	ConvBatchListResponse(ctx context.Context, data []byte) (model.BatchListResponse, error)
+	ConvBatchResponse(ctx context.Context, data []byte) (model.BatchResponse, error)
 }
 
 func NewConverter(ctx context.Context, options *options.AdapterOptions) Converter {

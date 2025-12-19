@@ -211,3 +211,38 @@ func (x *Xfyun) ConvVideoJobResponse(ctx context.Context, data []byte) (model.Vi
 	//TODO implement me
 	panic("implement me")
 }
+
+func (x *Xfyun) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (x *Xfyun) ConvFileListResponse(ctx context.Context, data []byte) (model.FileListResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (x *Xfyun) ConvFileContentResponse(ctx context.Context, data []byte) (model.FileContentResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (x *Xfyun) ConvFileResponse(ctx context.Context, data []byte) (model.FileResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (x *Xfyun) ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (x *Xfyun) ConvBatchListResponse(ctx context.Context, data []byte) (model.BatchListResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (x *Xfyun) ConvBatchResponse(ctx context.Context, data []byte) (model.BatchResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

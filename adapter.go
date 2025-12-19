@@ -42,6 +42,17 @@ type Adapter interface {
 	VideoRetrieve(ctx context.Context, request model.VideoRetrieveRequest) (response model.VideoJobResponse, err error)
 	VideoDelete(ctx context.Context, request model.VideoDeleteRequest) (response model.VideoJobResponse, err error)
 	VideoContent(ctx context.Context, request model.VideoContentRequest) (response model.VideoContentResponse, err error)
+
+	FileUpload(ctx context.Context, request model.FileUploadRequest) (response model.FileResponse, err error)
+	FileList(ctx context.Context, request model.FileListRequest) (response model.FileListResponse, err error)
+	FileRetrieve(ctx context.Context, request model.FileRetrieveRequest) (response model.FileResponse, err error)
+	FileDelete(ctx context.Context, request model.FileDeleteRequest) (response model.FileResponse, err error)
+	FileContent(ctx context.Context, request model.FileContentRequest) (response model.FileContentResponse, err error)
+
+	BatchCreate(ctx context.Context, request model.BatchCreateRequest) (response model.BatchResponse, err error)
+	BatchList(ctx context.Context, request model.BatchListRequest) (response model.BatchListResponse, err error)
+	BatchRetrieve(ctx context.Context, request model.BatchRetrieveRequest) (response model.BatchResponse, err error)
+	BatchCancel(ctx context.Context, request model.BatchCancelRequest) (response model.BatchResponse, err error)
 }
 
 func NewAdapter(ctx context.Context, options *options.AdapterOptions) AdapterGroup {

@@ -152,3 +152,38 @@ func (d *DeepSeek) ConvVideoJobResponse(ctx context.Context, data []byte) (model
 	//TODO implement me
 	panic("implement me")
 }
+
+func (d *DeepSeek) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (d *DeepSeek) ConvFileListResponse(ctx context.Context, data []byte) (model.FileListResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (d *DeepSeek) ConvFileContentResponse(ctx context.Context, data []byte) (model.FileContentResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (d *DeepSeek) ConvFileResponse(ctx context.Context, data []byte) (model.FileResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (d *DeepSeek) ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (d *DeepSeek) ConvBatchListResponse(ctx context.Context, data []byte) (model.BatchListResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (d *DeepSeek) ConvBatchResponse(ctx context.Context, data []byte) (model.BatchResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

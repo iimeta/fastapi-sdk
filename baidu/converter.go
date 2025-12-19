@@ -196,3 +196,38 @@ func (b *Baidu) ConvVideoJobResponse(ctx context.Context, data []byte) (model.Vi
 	//TODO implement me
 	panic("implement me")
 }
+
+func (b *Baidu) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvFileListResponse(ctx context.Context, data []byte) (model.FileListResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvFileContentResponse(ctx context.Context, data []byte) (model.FileContentResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvFileResponse(ctx context.Context, data []byte) (model.FileResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvBatchListResponse(ctx context.Context, data []byte) (model.BatchListResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvBatchResponse(ctx context.Context, data []byte) (model.BatchResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

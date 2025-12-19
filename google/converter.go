@@ -268,3 +268,38 @@ func (g *Google) ConvVideoJobResponse(ctx context.Context, data []byte) (model.V
 	//TODO implement me
 	panic("implement me")
 }
+
+func (g *Google) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *Google) ConvFileListResponse(ctx context.Context, data []byte) (model.FileListResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *Google) ConvFileContentResponse(ctx context.Context, data []byte) (model.FileContentResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *Google) ConvFileResponse(ctx context.Context, data []byte) (model.FileResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *Google) ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *Google) ConvBatchListResponse(ctx context.Context, data []byte) (model.BatchListResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *Google) ConvBatchResponse(ctx context.Context, data []byte) (model.BatchResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}

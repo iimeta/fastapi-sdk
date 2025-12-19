@@ -181,3 +181,38 @@ func (z *ZhipuAI) ConvVideoJobResponse(ctx context.Context, data []byte) (model.
 	//TODO implement me
 	panic("implement me")
 }
+
+func (z *ZhipuAI) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (z *ZhipuAI) ConvFileListResponse(ctx context.Context, data []byte) (model.FileListResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (z *ZhipuAI) ConvFileContentResponse(ctx context.Context, data []byte) (model.FileContentResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (z *ZhipuAI) ConvFileResponse(ctx context.Context, data []byte) (model.FileResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (z *ZhipuAI) ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (*bytes.Buffer, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (z *ZhipuAI) ConvBatchListResponse(ctx context.Context, data []byte) (model.BatchListResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (z *ZhipuAI) ConvBatchResponse(ctx context.Context, data []byte) (model.BatchResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
