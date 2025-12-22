@@ -13,7 +13,7 @@ type FileUploadRequest struct {
 
 type ExpiresAfter struct {
 	Anchor  string `json:"anchor"`
-	Seconds int    `json:"seconds"`
+	Seconds string `json:"seconds"`
 }
 
 type FileListRequest struct {

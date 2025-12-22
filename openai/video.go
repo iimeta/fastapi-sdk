@@ -187,7 +187,7 @@ func (o *OpenAI) VideoContent(ctx context.Context, request model.VideoContentReq
 	}
 
 	if response, err = o.ConvVideoContentResponse(ctx, bytes); err != nil {
-		logger.Errorf(ctx, "VideoContent OpenAI ConvVideoJobResponse error: %v", err)
+		logger.Errorf(ctx, "VideoContent OpenAI ConvVideoContentResponse error: %v", err)
 		return response, err
 	}
 

@@ -429,23 +429,79 @@ func (o *OpenAI) ConvVideoJobResponse(ctx context.Context, data []byte) (model.V
 }
 
 func (o *OpenAI) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (*bytes.Buffer, error) {
-	//TODO implement me
-	panic("implement me")
+
+	data := &bytes.Buffer{}
+	builder := util.NewFormBuilder(data)
+
+	if err := builder.WriteField("model", request.Model); err != nil {
+		logger.Errorf(ctx, "ConvFileUploadRequest OpenAI model: %s, error: %v", o.Model, err)
+		return data, err
+	}
+
+	if request.File != nil {
+		if err := builder.CreateFormFileHeader("file", request.File); err != nil {
+			logger.Errorf(ctx, "ConvFileUploadRequest OpenAI model: %s, error: %v", o.Model, err)
+			return data, err
+		}
+	}
+
+	if request.Purpose != "" {
+		if err := builder.WriteField("purpose", request.Purpose); err != nil {
+			logger.Errorf(ctx, "ConvFileUploadRequest OpenAI model: %s, error: %v", o.Model, err)
+			return data, err
+		}
+	}
+
+	if request.ExpiresAfter.Anchor != "" {
+		if err := builder.WriteField("expires_after[anchor]", request.ExpiresAfter.Anchor); err != nil {
+			logger.Errorf(ctx, "ConvFileUploadRequest OpenAI model: %s, error: %v", o.Model, err)
+			return data, err
+		}
+	}
+
+	if request.ExpiresAfter.Seconds != "" {
+		if err := builder.WriteField("expires_after[seconds]", request.ExpiresAfter.Seconds); err != nil {
+			logger.Errorf(ctx, "ConvFileUploadRequest OpenAI model: %s, error: %v", o.Model, err)
+			return data, err
+		}
+	}
+
+	if err := builder.Close(); err != nil {
+		logger.Errorf(ctx, "ConvFileUploadRequest OpenAI model: %s, error: %v", o.Model, err)
+		return data, err
+	}
+
+	o.header["Content-Type"] = builder.FormDataContentType()
+
+	return data, nil
 }
 
 func (o *OpenAI) ConvFileListResponse(ctx context.Context, data []byte) (model.FileListResponse, error) {
-	//TODO implement me
-	panic("implement me")
+
+	response := model.FileListResponse{}
+	if err := json.Unmarshal(data, &response); err != nil {
+		logger.Error(ctx, err)
+		return response, err
+	}
+
+	return response, nil
 }
 
 func (o *OpenAI) ConvFileContentResponse(ctx context.Context, data []byte) (model.FileContentResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	return model.FileContentResponse{
+		Data: data,
+	}, nil
 }
 
 func (o *OpenAI) ConvFileResponse(ctx context.Context, data []byte) (model.FileResponse, error) {
-	//TODO implement me
-	panic("implement me")
+
+	response := model.FileResponse{}
+	if err := json.Unmarshal(data, &response); err != nil {
+		logger.Error(ctx, err)
+		return response, err
+	}
+
+	return response, nil
 }
 
 func (o *OpenAI) ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (*bytes.Buffer, error) {
@@ -454,11 +510,23 @@ func (o *OpenAI) ConvBatchCreateRequest(ctx context.Context, request model.Batch
 }
 
 func (o *OpenAI) ConvBatchListResponse(ctx context.Context, data []byte) (model.BatchListResponse, error) {
-	//TODO implement me
-	panic("implement me")
+
+	response := model.BatchListResponse{}
+	if err := json.Unmarshal(data, &response); err != nil {
+		logger.Error(ctx, err)
+		return response, err
+	}
+
+	return response, nil
 }
 
 func (o *OpenAI) ConvBatchResponse(ctx context.Context, data []byte) (model.BatchResponse, error) {
-	//TODO implement me
-	panic("implement me")
+
+	response := model.BatchResponse{}
+	if err := json.Unmarshal(data, &response); err != nil {
+		logger.Error(ctx, err)
+		return response, err
+	}
+
+	return response, nil
 }
