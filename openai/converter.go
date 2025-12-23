@@ -433,11 +433,6 @@ func (o *OpenAI) ConvFileUploadRequest(ctx context.Context, request model.FileUp
 	data := &bytes.Buffer{}
 	builder := util.NewFormBuilder(data)
 
-	if err := builder.WriteField("model", request.Model); err != nil {
-		logger.Errorf(ctx, "ConvFileUploadRequest OpenAI model: %s, error: %v", o.Model, err)
-		return data, err
-	}
-
 	if request.File != nil {
 		if err := builder.CreateFormFileHeader("file", request.File); err != nil {
 			logger.Errorf(ctx, "ConvFileUploadRequest OpenAI model: %s, error: %v", o.Model, err)

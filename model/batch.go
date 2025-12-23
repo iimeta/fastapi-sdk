@@ -1,6 +1,7 @@
 package model
 
 type BatchCreateRequest struct {
+	Model              string             `json:"model,omitempty"`
 	InputFileId        string             `json:"input_file_id"`
 	Endpoint           string             `json:"endpoint"`
 	CompletionWindow   string             `json:"completion_window"`

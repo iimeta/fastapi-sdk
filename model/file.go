@@ -5,7 +5,7 @@ import (
 )
 
 type FileUploadRequest struct {
-	Model        string                `json:"model"`
+	Model        string                `json:"model,omitempty"`
 	File         *multipart.FileHeader `json:"file"`
 	Purpose      string                `json:"purpose"`
 	ExpiresAfter ExpiresAfter          `json:"expires_after"`
@@ -50,18 +50,15 @@ type FileContentResponse struct {
 }
 
 type FileResponse struct {
-	Id        string     `json:"id"`
-	Object    string     `json:"object"`
-	Bytes     int        `json:"bytes"`
-	CreatedAt int64      `json:"created_at"`
-	ExpiresAt int64      `json:"expires_at"`
-	Filename  string     `json:"filename"`
-	Purpose   string     `json:"purpose"`
-	Error     *FileError `json:"error"`
-	TotalTime int64      `json:"-"`
-}
-
-type FileError struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
+	Id            string  `json:"id"`
+	Object        string  `json:"object"`
+	Purpose       string  `json:"purpose"`
+	Filename      string  `json:"filename"`
+	Bytes         int     `json:"bytes"`
+	CreatedAt     int64   `json:"created_at"`
+	ExpiresAt     int64   `json:"expires_at"`
+	Status        string  `json:"status"`
+	StatusDetails *string `json:"status_details"`
+	Deleted       bool    `json:"deleted,omitempty"`
+	TotalTime     int64   `json:"-"`
 }

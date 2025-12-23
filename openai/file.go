@@ -150,7 +150,7 @@ func (o *OpenAI) FileContent(ctx context.Context, request model.FileContentReque
 		o.Path = fmt.Sprintf("/files/%s/content", request.FileId)
 	}
 
-	bytes, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, nil, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileContent OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
