@@ -1,12 +1,12 @@
 package model
 
 type BatchCreateRequest struct {
-	Model              string             `json:"model,omitempty"`
-	InputFileId        string             `json:"input_file_id"`
-	Endpoint           string             `json:"endpoint"`
-	CompletionWindow   string             `json:"completion_window"`
-	Metadata           any                `json:"metadata"`
-	OutputExpiresAfter OutputExpiresAfter `json:"output_expires_after"`
+	InputFileId        string              `json:"input_file_id"`
+	Endpoint           string              `json:"endpoint"`
+	CompletionWindow   string              `json:"completion_window"`
+	Metadata           any                 `json:"metadata,omitempty"`
+	OutputExpiresAfter *OutputExpiresAfter `json:"output_expires_after,omitempty"`
+	Model              string              `json:"-"`
 }
 
 type OutputExpiresAfter struct {
@@ -59,6 +59,7 @@ type BatchResponse struct {
 	Metadata         any           `json:"metadata"`
 	Usage            Usage         `json:"usage"`
 	Errors           *BatchError   `json:"errors"`
+	ResponseBytes    []byte        `json:"-"`
 	TotalTime        int64         `json:"-"`
 }
 

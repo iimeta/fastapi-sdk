@@ -517,7 +517,10 @@ func (o *OpenAI) ConvBatchListResponse(ctx context.Context, data []byte) (model.
 
 func (o *OpenAI) ConvBatchResponse(ctx context.Context, data []byte) (model.BatchResponse, error) {
 
-	response := model.BatchResponse{}
+	response := model.BatchResponse{
+		ResponseBytes: data,
+	}
+
 	if err := json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err

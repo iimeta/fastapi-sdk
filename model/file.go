@@ -5,10 +5,10 @@ import (
 )
 
 type FileUploadRequest struct {
-	Model        string                `json:"model,omitempty"`
 	File         *multipart.FileHeader `json:"file"`
 	Purpose      string                `json:"purpose"`
 	ExpiresAfter ExpiresAfter          `json:"expires_after"`
+	Model        string                `json:"-"`
 }
 
 type ExpiresAfter struct {
