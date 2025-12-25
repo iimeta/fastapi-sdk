@@ -20,12 +20,12 @@ type BatchListRequest struct {
 }
 
 type BatchListResponse struct {
-	Object    string          `json:"object"`
-	Data      []BatchResponse `json:"data"`
-	FirstId   *string         `json:"first_id"`
-	LastId    *string         `json:"last_id"`
-	HasMore   bool            `json:"has_more"`
-	TotalTime int64           `json:"-"`
+	Object    string  `json:"object"`
+	Data      []any   `json:"data"`
+	FirstId   *string `json:"first_id"`
+	LastId    *string `json:"last_id"`
+	HasMore   bool    `json:"has_more"`
+	TotalTime int64   `json:"-"`
 }
 
 type BatchRetrieveRequest struct {
