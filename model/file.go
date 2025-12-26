@@ -45,8 +45,8 @@ type FileContentRequest struct {
 }
 
 type FileContentResponse struct {
-	Data      []byte
-	TotalTime int64 `json:"-"`
+	Data      []byte `json:"-"`
+	TotalTime int64  `json:"-"`
 }
 
 type FileResponse struct {

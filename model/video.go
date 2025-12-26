@@ -46,8 +46,8 @@ type VideoContentRequest struct {
 }
 
 type VideoContentResponse struct {
-	Data      []byte
-	TotalTime int64 `json:"-"`
+	Data      []byte `json:"-"`
+	TotalTime int64  `json:"-"`
 }
 
 type VideoJobResponse struct {
