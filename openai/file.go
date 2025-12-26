@@ -90,7 +90,7 @@ func (o *OpenAI) FileRetrieve(ctx context.Context, request model.FileRetrieveReq
 		o.Path = fmt.Sprintf("/files/%s", request.FileId)
 	}
 
-	bytes, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, nil, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileRetrieve OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
@@ -120,7 +120,7 @@ func (o *OpenAI) FileDelete(ctx context.Context, request model.FileDeleteRequest
 		o.Path = fmt.Sprintf("/files/%s", request.FileId)
 	}
 
-	bytes, err := util.HttpDelete(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, err := util.HttpDelete(ctx, o.BaseUrl+o.Path, o.header, nil, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileDelete OpenAI model: %s, error: %v", o.Model, err)
 		return response, err

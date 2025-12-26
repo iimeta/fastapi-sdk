@@ -120,7 +120,7 @@ func (o *OpenAI) VideoRetrieve(ctx context.Context, request model.VideoRetrieveR
 		o.Path = fmt.Sprintf("/videos/%s", request.VideoId)
 	}
 
-	bytes, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, nil, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoRetrieve OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
@@ -150,7 +150,7 @@ func (o *OpenAI) VideoDelete(ctx context.Context, request model.VideoDeleteReque
 		o.Path = fmt.Sprintf("/videos/%s", request.VideoId)
 	}
 
-	bytes, err := util.HttpDelete(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, err := util.HttpDelete(ctx, o.BaseUrl+o.Path, o.header, nil, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoDelete OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
@@ -180,7 +180,7 @@ func (o *OpenAI) VideoContent(ctx context.Context, request model.VideoContentReq
 		o.Path = fmt.Sprintf("/videos/%s/content", request.VideoId)
 	}
 
-	bytes, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, nil, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoContent OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
