@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
-	"github.com/iimeta/fastapi-sdk/common"
-	"github.com/iimeta/fastapi-sdk/consts"
-	"github.com/iimeta/fastapi-sdk/logger"
-	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/v2/common"
+	"github.com/iimeta/fastapi-sdk/v2/consts"
+	"github.com/iimeta/fastapi-sdk/v2/logger"
+	"github.com/iimeta/fastapi-sdk/v2/model"
 )
 
 func (b *Baidu) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {

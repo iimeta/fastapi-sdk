@@ -3,7 +3,7 @@ package deepseek
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/v2/model"
 )
 
 func (d *DeepSeek) BatchCreate(ctx context.Context, request model.BatchCreateRequest) (response model.BatchResponse, err error) {

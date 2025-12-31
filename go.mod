@@ -1,4 +1,4 @@
-module github.com/iimeta/fastapi-sdk
+module github.com/iimeta/fastapi-sdk/v2
 
 go 1.25
 

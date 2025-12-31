@@ -3,7 +3,7 @@ package deepseek
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/v2/model"
 )
 
 func (d *DeepSeek) ImageGenerations(ctx context.Context, data []byte) (response model.ImageResponse, err error) {

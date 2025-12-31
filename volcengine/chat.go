@@ -6,10 +6,10 @@ import (
 
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
-	"github.com/iimeta/fastapi-sdk/errors"
-	"github.com/iimeta/fastapi-sdk/logger"
-	"github.com/iimeta/fastapi-sdk/model"
-	"github.com/iimeta/fastapi-sdk/util"
+	"github.com/iimeta/fastapi-sdk/v2/errors"
+	"github.com/iimeta/fastapi-sdk/v2/logger"
+	"github.com/iimeta/fastapi-sdk/v2/model"
+	"github.com/iimeta/fastapi-sdk/v2/util"
 )
 
 func (v *VolcEngine) ChatCompletions(ctx context.Context, data any) (response model.ChatCompletionResponse, err error) {

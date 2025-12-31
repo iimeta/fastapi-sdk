@@ -12,8 +12,8 @@ import (
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/net/gtrace"
-	"github.com/iimeta/fastapi-sdk/errors"
-	"github.com/iimeta/fastapi-sdk/logger"
+	"github.com/iimeta/fastapi-sdk/v2/errors"
+	"github.com/iimeta/fastapi-sdk/v2/logger"
 )
 
 var (

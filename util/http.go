@@ -12,8 +12,8 @@ import (
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/net/gtrace"
-	"github.com/iimeta/fastapi-sdk/errors"
-	"github.com/iimeta/fastapi-sdk/logger"
+	"github.com/iimeta/fastapi-sdk/v2/errors"
+	"github.com/iimeta/fastapi-sdk/v2/logger"
 )
 
 func HttpDo(ctx context.Context, method, rawURL string, header map[string]string, data, result any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) ([]byte, error) {

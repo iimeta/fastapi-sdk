@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/gogf/gf/v2/text/gstr"
-	"github.com/iimeta/fastapi-sdk/consts"
-	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/v2/consts"
+	"github.com/iimeta/fastapi-sdk/v2/model"
 )
 
 func HandleMessages(messages []model.ChatCompletionMessage, isSupportSystemRole bool) []model.ChatCompletionMessage {

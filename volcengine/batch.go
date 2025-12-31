@@ -3,7 +3,7 @@ package volcengine
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/v2/model"
 )
 
 func (v *VolcEngine) BatchCreate(ctx context.Context, request model.BatchCreateRequest) (response model.BatchResponse, err error) {

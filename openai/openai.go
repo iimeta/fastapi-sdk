@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/gogf/gf/v2/text/gstr"
-	"github.com/iimeta/fastapi-sdk/errors"
-	"github.com/iimeta/fastapi-sdk/logger"
-	"github.com/iimeta/fastapi-sdk/options"
+	"github.com/iimeta/fastapi-sdk/v2/errors"
+	"github.com/iimeta/fastapi-sdk/v2/logger"
+	"github.com/iimeta/fastapi-sdk/v2/options"
 )
 
 type OpenAI struct {

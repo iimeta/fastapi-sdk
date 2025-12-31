@@ -8,7 +8,7 @@ import (
 
 	"github.com/gogf/gf/v2/net/gclient"
 	"github.com/gorilla/websocket"
-	"github.com/iimeta/fastapi-sdk/logger"
+	"github.com/iimeta/fastapi-sdk/v2/logger"
 )
 
 type WebSocketConn struct {

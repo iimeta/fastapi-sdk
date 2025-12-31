@@ -3,7 +3,7 @@ package xfyun
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/v2/model"
 )
 
 func (x *Xfyun) FileUpload(ctx context.Context, request model.FileUploadRequest) (response model.FileResponse, err error) {

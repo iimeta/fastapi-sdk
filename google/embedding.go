@@ -3,7 +3,7 @@ package google
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/v2/model"
 )
 
 func (g *Google) TextEmbeddings(ctx context.Context, data []byte) (response model.EmbeddingResponse, err error) {

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
-	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/v2/model"
 )
 
 func (z *ZhipuAI) ConvChatCompletionsRequestOfficial(ctx context.Context, request model.ChatCompletionRequest) ([]byte, error) {

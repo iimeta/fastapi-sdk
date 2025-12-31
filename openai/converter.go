@@ -9,11 +9,11 @@ import (
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/text/gstr"
-	"github.com/iimeta/fastapi-sdk/common"
-	"github.com/iimeta/fastapi-sdk/consts"
-	"github.com/iimeta/fastapi-sdk/logger"
-	"github.com/iimeta/fastapi-sdk/model"
-	"github.com/iimeta/fastapi-sdk/util"
+	"github.com/iimeta/fastapi-sdk/v2/common"
+	"github.com/iimeta/fastapi-sdk/v2/consts"
+	"github.com/iimeta/fastapi-sdk/v2/logger"
+	"github.com/iimeta/fastapi-sdk/v2/model"
+	"github.com/iimeta/fastapi-sdk/v2/util"
 )
 
 func (o *OpenAI) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {

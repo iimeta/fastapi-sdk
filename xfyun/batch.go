@@ -3,7 +3,7 @@ package xfyun
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/v2/model"
 )
 
 func (x *Xfyun) BatchCreate(ctx context.Context, request model.BatchCreateRequest) (response model.BatchResponse, err error) {

@@ -3,7 +3,7 @@ package general
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/v2/model"
 )
 
 func (g *General) FileUpload(ctx context.Context, request model.FileUploadRequest) (response model.FileResponse, err error) {

@@ -6,9 +6,9 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/iimeta/fastapi-sdk/errors"
-	"github.com/iimeta/fastapi-sdk/logger"
-	"github.com/iimeta/fastapi-sdk/options"
+	"github.com/iimeta/fastapi-sdk/v2/errors"
+	"github.com/iimeta/fastapi-sdk/v2/logger"
+	"github.com/iimeta/fastapi-sdk/v2/options"
 )
 
 type General struct {

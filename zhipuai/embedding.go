@@ -3,7 +3,7 @@ package zhipuai
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-sdk/model"
+	"github.com/iimeta/fastapi-sdk/v2/model"
 )
 
 func (z *ZhipuAI) TextEmbeddings(ctx context.Context, data []byte) (response model.EmbeddingResponse, err error) {

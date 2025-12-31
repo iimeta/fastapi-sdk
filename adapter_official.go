@@ -3,12 +3,12 @@ package sdk
 import (
 	"context"
 
-	"github.com/iimeta/fastapi-sdk/anthropic"
-	"github.com/iimeta/fastapi-sdk/consts"
-	"github.com/iimeta/fastapi-sdk/general"
-	"github.com/iimeta/fastapi-sdk/google"
-	"github.com/iimeta/fastapi-sdk/logger"
-	"github.com/iimeta/fastapi-sdk/options"
+	"github.com/iimeta/fastapi-sdk/v2/anthropic"
+	"github.com/iimeta/fastapi-sdk/v2/consts"
+	"github.com/iimeta/fastapi-sdk/v2/general"
+	"github.com/iimeta/fastapi-sdk/v2/google"
+	"github.com/iimeta/fastapi-sdk/v2/logger"
+	"github.com/iimeta/fastapi-sdk/v2/options"
 )
 
 type AdapterOfficialGroup interface {

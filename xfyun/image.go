@@ -8,10 +8,10 @@ import (
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/gogf/gf/v2/util/grand"
-	"github.com/iimeta/fastapi-sdk/consts"
-	"github.com/iimeta/fastapi-sdk/logger"
-	"github.com/iimeta/fastapi-sdk/model"
-	"github.com/iimeta/fastapi-sdk/util"
+	"github.com/iimeta/fastapi-sdk/v2/consts"
+	"github.com/iimeta/fastapi-sdk/v2/logger"
+	"github.com/iimeta/fastapi-sdk/v2/model"
+	"github.com/iimeta/fastapi-sdk/v2/util"
 )
 
 func (x *Xfyun) ImageGenerations(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
