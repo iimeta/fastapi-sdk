@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type GoogleChatCompletionReq struct {
 	Contents         []Content        `json:"contents"`
 	GenerationConfig GenerationConfig `json:"generationConfig,omitempty"`
@@ -88,4 +90,24 @@ type GenerationConfig struct {
 	Temperature     float32  `json:"temperature,omitempty"`
 	TopP            float32  `json:"topP,omitempty"`
 	TopK            int      `json:"topK,omitempty"`
+}
+
+type GoogleFileResponse struct {
+	File GoogleFile `json:"file"`
+}
+
+type GoogleFile struct {
+	Name           string    `json:"name"`
+	MimeType       string    `json:"mimeType"`
+	SizeBytes      string    `json:"sizeBytes"`
+	CreateTime     time.Time `json:"createTime"`
+	UpdateTime     time.Time `json:"updateTime"`
+	ExpirationTime time.Time `json:"expirationTime"`
+	Sha256Hash     string    `json:"sha256Hash"`
+	Uri            string    `json:"uri"`
+	State          string    `json:"state"`
+	VideoMetadata  struct {
+		VideoDuration string `json:"videoDuration"`
+	} `json:"videoMetadata"`
+	Source string `json:"source"`
 }

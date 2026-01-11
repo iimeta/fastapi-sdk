@@ -127,107 +127,107 @@ func (b *Baidu) ConvChatResponsesStreamResponse(ctx context.Context, data []byte
 	panic("implement me")
 }
 
-func (b *Baidu) ConvImageGenerationsRequest(ctx context.Context, data []byte) (model.ImageGenerationRequest, error) {
+func (b *Baidu) ConvImageGenerationsRequest(ctx context.Context, data []byte) (request model.ImageGenerationRequest, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvImageGenerationsResponse(ctx context.Context, data []byte) (model.ImageResponse, error) {
+func (b *Baidu) ConvImageGenerationsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (*bytes.Buffer, error) {
+func (b *Baidu) ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvImageEditsResponse(ctx context.Context, data []byte) (model.ImageResponse, error) {
+func (b *Baidu) ConvImageEditsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvAudioSpeechRequest(ctx context.Context, data []byte) (model.SpeechRequest, error) {
+func (b *Baidu) ConvAudioSpeechRequest(ctx context.Context, data []byte) (request model.SpeechRequest, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvAudioSpeechResponse(ctx context.Context, data []byte) (model.SpeechResponse, error) {
+func (b *Baidu) ConvAudioSpeechResponse(ctx context.Context, data []byte) (response model.SpeechResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvAudioTranscriptionsRequest(ctx context.Context, request model.AudioRequest) (*bytes.Buffer, error) {
+func (b *Baidu) ConvAudioTranscriptionsRequest(ctx context.Context, request model.AudioRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvAudioTranscriptionsResponse(ctx context.Context, data []byte) (model.AudioResponse, error) {
+func (b *Baidu) ConvAudioTranscriptionsResponse(ctx context.Context, data []byte) (response model.AudioResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (model.EmbeddingRequest, error) {
+func (b *Baidu) ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (request model.EmbeddingRequest, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (model.EmbeddingResponse, error) {
+func (b *Baidu) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (response model.EmbeddingResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (*bytes.Buffer, error) {
+func (b *Baidu) ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvVideoListResponse(ctx context.Context, data []byte) (model.VideoListResponse, error) {
+func (b *Baidu) ConvVideoListResponse(ctx context.Context, data []byte) (response model.VideoListResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvVideoContentResponse(ctx context.Context, data []byte) (model.VideoContentResponse, error) {
+func (b *Baidu) ConvVideoContentResponse(ctx context.Context, data []byte) (response model.VideoContentResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvVideoJobResponse(ctx context.Context, data []byte) (model.VideoJobResponse, error) {
+func (b *Baidu) ConvVideoJobResponse(ctx context.Context, data []byte) (response model.VideoJobResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (*bytes.Buffer, error) {
+func (b *Baidu) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvFileListResponse(ctx context.Context, data []byte) (model.FileListResponse, error) {
+func (b *Baidu) ConvFileListResponse(ctx context.Context, data []byte) (response model.FileListResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvFileContentResponse(ctx context.Context, data []byte) (model.FileContentResponse, error) {
+func (b *Baidu) ConvFileContentResponse(ctx context.Context, data []byte) (response model.FileContentResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvFileResponse(ctx context.Context, data []byte) (model.FileResponse, error) {
+func (b *Baidu) ConvFileResponse(ctx context.Context, data []byte) (response model.FileResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (*bytes.Buffer, error) {
+func (b *Baidu) ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvBatchListResponse(ctx context.Context, data []byte) (model.BatchListResponse, error) {
+func (b *Baidu) ConvBatchListResponse(ctx context.Context, data []byte) (response model.BatchListResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *Baidu) ConvBatchResponse(ctx context.Context, data []byte) (model.BatchResponse, error) {
+func (b *Baidu) ConvBatchResponse(ctx context.Context, data []byte) (response model.BatchResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

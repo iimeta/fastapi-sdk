@@ -23,6 +23,9 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Google {
 
 	google := &Google{
 		AdapterOptions: options,
+		header: map[string]string{
+			"x-goog-api-key": options.Key,
+		},
 	}
 
 	if google.BaseUrl == "" {
@@ -47,10 +50,6 @@ func NewGcpAdapter(ctx context.Context, options *options.AdapterOptions) *Google
 	if gcp.BaseUrl == "" {
 		gcp.BaseUrl = "https://us-east5-aiplatform.googleapis.com/v1"
 	}
-
-	//if gcp.Path == "" {
-	//	gcp.Path = "/projects/%s/locations/us-east5/publishers/google/models/%s"
-	//}
 
 	logger.Infof(ctx, "NewGcpAdapter Google model: %s, key: %s", gcp.Model, gcp.Key)
 

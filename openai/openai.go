@@ -55,7 +55,7 @@ func NewAzureAdapter(ctx context.Context, options *options.AdapterOptions) *Open
 		azure.BaseUrl = azure.BaseUrl + "/" + options.Model
 	} else if !gstr.HasSuffix(azure.BaseUrl, "/models") {
 
-		azure.BaseUrl = strings.TrimRight(azure.BaseUrl, "/")
+		azure.BaseUrl = strings.TrimSuffix(azure.BaseUrl, "/")
 
 		if parse, _ := url.Parse(azure.BaseUrl); parse == nil || parse.Path == "" {
 			azure.BaseUrl = azure.BaseUrl + "/openai/deployments/" + options.Model

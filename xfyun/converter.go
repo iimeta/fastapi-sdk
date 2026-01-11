@@ -137,112 +137,111 @@ func (x *Xfyun) ConvChatResponsesStreamResponse(ctx context.Context, data []byte
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvImageGenerationsRequest(ctx context.Context, data []byte) (model.ImageGenerationRequest, error) {
+func (x *Xfyun) ConvImageGenerationsRequest(ctx context.Context, data []byte) (request model.ImageGenerationRequest, err error) {
 
-	request := model.ImageGenerationRequest{}
-	if err := json.Unmarshal(data, &request); err != nil {
+	if err = json.Unmarshal(data, &request); err != nil {
 		logger.Error(ctx, err)
 		return request, err
 	}
 
 	return request, nil
 }
-func (x *Xfyun) ConvImageGenerationsResponse(ctx context.Context, data []byte) (model.ImageResponse, error) {
+func (x *Xfyun) ConvImageGenerationsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (*bytes.Buffer, error) {
+func (x *Xfyun) ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvImageEditsResponse(ctx context.Context, data []byte) (model.ImageResponse, error) {
+func (x *Xfyun) ConvImageEditsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvAudioSpeechRequest(ctx context.Context, data []byte) (model.SpeechRequest, error) {
+func (x *Xfyun) ConvAudioSpeechRequest(ctx context.Context, data []byte) (request model.SpeechRequest, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvAudioSpeechResponse(ctx context.Context, data []byte) (model.SpeechResponse, error) {
+func (x *Xfyun) ConvAudioSpeechResponse(ctx context.Context, data []byte) (response model.SpeechResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvAudioTranscriptionsRequest(ctx context.Context, request model.AudioRequest) (*bytes.Buffer, error) {
+func (x *Xfyun) ConvAudioTranscriptionsRequest(ctx context.Context, request model.AudioRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvAudioTranscriptionsResponse(ctx context.Context, data []byte) (model.AudioResponse, error) {
+func (x *Xfyun) ConvAudioTranscriptionsResponse(ctx context.Context, data []byte) (response model.AudioResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (model.EmbeddingRequest, error) {
+func (x *Xfyun) ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (request model.EmbeddingRequest, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (model.EmbeddingResponse, error) {
+func (x *Xfyun) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (response model.EmbeddingResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (*bytes.Buffer, error) {
+func (x *Xfyun) ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvVideoListResponse(ctx context.Context, data []byte) (model.VideoListResponse, error) {
+func (x *Xfyun) ConvVideoListResponse(ctx context.Context, data []byte) (response model.VideoListResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvVideoContentResponse(ctx context.Context, data []byte) (model.VideoContentResponse, error) {
+func (x *Xfyun) ConvVideoContentResponse(ctx context.Context, data []byte) (response model.VideoContentResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvVideoJobResponse(ctx context.Context, data []byte) (model.VideoJobResponse, error) {
+func (x *Xfyun) ConvVideoJobResponse(ctx context.Context, data []byte) (response model.VideoJobResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (*bytes.Buffer, error) {
+func (x *Xfyun) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvFileListResponse(ctx context.Context, data []byte) (model.FileListResponse, error) {
+func (x *Xfyun) ConvFileListResponse(ctx context.Context, data []byte) (response model.FileListResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvFileContentResponse(ctx context.Context, data []byte) (model.FileContentResponse, error) {
+func (x *Xfyun) ConvFileContentResponse(ctx context.Context, data []byte) (response model.FileContentResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvFileResponse(ctx context.Context, data []byte) (model.FileResponse, error) {
+func (x *Xfyun) ConvFileResponse(ctx context.Context, data []byte) (response model.FileResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (*bytes.Buffer, error) {
+func (x *Xfyun) ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvBatchListResponse(ctx context.Context, data []byte) (model.BatchListResponse, error) {
+func (x *Xfyun) ConvBatchListResponse(ctx context.Context, data []byte) (response model.BatchListResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (x *Xfyun) ConvBatchResponse(ctx context.Context, data []byte) (model.BatchResponse, error) {
+func (x *Xfyun) ConvBatchResponse(ctx context.Context, data []byte) (response model.BatchResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

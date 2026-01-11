@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"strings"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -13,6 +14,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/v2/consts"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
 	"github.com/iimeta/fastapi-sdk/v2/model"
+	"github.com/iimeta/fastapi-sdk/v2/util"
 )
 
 func (g *Google) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {
@@ -199,107 +201,149 @@ func (g *Google) ConvChatResponsesStreamResponse(ctx context.Context, data []byt
 	panic("implement me")
 }
 
-func (g *Google) ConvImageGenerationsRequest(ctx context.Context, data []byte) (model.ImageGenerationRequest, error) {
+func (g *Google) ConvImageGenerationsRequest(ctx context.Context, data []byte) (request model.ImageGenerationRequest, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvImageGenerationsResponse(ctx context.Context, data []byte) (model.ImageResponse, error) {
+func (g *Google) ConvImageGenerationsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (*bytes.Buffer, error) {
+func (g *Google) ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvImageEditsResponse(ctx context.Context, data []byte) (model.ImageResponse, error) {
+func (g *Google) ConvImageEditsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvAudioSpeechRequest(ctx context.Context, data []byte) (model.SpeechRequest, error) {
+func (g *Google) ConvAudioSpeechRequest(ctx context.Context, data []byte) (request model.SpeechRequest, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvAudioSpeechResponse(ctx context.Context, data []byte) (model.SpeechResponse, error) {
+func (g *Google) ConvAudioSpeechResponse(ctx context.Context, data []byte) (response model.SpeechResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvAudioTranscriptionsRequest(ctx context.Context, request model.AudioRequest) (*bytes.Buffer, error) {
+func (g *Google) ConvAudioTranscriptionsRequest(ctx context.Context, request model.AudioRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvAudioTranscriptionsResponse(ctx context.Context, data []byte) (model.AudioResponse, error) {
+func (g *Google) ConvAudioTranscriptionsResponse(ctx context.Context, data []byte) (response model.AudioResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (model.EmbeddingRequest, error) {
+func (g *Google) ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (request model.EmbeddingRequest, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (model.EmbeddingResponse, error) {
+func (g *Google) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (response model.EmbeddingResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (*bytes.Buffer, error) {
+func (g *Google) ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvVideoListResponse(ctx context.Context, data []byte) (model.VideoListResponse, error) {
+func (g *Google) ConvVideoListResponse(ctx context.Context, data []byte) (response model.VideoListResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvVideoContentResponse(ctx context.Context, data []byte) (model.VideoContentResponse, error) {
+func (g *Google) ConvVideoContentResponse(ctx context.Context, data []byte) (response model.VideoContentResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvVideoJobResponse(ctx context.Context, data []byte) (model.VideoJobResponse, error) {
+func (g *Google) ConvVideoJobResponse(ctx context.Context, data []byte) (response model.VideoJobResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (*bytes.Buffer, error) {
+func (g *Google) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (data *bytes.Buffer, err error) {
+
+	data = &bytes.Buffer{}
+	builder := util.NewFormBuilder(data)
+
+	defer func() {
+		if err := builder.Close(); err != nil {
+			logger.Errorf(ctx, "ConvFileUploadRequest Google model: %s, builder.Close() error: %v", g.Model, err)
+		}
+	}()
+
+	if request.File != nil {
+		if err = builder.CreateFormFileHeader("file", request.File); err != nil {
+			logger.Errorf(ctx, "ConvFileUploadRequest Google model: %s, error: %v", g.Model, err)
+			return data, err
+		}
+	}
+
+	g.header["Content-Type"] = request.File.Header.Get("Content-Type")
+
+	return data, nil
+}
+
+func (g *Google) ConvFileListResponse(ctx context.Context, data []byte) (response model.FileListResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvFileListResponse(ctx context.Context, data []byte) (model.FileListResponse, error) {
+func (g *Google) ConvFileContentResponse(ctx context.Context, data []byte) (response model.FileContentResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvFileContentResponse(ctx context.Context, data []byte) (model.FileContentResponse, error) {
+func (g *Google) ConvFileResponse(ctx context.Context, data []byte) (response model.FileResponse, err error) {
+
+	fileRes := model.GoogleFileResponse{}
+	if err = json.Unmarshal(data, &fileRes); err != nil {
+		logger.Error(ctx, err)
+		return response, err
+	}
+
+	response = model.FileResponse{
+		Id:            strings.TrimPrefix(fileRes.File.Name, "files/"),
+		Object:        "file",
+		Purpose:       "upload",
+		Bytes:         gconv.Int(fileRes.File.SizeBytes),
+		CreatedAt:     fileRes.File.CreateTime.Unix(),
+		ExpiresAt:     fileRes.File.ExpirationTime.Unix(),
+		ResponseBytes: data,
+	}
+
+	if fileRes.File.State == "PROCESSING" {
+		response.Status = "processing"
+	} else if fileRes.File.State == "ACTIVE" {
+		response.Status = "processed"
+	} else {
+		response.Status = strings.ToLower(fileRes.File.State)
+	}
+
+	return response, nil
+}
+
+func (g *Google) ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvFileResponse(ctx context.Context, data []byte) (model.FileResponse, error) {
+func (g *Google) ConvBatchListResponse(ctx context.Context, data []byte) (response model.BatchListResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *Google) ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (*bytes.Buffer, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (g *Google) ConvBatchListResponse(ctx context.Context, data []byte) (model.BatchListResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (g *Google) ConvBatchResponse(ctx context.Context, data []byte) (model.BatchResponse, error) {
+func (g *Google) ConvBatchResponse(ctx context.Context, data []byte) (response model.BatchResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

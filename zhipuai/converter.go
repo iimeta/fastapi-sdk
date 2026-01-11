@@ -112,107 +112,107 @@ func (z *ZhipuAI) ConvChatResponsesStreamResponse(ctx context.Context, data []by
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvImageGenerationsRequest(ctx context.Context, data []byte) (model.ImageGenerationRequest, error) {
+func (z *ZhipuAI) ConvImageGenerationsRequest(ctx context.Context, data []byte) (request model.ImageGenerationRequest, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvImageGenerationsResponse(ctx context.Context, data []byte) (model.ImageResponse, error) {
+func (z *ZhipuAI) ConvImageGenerationsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (*bytes.Buffer, error) {
+func (z *ZhipuAI) ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvImageEditsResponse(ctx context.Context, data []byte) (model.ImageResponse, error) {
+func (z *ZhipuAI) ConvImageEditsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvAudioSpeechRequest(ctx context.Context, data []byte) (model.SpeechRequest, error) {
+func (z *ZhipuAI) ConvAudioSpeechRequest(ctx context.Context, data []byte) (request model.SpeechRequest, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvAudioSpeechResponse(ctx context.Context, data []byte) (model.SpeechResponse, error) {
+func (z *ZhipuAI) ConvAudioSpeechResponse(ctx context.Context, data []byte) (response model.SpeechResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvAudioTranscriptionsRequest(ctx context.Context, request model.AudioRequest) (*bytes.Buffer, error) {
+func (z *ZhipuAI) ConvAudioTranscriptionsRequest(ctx context.Context, request model.AudioRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvAudioTranscriptionsResponse(ctx context.Context, data []byte) (model.AudioResponse, error) {
+func (z *ZhipuAI) ConvAudioTranscriptionsResponse(ctx context.Context, data []byte) (response model.AudioResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (model.EmbeddingRequest, error) {
+func (z *ZhipuAI) ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (request model.EmbeddingRequest, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (model.EmbeddingResponse, error) {
+func (z *ZhipuAI) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (response model.EmbeddingResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (*bytes.Buffer, error) {
+func (z *ZhipuAI) ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvVideoListResponse(ctx context.Context, data []byte) (model.VideoListResponse, error) {
+func (z *ZhipuAI) ConvVideoListResponse(ctx context.Context, data []byte) (response model.VideoListResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvVideoContentResponse(ctx context.Context, data []byte) (model.VideoContentResponse, error) {
+func (z *ZhipuAI) ConvVideoContentResponse(ctx context.Context, data []byte) (response model.VideoContentResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvVideoJobResponse(ctx context.Context, data []byte) (model.VideoJobResponse, error) {
+func (z *ZhipuAI) ConvVideoJobResponse(ctx context.Context, data []byte) (response model.VideoJobResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (*bytes.Buffer, error) {
+func (z *ZhipuAI) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvFileListResponse(ctx context.Context, data []byte) (model.FileListResponse, error) {
+func (z *ZhipuAI) ConvFileListResponse(ctx context.Context, data []byte) (response model.FileListResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvFileContentResponse(ctx context.Context, data []byte) (model.FileContentResponse, error) {
+func (z *ZhipuAI) ConvFileContentResponse(ctx context.Context, data []byte) (response model.FileContentResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvFileResponse(ctx context.Context, data []byte) (model.FileResponse, error) {
+func (z *ZhipuAI) ConvFileResponse(ctx context.Context, data []byte) (response model.FileResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (*bytes.Buffer, error) {
+func (z *ZhipuAI) ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (data *bytes.Buffer, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvBatchListResponse(ctx context.Context, data []byte) (model.BatchListResponse, error) {
+func (z *ZhipuAI) ConvBatchListResponse(ctx context.Context, data []byte) (response model.BatchListResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (z *ZhipuAI) ConvBatchResponse(ctx context.Context, data []byte) (model.BatchResponse, error) {
+func (z *ZhipuAI) ConvBatchResponse(ctx context.Context, data []byte) (response model.BatchResponse, err error) {
 	//TODO implement me
 	panic("implement me")
 }

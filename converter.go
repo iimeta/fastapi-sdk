@@ -33,32 +33,32 @@ type Converter interface {
 	ConvChatResponsesResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
 	ConvChatResponsesStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error)
 
-	ConvImageGenerationsRequest(ctx context.Context, data []byte) (model.ImageGenerationRequest, error)
-	ConvImageGenerationsResponse(ctx context.Context, data []byte) (model.ImageResponse, error)
-	ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (*bytes.Buffer, error)
-	ConvImageEditsResponse(ctx context.Context, data []byte) (model.ImageResponse, error)
+	ConvImageGenerationsRequest(ctx context.Context, data []byte) (request model.ImageGenerationRequest, err error)
+	ConvImageGenerationsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error)
+	ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (data *bytes.Buffer, err error)
+	ConvImageEditsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error)
 
-	ConvAudioSpeechRequest(ctx context.Context, data []byte) (model.SpeechRequest, error)
-	ConvAudioSpeechResponse(ctx context.Context, data []byte) (model.SpeechResponse, error)
-	ConvAudioTranscriptionsRequest(ctx context.Context, request model.AudioRequest) (*bytes.Buffer, error)
-	ConvAudioTranscriptionsResponse(ctx context.Context, data []byte) (model.AudioResponse, error)
+	ConvAudioSpeechRequest(ctx context.Context, data []byte) (request model.SpeechRequest, err error)
+	ConvAudioSpeechResponse(ctx context.Context, data []byte) (response model.SpeechResponse, err error)
+	ConvAudioTranscriptionsRequest(ctx context.Context, request model.AudioRequest) (data *bytes.Buffer, err error)
+	ConvAudioTranscriptionsResponse(ctx context.Context, data []byte) (response model.AudioResponse, err error)
 
-	ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (model.EmbeddingRequest, error)
-	ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (model.EmbeddingResponse, error)
+	ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (request model.EmbeddingRequest, err error)
+	ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (response model.EmbeddingResponse, err error)
 
-	ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (*bytes.Buffer, error)
-	ConvVideoListResponse(ctx context.Context, data []byte) (model.VideoListResponse, error)
-	ConvVideoContentResponse(ctx context.Context, data []byte) (model.VideoContentResponse, error)
-	ConvVideoJobResponse(ctx context.Context, data []byte) (model.VideoJobResponse, error)
+	ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (data *bytes.Buffer, err error)
+	ConvVideoListResponse(ctx context.Context, data []byte) (response model.VideoListResponse, err error)
+	ConvVideoContentResponse(ctx context.Context, data []byte) (response model.VideoContentResponse, err error)
+	ConvVideoJobResponse(ctx context.Context, data []byte) (response model.VideoJobResponse, err error)
 
-	ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (*bytes.Buffer, error)
-	ConvFileListResponse(ctx context.Context, data []byte) (model.FileListResponse, error)
-	ConvFileContentResponse(ctx context.Context, data []byte) (model.FileContentResponse, error)
-	ConvFileResponse(ctx context.Context, data []byte) (model.FileResponse, error)
+	ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (data *bytes.Buffer, err error)
+	ConvFileListResponse(ctx context.Context, data []byte) (response model.FileListResponse, err error)
+	ConvFileContentResponse(ctx context.Context, data []byte) (response model.FileContentResponse, err error)
+	ConvFileResponse(ctx context.Context, data []byte) (response model.FileResponse, err error)
 
-	ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (*bytes.Buffer, error)
-	ConvBatchListResponse(ctx context.Context, data []byte) (model.BatchListResponse, error)
-	ConvBatchResponse(ctx context.Context, data []byte) (model.BatchResponse, error)
+	ConvBatchCreateRequest(ctx context.Context, request model.BatchCreateRequest) (data *bytes.Buffer, err error)
+	ConvBatchListResponse(ctx context.Context, data []byte) (response model.BatchListResponse, err error)
+	ConvBatchResponse(ctx context.Context, data []byte) (response model.BatchResponse, err error)
 }
 
 func NewConverter(ctx context.Context, options *options.AdapterOptions) Converter {
