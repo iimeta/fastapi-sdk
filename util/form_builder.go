@@ -68,15 +68,7 @@ func (fb *DefaultFormBuilder) createFormFileHeader(fieldname string, fileHeader 
 
 	h := make(textproto.MIMEHeader)
 	h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`, escapeQuotes(fieldname), escapeQuotes(fileHeader.Filename)))
-
-	contentType := "image/jpeg"
-	if strings.HasSuffix(fileHeader.Filename, ".webp") {
-		contentType = "image/webp"
-	} else if strings.HasSuffix(fileHeader.Filename, ".png") {
-		contentType = "image/png"
-	}
-
-	h.Set("Content-Type", contentType)
+	h.Set("Content-Type", fileHeader.Header.Get("Content-Type"))
 
 	fieldWriter, err := fb.writer.CreatePart(h)
 	if err != nil {

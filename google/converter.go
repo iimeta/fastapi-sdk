@@ -289,7 +289,7 @@ func (g *Google) ConvFileUploadRequest(ctx context.Context, request model.FileUp
 		}
 	}
 
-	g.header["Content-Type"] = request.File.Header.Get("Content-Type")
+	g.header["Content-Type"] = builder.FormDataContentType()
 
 	return data, nil
 }
