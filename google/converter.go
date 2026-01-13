@@ -319,6 +319,7 @@ func (g *Google) ConvFileResponse(ctx context.Context, data []byte) (response mo
 		Bytes:         gconv.Int(fileRes.File.SizeBytes),
 		CreatedAt:     fileRes.File.CreateTime.Unix(),
 		ExpiresAt:     fileRes.File.ExpirationTime.Unix(),
+		FileUrl:       fileRes.File.Uri,
 		ResponseBytes: data,
 	}
 

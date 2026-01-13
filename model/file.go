@@ -60,6 +60,7 @@ type FileResponse struct {
 	Status        string  `json:"status"`
 	StatusDetails *string `json:"status_details"`
 	Deleted       bool    `json:"deleted,omitempty"`
+	FileUrl       string  `json:"file_url,omitempty"` // 文件地址
 	ResponseBytes []byte  `json:"-"`
 	TotalTime     int64   `json:"-"`
 }
