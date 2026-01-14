@@ -15,6 +15,7 @@ type ImageGenerationRequest struct {
 	Size              string `json:"size,omitempty"`
 	Style             string `json:"style,omitempty"`
 	User              string `json:"user,omitempty"`
+	AspectRatio       string `json:"aspect_ratio,omitempty"`
 }
 
 type ImageResponse struct {
@@ -41,4 +42,5 @@ type ImageEditRequest struct {
 	ResponseFormat string                  `json:"response_format,omitempty"`
 	Size           string                  `json:"size,omitempty"`
 	User           string                  `json:"user,omitempty"`
+	AspectRatio    string                  `json:"aspect_ratio,omitempty"`
 }
