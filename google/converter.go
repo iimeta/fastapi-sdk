@@ -110,14 +110,29 @@ func (g *Google) ConvChatCompletionsResponse(ctx context.Context, data []byte) (
 	}
 
 	for _, promptTokensDetail := range chatCompletionRes.UsageMetadata.PromptTokensDetails {
+
 		if promptTokensDetail.Modality == "TEXT" {
 			response.Usage.PromptTokensDetails.TextTokens = promptTokensDetail.TokenCount
+			response.Usage.InputTokensDetails.TextTokens = promptTokensDetail.TokenCount
+		}
+
+		if promptTokensDetail.Modality == "IMAGE" {
+			response.Usage.PromptTokensDetails.ImageTokens = promptTokensDetail.TokenCount
+			response.Usage.InputTokensDetails.ImageTokens = promptTokensDetail.TokenCount
 		}
 	}
 
 	for _, candidatesTokensDetail := range chatCompletionRes.UsageMetadata.CandidatesTokensDetails {
+
 		if candidatesTokensDetail.Modality == "TEXT" {
 			response.Usage.CompletionTokensDetails.TextTokens = candidatesTokensDetail.TokenCount
+		}
+
+		if candidatesTokensDetail.Modality == "IMAGE" {
+			response.Usage.CompletionTokensDetails.ImageTokens = candidatesTokensDetail.TokenCount
+			if len(chatCompletionRes.UsageMetadata.CandidatesTokensDetails) == 1 && chatCompletionRes.UsageMetadata.CandidatesTokenCount > candidatesTokensDetail.TokenCount {
+				response.Usage.CompletionTokensDetails.TextTokens = chatCompletionRes.UsageMetadata.CandidatesTokenCount - candidatesTokensDetail.TokenCount
+			}
 		}
 	}
 
@@ -171,14 +186,29 @@ func (g *Google) ConvChatCompletionsStreamResponse(ctx context.Context, data []b
 		}
 
 		for _, promptTokensDetail := range chatCompletionRes.UsageMetadata.PromptTokensDetails {
+
 			if promptTokensDetail.Modality == "TEXT" {
 				response.Usage.PromptTokensDetails.TextTokens = promptTokensDetail.TokenCount
+				response.Usage.InputTokensDetails.TextTokens = promptTokensDetail.TokenCount
+			}
+
+			if promptTokensDetail.Modality == "IMAGE" {
+				response.Usage.PromptTokensDetails.ImageTokens = promptTokensDetail.TokenCount
+				response.Usage.InputTokensDetails.ImageTokens = promptTokensDetail.TokenCount
 			}
 		}
 
 		for _, candidatesTokensDetail := range chatCompletionRes.UsageMetadata.CandidatesTokensDetails {
+
 			if candidatesTokensDetail.Modality == "TEXT" {
 				response.Usage.CompletionTokensDetails.TextTokens = candidatesTokensDetail.TokenCount
+			}
+
+			if candidatesTokensDetail.Modality == "IMAGE" {
+				response.Usage.CompletionTokensDetails.ImageTokens = candidatesTokensDetail.TokenCount
+				if len(chatCompletionRes.UsageMetadata.CandidatesTokensDetails) == 1 && chatCompletionRes.UsageMetadata.CandidatesTokenCount > candidatesTokensDetail.TokenCount {
+					response.Usage.CompletionTokensDetails.TextTokens = chatCompletionRes.UsageMetadata.CandidatesTokenCount - candidatesTokensDetail.TokenCount
+				}
 			}
 		}
 	}

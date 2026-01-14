@@ -95,6 +95,7 @@ type PromptTokensDetails struct {
 	CachedTokens    int `json:"cached_tokens,omitempty"`
 	ReasoningTokens int `json:"reasoning_tokens,omitempty"`
 	TextTokens      int `json:"text_tokens,omitempty"`
+	ImageTokens     int `json:"image_tokens,omitempty"`
 }
 
 type CompletionTokensDetails struct {
