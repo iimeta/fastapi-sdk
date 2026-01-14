@@ -468,6 +468,8 @@ func (o *OpenAI) ConvFileUploadRequest(ctx context.Context, request model.FileUp
 
 func (o *OpenAI) ConvFileListResponse(ctx context.Context, data []byte) (response model.FileListResponse, err error) {
 
+	response.ResponseBytes = data
+
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
@@ -483,6 +485,8 @@ func (o *OpenAI) ConvFileContentResponse(ctx context.Context, data []byte) (resp
 }
 
 func (o *OpenAI) ConvFileResponse(ctx context.Context, data []byte) (response model.FileResponse, err error) {
+
+	response.ResponseBytes = data
 
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)

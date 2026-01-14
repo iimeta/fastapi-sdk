@@ -24,12 +24,13 @@ type FileListRequest struct {
 }
 
 type FileListResponse struct {
-	Object    string         `json:"object"`
-	Data      []FileResponse `json:"data"`
-	FirstId   *string        `json:"first_id"`
-	LastId    *string        `json:"last_id"`
-	HasMore   bool           `json:"has_more"`
-	TotalTime int64          `json:"-"`
+	Object        string         `json:"object"`
+	Data          []FileResponse `json:"data"`
+	FirstId       *string        `json:"first_id"`
+	LastId        *string        `json:"last_id"`
+	HasMore       bool           `json:"has_more"`
+	ResponseBytes []byte         `json:"-"`
+	TotalTime     int64          `json:"-"`
 }
 
 type FileRetrieveRequest struct {

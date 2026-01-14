@@ -295,8 +295,49 @@ func (g *Google) ConvFileUploadRequest(ctx context.Context, request model.FileUp
 }
 
 func (g *Google) ConvFileListResponse(ctx context.Context, data []byte) (response model.FileListResponse, err error) {
-	//TODO implement me
-	panic("implement me")
+
+	response.ResponseBytes = data
+
+	filesRes := model.GoogleFileListResponse{}
+	if err = json.Unmarshal(data, &filesRes); err != nil {
+		logger.Error(ctx, err)
+		return response, err
+	}
+
+	for _, file := range filesRes.Files {
+
+		fileRes := model.FileResponse{
+			Id:            strings.TrimPrefix(file.Name, "files/"),
+			Object:        "file",
+			Purpose:       "upload",
+			Filename:      strings.TrimPrefix(file.Name, "files/"),
+			Bytes:         gconv.Int(file.SizeBytes),
+			CreatedAt:     file.CreateTime.Unix(),
+			ExpiresAt:     file.ExpirationTime.Unix(),
+			FileUrl:       file.Uri,
+			ResponseBytes: data,
+		}
+
+		if file.State == "PROCESSING" {
+			fileRes.Status = "processing"
+		} else if file.State == "ACTIVE" {
+			fileRes.Status = "processed"
+		} else {
+			fileRes.Status = strings.ToLower(file.State)
+		}
+
+		response.Data = append(response.Data, fileRes)
+	}
+
+	response.Object = "list"
+	response.HasMore = false
+
+	if len(response.Data) > 0 {
+		response.FirstId = &response.Data[0].Id
+		response.LastId = &response.Data[len(response.Data)-1].Id
+	}
+
+	return response, nil
 }
 
 func (g *Google) ConvFileContentResponse(ctx context.Context, data []byte) (response model.FileContentResponse, err error) {
@@ -306,10 +347,19 @@ func (g *Google) ConvFileContentResponse(ctx context.Context, data []byte) (resp
 
 func (g *Google) ConvFileResponse(ctx context.Context, data []byte) (response model.FileResponse, err error) {
 
+	response.ResponseBytes = data
+
 	fileRes := model.GoogleFileResponse{}
 	if err = json.Unmarshal(data, &fileRes); err != nil {
 		logger.Error(ctx, err)
 		return response, err
+	}
+
+	if fileRes.File == (model.GoogleFile{}) {
+		if err = json.Unmarshal(data, &fileRes.File); err != nil {
+			logger.Error(ctx, err)
+			return response, err
+		}
 	}
 
 	response = model.FileResponse{

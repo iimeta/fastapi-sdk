@@ -96,6 +96,11 @@ type GoogleFileResponse struct {
 	File GoogleFile `json:"file"`
 }
 
+type GoogleFileListResponse struct {
+	Files     []GoogleFile `json:"files"`
+	TotalTime int64        `json:"-"`
+}
+
 type GoogleFile struct {
 	Name           string    `json:"name"`
 	MimeType       string    `json:"mimeType"`
