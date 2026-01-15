@@ -232,13 +232,82 @@ func (g *Google) ConvChatResponsesStreamResponse(ctx context.Context, data []byt
 }
 
 func (g *Google) ConvImageGenerationsRequest(ctx context.Context, data []byte) (request model.ImageGenerationRequest, err error) {
-	//TODO implement me
-	panic("implement me")
+
+	if err = json.Unmarshal(data, &request); err != nil {
+		logger.Error(ctx, err)
+		return request, err
+	}
+
+	return request, nil
 }
 
 func (g *Google) ConvImageGenerationsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
-	//TODO implement me
-	panic("implement me")
+
+	chatCompletionRes := model.GoogleChatCompletionRes{}
+	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
+		logger.Error(ctx, err)
+		return response, err
+	}
+
+	if chatCompletionRes.Error.Code != 0 || (chatCompletionRes.Candidates[0].FinishReason != "STOP" && chatCompletionRes.Candidates[0].FinishReason != "MAX_TOKENS") {
+		logger.Errorf(ctx, "ConvImageGenerationsResponse Google model: %s, chatCompletionRes: %s", g.Model, gjson.MustEncodeString(chatCompletionRes))
+
+		err = g.apiErrorHandler(&chatCompletionRes)
+		logger.Errorf(ctx, "ConvImageGenerationsResponse Google model: %s, error: %v", g.Model, err)
+
+		return response, err
+	}
+
+	response = model.ImageResponse{
+		Created: gtime.Now().Unix(),
+	}
+
+	if len(chatCompletionRes.Candidates) > 0 && len(chatCompletionRes.Candidates[0].Content.Parts) > 0 {
+		response.Data = []model.ImageResponseData{{
+			B64Json: chatCompletionRes.Candidates[0].Content.Parts[0].InlineData.Data,
+		}}
+	}
+
+	if chatCompletionRes.UsageMetadata != nil {
+
+		response.Usage = model.Usage{
+			PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
+			CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
+			TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
+			OutputTokensDetails: model.OutputTokensDetails{
+				ReasoningTokens: chatCompletionRes.UsageMetadata.ThoughtsTokenCount,
+			},
+		}
+
+		for _, promptTokensDetail := range chatCompletionRes.UsageMetadata.PromptTokensDetails {
+
+			if promptTokensDetail.Modality == "TEXT" {
+				response.Usage.PromptTokensDetails.TextTokens = promptTokensDetail.TokenCount
+				response.Usage.InputTokensDetails.TextTokens = promptTokensDetail.TokenCount
+			}
+
+			if promptTokensDetail.Modality == "IMAGE" {
+				response.Usage.PromptTokensDetails.ImageTokens = promptTokensDetail.TokenCount
+				response.Usage.InputTokensDetails.ImageTokens = promptTokensDetail.TokenCount
+			}
+		}
+
+		for _, candidatesTokensDetail := range chatCompletionRes.UsageMetadata.CandidatesTokensDetails {
+
+			if candidatesTokensDetail.Modality == "TEXT" {
+				response.Usage.CompletionTokensDetails.TextTokens = candidatesTokensDetail.TokenCount
+			}
+
+			if candidatesTokensDetail.Modality == "IMAGE" {
+				response.Usage.CompletionTokensDetails.ImageTokens = candidatesTokensDetail.TokenCount
+				if len(chatCompletionRes.UsageMetadata.CandidatesTokensDetails) == 1 && chatCompletionRes.UsageMetadata.CandidatesTokenCount > candidatesTokensDetail.TokenCount {
+					response.Usage.CompletionTokensDetails.TextTokens = chatCompletionRes.UsageMetadata.CandidatesTokenCount - candidatesTokensDetail.TokenCount
+				}
+			}
+		}
+	}
+
+	return response, nil
 }
 
 func (g *Google) ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (data *bytes.Buffer, err error) {

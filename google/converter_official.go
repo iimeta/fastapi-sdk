@@ -2,11 +2,14 @@ package google
 
 import (
 	"context"
+	"encoding/base64"
+	"io"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/v2/common"
 	"github.com/iimeta/fastapi-sdk/v2/consts"
+	"github.com/iimeta/fastapi-sdk/v2/logger"
 	"github.com/iimeta/fastapi-sdk/v2/model"
 )
 
@@ -114,6 +117,99 @@ func (g *Google) ConvChatCompletionsResponseOfficial(ctx context.Context, respon
 }
 
 func (g *Google) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, response model.ChatCompletionResponse) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *Google) ConvImageGenerationsRequestOfficial(ctx context.Context, request model.ImageGenerationRequest) ([]byte, error) {
+
+	parts := make([]model.Part, 0)
+
+	parts = append(parts, model.Part{
+		Text: gconv.String(request.Prompt),
+	})
+
+	contents := make([]model.Content, 0)
+
+	contents = append(contents, model.Content{
+		Role:  consts.ROLE_USER,
+		Parts: parts,
+	})
+
+	chatCompletionReq := model.GoogleChatCompletionReq{
+		Contents: contents,
+		GenerationConfig: model.GenerationConfig{
+			ImageConfig: &model.ImageConfig{
+				AspectRatio: request.AspectRatio,
+				ImageSize:   request.Quality,
+			},
+		},
+	}
+
+	return gjson.MustEncode(chatCompletionReq), nil
+}
+
+func (g *Google) ConvImageGenerationsResponseOfficial(ctx context.Context, response model.ImageResponse) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *Google) ConvImageEditsRequestOfficial(ctx context.Context, request model.ImageEditRequest) ([]byte, error) {
+
+	parts := make([]model.Part, 0)
+
+	parts = append(parts, model.Part{
+		Text: gconv.String(request.Prompt),
+	})
+
+	for _, image := range request.Image {
+
+		file, err := image.Open()
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		fileBytes, err := io.ReadAll(file)
+
+		if err := file.Close(); err != nil {
+			logger.Error(ctx, err)
+		}
+
+		if err != nil {
+			logger.Error(ctx, err)
+			return nil, err
+		}
+
+		parts = append(parts, model.Part{
+			InlineData: &model.InlineData{
+				MimeType: image.Header.Get("Content-Type"),
+				Data:     base64.StdEncoding.EncodeToString(fileBytes),
+			},
+		})
+	}
+
+	contents := make([]model.Content, 0)
+
+	contents = append(contents, model.Content{
+		Role:  consts.ROLE_USER,
+		Parts: parts,
+	})
+
+	chatCompletionReq := model.GoogleChatCompletionReq{
+		Contents: contents,
+		GenerationConfig: model.GenerationConfig{
+			ImageConfig: &model.ImageConfig{
+				AspectRatio: request.AspectRatio,
+				ImageSize:   request.Quality,
+			},
+		},
+	}
+
+	return gjson.MustEncode(chatCompletionReq), nil
+}
+
+func (g *Google) ConvImageEditsResponseOfficial(ctx context.Context, response model.ImageResponse) ([]byte, error) {
 	//TODO implement me
 	panic("implement me")
 }

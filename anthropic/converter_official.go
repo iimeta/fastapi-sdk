@@ -86,3 +86,23 @@ func (a *Anthropic) ConvChatCompletionsStreamResponseOfficial(ctx context.Contex
 	//TODO implement me
 	panic("implement me")
 }
+
+func (a *Anthropic) ConvImageGenerationsRequestOfficial(ctx context.Context, request model.ImageGenerationRequest) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *Anthropic) ConvImageGenerationsResponseOfficial(ctx context.Context, response model.ImageResponse) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *Anthropic) ConvImageEditsRequestOfficial(ctx context.Context, request model.ImageEditRequest) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *Anthropic) ConvImageEditsResponseOfficial(ctx context.Context, response model.ImageResponse) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}

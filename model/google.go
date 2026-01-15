@@ -39,8 +39,8 @@ type Content struct {
 
 type Part struct {
 	Text             string      `json:"text,omitempty"`
-	InlineData       *InlineData `json:"inline_data,omitempty"`
-	FileData         *FileData   `json:"file_data,omitempty"`
+	InlineData       *InlineData `json:"inlineData,omitempty"`
+	FileData         *FileData   `json:"fileData,omitempty"`
 	FunctionCall     any         `json:"functionCall,omitempty"`
 	FunctionResponse any         `json:"functionResponse,omitempty"`
 	ThoughtSignature any         `json:"thoughtSignature,omitempty"`
@@ -84,12 +84,19 @@ type UsageMetadata struct {
 }
 
 type GenerationConfig struct {
-	StopSequences   []string `json:"stopSequences,omitempty"`
-	CandidateCount  int      `json:"candidateCount,omitempty"`
-	MaxOutputTokens int      `json:"maxOutputTokens,omitempty"`
-	Temperature     float32  `json:"temperature,omitempty"`
-	TopP            float32  `json:"topP,omitempty"`
-	TopK            int      `json:"topK,omitempty"`
+	StopSequences      []string     `json:"stopSequences,omitempty"`
+	CandidateCount     int          `json:"candidateCount,omitempty"`
+	MaxOutputTokens    int          `json:"maxOutputTokens,omitempty"`
+	Temperature        float32      `json:"temperature,omitempty"`
+	TopP               float32      `json:"topP,omitempty"`
+	TopK               int          `json:"topK,omitempty"`
+	ResponseModalities []string     `json:"responseModalities,omitempty"`
+	ImageConfig        *ImageConfig `json:"imageConfig,omitempty"`
+}
+
+type ImageConfig struct {
+	AspectRatio string `json:"aspectRatio,omitempty"`
+	ImageSize   string `json:"imageSize,omitempty"`
 }
 
 type GoogleFileResponse struct {
@@ -115,4 +122,10 @@ type GoogleFile struct {
 		VideoDuration string `json:"videoDuration"`
 	} `json:"videoMetadata"`
 	Source string `json:"source"`
+}
+
+type GoogleImageGenerationReq struct {
+	Contents         []Content        `json:"contents"`
+	Tools            any              `json:"tools,omitempty"`
+	GenerationConfig GenerationConfig `json:"generationConfig,omitempty"`
 }

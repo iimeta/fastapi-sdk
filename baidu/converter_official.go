@@ -43,3 +43,23 @@ func (b *Baidu) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, r
 	//TODO implement me
 	panic("implement me")
 }
+
+func (b *Baidu) ConvImageGenerationsRequestOfficial(ctx context.Context, request model.ImageGenerationRequest) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvImageGenerationsResponseOfficial(ctx context.Context, response model.ImageResponse) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvImageEditsRequestOfficial(ctx context.Context, request model.ImageEditRequest) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *Baidu) ConvImageEditsResponseOfficial(ctx context.Context, response model.ImageResponse) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}

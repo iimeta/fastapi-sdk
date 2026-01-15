@@ -38,6 +38,11 @@ type Converter interface {
 	ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (data *bytes.Buffer, err error)
 	ConvImageEditsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error)
 
+	ConvImageGenerationsRequestOfficial(ctx context.Context, request model.ImageGenerationRequest) ([]byte, error)
+	ConvImageGenerationsResponseOfficial(ctx context.Context, response model.ImageResponse) ([]byte, error)
+	ConvImageEditsRequestOfficial(ctx context.Context, request model.ImageEditRequest) ([]byte, error)
+	ConvImageEditsResponseOfficial(ctx context.Context, response model.ImageResponse) ([]byte, error)
+
 	ConvAudioSpeechRequest(ctx context.Context, data []byte) (request model.SpeechRequest, err error)
 	ConvAudioSpeechResponse(ctx context.Context, data []byte) (response model.SpeechResponse, err error)
 	ConvAudioTranscriptionsRequest(ctx context.Context, request model.AudioRequest) (data *bytes.Buffer, err error)

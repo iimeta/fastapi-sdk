@@ -8,6 +8,7 @@ type AdapterOptions struct {
 	Key                     string
 	BaseUrl                 string
 	Path                    string
+	Action                  string
 	Timeout                 time.Duration
 	ProxyUrl                string
 	IsSupportSystemRole     *bool
