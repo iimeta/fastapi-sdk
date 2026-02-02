@@ -32,6 +32,10 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Aliyun {
 		aliyun.BaseUrl = "https://dashscope.aliyuncs.com/api/v1"
 	}
 
+	for k, v := range aliyun.Header {
+		aliyun.header[k] = v
+	}
+
 	logger.Infof(ctx, "NewAdapter Aliyun model: %s, key: %s", aliyun.Model, aliyun.Key)
 
 	return aliyun

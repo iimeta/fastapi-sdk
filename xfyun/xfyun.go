@@ -77,6 +77,10 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Xfyun {
 		}
 	}
 
+	for k, v := range xfyun.Header {
+		xfyun.header[k] = v
+	}
+
 	logger.Infof(ctx, "NewAdapter Xfyun model: %s, key: %s", xfyun.Model, xfyun.Key)
 
 	return xfyun

@@ -30,6 +30,10 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Baidu {
 
 	baidu.Path += "?access_token=" + options.Key
 
+	for k, v := range baidu.Header {
+		baidu.header[k] = v
+	}
+
 	logger.Infof(ctx, "NewAdapter Baidu model: %s, key: %s", baidu.Model, baidu.Key)
 
 	return baidu

@@ -32,6 +32,10 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Google {
 		google.BaseUrl = "https://generativelanguage.googleapis.com/v1beta"
 	}
 
+	for k, v := range google.Header {
+		google.header[k] = v
+	}
+
 	logger.Infof(ctx, "NewAdapter Google model: %s, key: %s", google.Model, google.Key)
 
 	return google

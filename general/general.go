@@ -25,6 +25,10 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *General {
 		},
 	}
 
+	for k, v := range general.Header {
+		general.header[k] = v
+	}
+
 	logger.Infof(ctx, "NewAdapter General model: %s, key: %s", general.Model, general.Key)
 
 	return general

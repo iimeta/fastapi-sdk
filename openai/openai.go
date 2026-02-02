@@ -35,6 +35,10 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *OpenAI {
 		openai.BaseUrl = "https://api.openai.com/v1"
 	}
 
+	for k, v := range openai.Header {
+		openai.header[k] = v
+	}
+
 	logger.Infof(ctx, "NewAdapter OpenAI model: %s, key: %s", openai.Model, openai.Key)
 
 	return openai
@@ -78,6 +82,10 @@ func NewAzureAdapter(ctx context.Context, options *options.AdapterOptions) *Open
 		if azure.Path != "" {
 			azure.Path += "?api-version=" + azure.apiVersion
 		}
+	}
+
+	for k, v := range azure.Header {
+		azure.header[k] = v
 	}
 
 	logger.Infof(ctx, "NewAzureAdapter OpenAI model: %s, baseUrl: %s, key: %s", azure.Model, azure.BaseUrl, azure.Key)

@@ -35,6 +35,10 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *VolcEngin
 		volcengine.BaseUrl = "https://ark.cn-beijing.volces.com/api/v3"
 	}
 
+	for k, v := range volcengine.Header {
+		volcengine.header[k] = v
+	}
+
 	logger.Infof(ctx, "NewAdapter VolcEngine model: %s, key: %s", volcengine.Model, volcengine.Key)
 
 	return volcengine
