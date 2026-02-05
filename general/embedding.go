@@ -19,13 +19,7 @@ func (g *General) TextEmbeddings(ctx context.Context, data []byte) (response mod
 		logger.Infof(ctx, "TextEmbeddings General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	request, err := g.ConvTextEmbeddingsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "TextEmbeddings General ConvTextEmbeddingsRequest error: %v", err)
-		return response, err
-	}
-
-	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "TextEmbeddings General model: %s, error: %v", g.Model, err)
 		return response, err

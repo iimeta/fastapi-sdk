@@ -19,13 +19,7 @@ func (g *General) AudioSpeech(ctx context.Context, data []byte) (response model.
 		logger.Infof(ctx, "AudioSpeech General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	request, err := g.ConvAudioSpeechRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "AudioSpeech General ConvAudioSpeechRequest error: %v", err)
-		return response, err
-	}
-
-	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "AudioSpeech General model: %s, error: %v", g.Model, err)
 		return response, err

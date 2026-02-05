@@ -13,19 +13,13 @@ func (g *General) ImageGenerations(ctx context.Context, data []byte) (response m
 
 	logger.Infof(ctx, "ImageGenerations General model: %s start", g.Model)
 
-	request, err := g.ConvImageGenerationsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ImageGenerations General ConvImageGenerationsRequest error: %v", err)
-		return response, err
-	}
-
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
 		logger.Infof(ctx, "ImageGenerations General model: %s totalTime: %d ms", g.Model, gtime.TimestampMilli()-now)
 	}()
 
-	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageGenerations General model: %s, error: %v", g.Model, err)
 		return response, err

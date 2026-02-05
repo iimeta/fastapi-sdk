@@ -13,17 +13,17 @@ func (o *OpenAI) ImageGenerations(ctx context.Context, data []byte) (response mo
 
 	logger.Infof(ctx, "ImageGenerations OpenAI model: %s start", o.Model)
 
-	request, err := o.ConvImageGenerationsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ImageGenerations OpenAI ConvImageGenerationsRequest error: %v", err)
-		return response, err
-	}
-
 	now := gtime.TimestampMilli()
 	defer func() {
 		response.TotalTime = gtime.TimestampMilli() - now
 		logger.Infof(ctx, "ImageGenerations OpenAI model: %s totalTime: %d ms", o.Model, gtime.TimestampMilli()-now)
 	}()
+
+	request, err := o.ConvImageGenerationsRequest(ctx, data)
+	if err != nil {
+		logger.Errorf(ctx, "ImageGenerations OpenAI ConvImageGenerationsRequest error: %v", err)
+		return response, err
+	}
 
 	if o.Path == "" {
 		if o.isAzure {
