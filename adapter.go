@@ -60,7 +60,7 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) AdapterGro
 	logger.Infof(ctx, "NewAdapter provider: %s", options.Provider)
 
 	switch options.Provider {
-	case consts.PROVIDER_OPENAI:
+	case consts.PROVIDER_OPENAI, consts.PROVIDER_FASTAPI:
 		return openai.NewAdapter(ctx, options)
 	case consts.PROVIDER_ANTHROPIC:
 		return anthropic.NewAdapter(ctx, options)

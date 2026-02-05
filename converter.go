@@ -71,7 +71,7 @@ func NewConverter(ctx context.Context, options *options.AdapterOptions) Converte
 	logger.Infof(ctx, "NewConverter provider: %s", options.Provider)
 
 	switch options.Provider {
-	case consts.PROVIDER_OPENAI:
+	case consts.PROVIDER_OPENAI, consts.PROVIDER_FASTAPI:
 		return &openai.OpenAI{AdapterOptions: options}
 	case consts.PROVIDER_ANTHROPIC:
 		return &anthropic.Anthropic{AdapterOptions: options}
