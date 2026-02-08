@@ -263,9 +263,19 @@ func (g *Google) ConvImageGenerationsResponse(ctx context.Context, data []byte) 
 	}
 
 	if len(chatCompletionRes.Candidates) > 0 && len(chatCompletionRes.Candidates[0].Content.Parts) > 0 {
-		response.Data = []model.ImageResponseData{{
-			B64Json: chatCompletionRes.Candidates[0].Content.Parts[0].InlineData.Data,
-		}}
+
+		response.Data = []model.ImageResponseData{{}}
+
+		for _, part := range chatCompletionRes.Candidates[0].Content.Parts {
+
+			if part.Text != "" {
+				response.Data[0].RevisedPrompt = part.Text
+			}
+
+			if part.InlineData != nil {
+				response.Data[0].B64Json = part.InlineData.Data
+			}
+		}
 	}
 
 	if chatCompletionRes.UsageMetadata != nil {
