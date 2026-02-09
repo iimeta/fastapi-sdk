@@ -238,6 +238,30 @@ func (g *Google) ConvImageGenerationsRequest(ctx context.Context, data []byte) (
 		return request, err
 	}
 
+	if request == (model.ImageGenerationRequest{}) {
+
+		googleImageGenerationReq := model.GoogleImageGenerationReq{}
+		if err = json.Unmarshal(data, &googleImageGenerationReq); err != nil {
+			logger.Error(ctx, err)
+			return request, err
+		}
+
+		request.Model = g.Model
+
+		if len(googleImageGenerationReq.Contents) > 0 && len(googleImageGenerationReq.Contents[0].Parts) > 0 {
+			for _, part := range googleImageGenerationReq.Contents[0].Parts {
+				if part.Text != "" {
+					request.Prompt += part.Text
+				}
+			}
+		}
+
+		if googleImageGenerationReq.GenerationConfig.ImageConfig != nil {
+			request.Quality = googleImageGenerationReq.GenerationConfig.ImageConfig.ImageSize
+			request.AspectRatio = googleImageGenerationReq.GenerationConfig.ImageConfig.AspectRatio
+		}
+	}
+
 	return request, nil
 }
 
