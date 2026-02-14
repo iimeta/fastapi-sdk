@@ -33,57 +33,39 @@ func (a *Anthropic) ChatCompletionsOfficial(ctx context.Context, data []byte) (r
 		logger.Infof(ctx, "ChatCompletionsOfficial Anthropic model: %s totalTime: %d ms", a.Model, res.TotalTime)
 	}()
 
-	request := make(map[string]any)
-	if err = json.Unmarshal(data, &request); err != nil {
-		logger.Errorf(ctx, "ChatCompletionsOfficial Anthropic model: %s, data: %s, json.Unmarshal error: %v", a.Model, data, err)
+	if a.isGcp || a.isAws {
+
+		request := make(map[string]any)
+		if err = json.Unmarshal(data, &request); err != nil {
+			logger.Errorf(ctx, "ChatCompletionsOfficial Anthropic model: %s, data: %s, json.Unmarshal error: %v", a.Model, data, err)
+			return res, err
+		}
+
+		if a.isGcp {
+			delete(request, "model")
+			data = gjson.MustEncode(request)
+		}
+
+		if a.isAws {
+
+			request["anthropic_version"] = "bedrock-2023-05-31"
+			delete(request, "metadata")
+			delete(request, "model")
+			delete(request, "stream")
+
+			data = gjson.MustEncode(request)
+
+			a.header = signHeader(a.Path, a.region, a.accessKey, a.secretKey, data)
+		}
+	}
+
+	if a.Path == "" {
+		a.Path = "/messages"
+	}
+
+	if res.ResponseBytes, err = util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, &res, a.Timeout, a.ProxyUrl, a.requestErrorHandler); err != nil {
+		logger.Errorf(ctx, "ChatCompletionsOfficial Anthropic model: %s, error: %v", a.Model, err)
 		return res, err
-	}
-
-	if a.isGcp {
-		delete(request, "model")
-	}
-
-	if a.isAws {
-
-		request["anthropic_version"] = "bedrock-2023-05-31"
-		delete(request, "metadata")
-
-		invokeModelInput := &bedrockruntime.InvokeModelInput{
-			ModelId:     aws.String(gconv.String(request["model"])),
-			Accept:      aws.String("application/json"),
-			ContentType: aws.String("application/json"),
-		}
-
-		delete(request, "model")
-
-		if invokeModelInput.Body, err = gjson.Marshal(request); err != nil {
-			logger.Errorf(ctx, "ChatCompletionsOfficial Anthropic model: %s, request: %s, gjson.Marshal error: %v", a.Model, gjson.MustEncodeString(request), err)
-			return res, err
-		}
-
-		invokeModelOutput, err := a.awsClient.InvokeModel(ctx, invokeModelInput)
-		if err != nil {
-			logger.Errorf(ctx, "ChatCompletionsOfficial Anthropic model: %s, invokeModelInput: %s, awsClient.InvokeModel error: %v", a.Model, gjson.MustEncodeString(invokeModelInput), err)
-			return res, err
-		}
-
-		if err = json.Unmarshal(invokeModelOutput.Body, &res); err != nil {
-			logger.Errorf(ctx, "ChatCompletionsOfficial Anthropic model: %s, invokeModelOutput.Body: %s, json.Unmarshal error: %v", a.Model, invokeModelOutput.Body, err)
-			return res, err
-		}
-
-		res.ResponseBytes = invokeModelOutput.Body
-
-	} else {
-
-		if a.Path == "" {
-			a.Path = "/messages"
-		}
-
-		if res.ResponseBytes, err = util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, request, &res, a.Timeout, a.ProxyUrl, a.requestErrorHandler); err != nil {
-			logger.Errorf(ctx, "ChatCompletionsOfficial Anthropic model: %s, error: %v", a.Model, err)
-			return res, err
-		}
 	}
 
 	if res.Error != nil && res.Error.Type != "" {

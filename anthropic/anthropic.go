@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/iimeta/fastapi-sdk/v2/consts"
 	"github.com/iimeta/fastapi-sdk/v2/errors"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
 	"github.com/iimeta/fastapi-sdk/v2/model"
@@ -24,6 +24,9 @@ type Anthropic struct {
 	isGcp     bool
 	isAws     bool
 	awsClient *bedrockruntime.Client
+	region    string
+	accessKey string
+	secretKey string
 }
 
 func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Anthropic {
@@ -84,10 +87,19 @@ func NewAwsAdapter(ctx context.Context, options *options.AdapterOptions) *Anthro
 	aws := &Anthropic{
 		AdapterOptions: options,
 		isAws:          true,
-		awsClient: bedrockruntime.New(bedrockruntime.Options{
-			Region:      result[0],
-			Credentials: aws.NewCredentialsCache(credentials.NewStaticCredentialsProvider(result[1], result[2], "")),
-		}),
+		region:         result[0],
+		accessKey:      result[1],
+		secretKey:      result[2],
+	}
+
+	if aws.BaseUrl == "" || aws.BaseUrl == consts.PROVIDER_AWS_CLAUDE {
+		aws.BaseUrl = fmt.Sprintf("https://bedrock-runtime.%s.amazonaws.com", result[0])
+	} else if strings.HasSuffix(aws.BaseUrl, "/") {
+		aws.BaseUrl = aws.BaseUrl[:len(aws.BaseUrl)-1]
+	}
+
+	if options.Path == "" {
+		options.Path = fmt.Sprintf("/model/%s/invoke", options.Model)
 	}
 
 	logger.Infof(ctx, "NewAwsAdapter Anthropic model: %s, key: %s", aws.Model, aws.Key)

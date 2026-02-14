@@ -42,8 +42,6 @@ func (a *Anthropic) ChatCompletions(ctx context.Context, data any) (response mod
 		}
 	}
 
-	var bytes []byte
-
 	if a.isAws {
 
 		chatCompletionReq := model.AnthropicChatCompletionReq{}
@@ -55,42 +53,24 @@ func (a *Anthropic) ChatCompletions(ctx context.Context, data any) (response mod
 		}
 
 		chatCompletionReq.AnthropicVersion = "bedrock-2023-05-31"
+		chatCompletionReq.Model = ""
 		chatCompletionReq.Metadata = nil
 
-		invokeModelInput := &bedrockruntime.InvokeModelInput{
-			ModelId:     aws.String(chatCompletionReq.Model),
-			Accept:      aws.String("application/json"),
-			ContentType: aws.String("application/json"),
-		}
+		data = gjson.MustEncode(chatCompletionReq)
 
-		chatCompletionReq.Model = ""
-
-		if invokeModelInput.Body, err = gjson.Marshal(chatCompletionReq); err != nil {
-			logger.Errorf(ctx, "ChatCompletions Anthropic model: %s, chatCompletionReq: %s, gjson.Marshal error: %v", a.Model, gjson.MustEncodeString(chatCompletionReq), err)
-			return response, err
-		}
-
-		invokeModelOutput, err := a.awsClient.InvokeModel(ctx, invokeModelInput)
-		if err != nil {
-			logger.Errorf(ctx, "ChatCompletions Anthropic model: %s, invokeModelInput: %s, awsClient.InvokeModel error: %v", a.Model, gjson.MustEncodeString(invokeModelInput), err)
-			return response, err
-		}
-
-		bytes = invokeModelOutput.Body
-
-	} else {
-
-		if a.Path == "" {
-			a.Path = "/messages"
-		}
-
-		if bytes, err = util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, nil, a.Timeout, a.ProxyUrl, a.requestErrorHandler); err != nil {
-			logger.Errorf(ctx, "ChatCompletions Anthropic model: %s, error: %v", a.Model, err)
-			return response, err
-		}
+		a.header = signHeader(a.Path, a.region, a.accessKey, a.secretKey, data.([]byte))
 	}
 
-	if response, err = a.ConvChatCompletionsResponse(ctx, bytes); err != nil {
+	if a.Path == "" {
+		a.Path = "/messages"
+	}
+
+	if response.ResponseBytes, err = util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, nil, a.Timeout, a.ProxyUrl, a.requestErrorHandler); err != nil {
+		logger.Errorf(ctx, "ChatCompletions Anthropic model: %s, error: %v", a.Model, err)
+		return response, err
+	}
+
+	if response, err = a.ConvChatCompletionsResponse(ctx, response.ResponseBytes); err != nil {
 		logger.Errorf(ctx, "ChatCompletions Anthropic ConvChatCompletionsResponse error: %v", err)
 		return response, err
 	}
