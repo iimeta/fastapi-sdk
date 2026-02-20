@@ -29,8 +29,8 @@ var (
 type RequestErrorHandler func(ctx context.Context, response *http.Response) (err error)
 
 type StreamReader struct {
+	Response           *http.Response
 	reader             *bufio.Reader
-	response           *http.Response
 	emptyMessagesLimit uint
 	isFinished         bool
 }
@@ -117,8 +117,8 @@ func SSEClient(ctx context.Context, rawURL string, header map[string]string, dat
 	}
 
 	stream = &StreamReader{
+		Response:           response,
 		reader:             bufio.NewReader(response.Body),
-		response:           response,
 		emptyMessagesLimit: 300,
 	}
 
@@ -174,7 +174,7 @@ func (stream *StreamReader) processLines() ([]byte, error) {
 }
 
 func (stream *StreamReader) Close() error {
-	return stream.response.Body.Close()
+	return stream.Response.Body.Close()
 }
 
 func isFailureStatusCode(resp *http.Response) bool {

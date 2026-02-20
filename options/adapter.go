@@ -11,6 +11,7 @@ type AdapterOptions struct {
 	Header                  map[string]string
 	Timeout                 time.Duration
 	ProxyUrl                string
+	Stream                  bool
 	Action                  string
 	IsSupportSystemRole     *bool
 	IsSupportStream         *bool

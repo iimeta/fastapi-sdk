@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/v2/consts"
@@ -23,7 +22,6 @@ type Anthropic struct {
 	header    map[string]string
 	isGcp     bool
 	isAws     bool
-	awsClient *bedrockruntime.Client
 	region    string
 	accessKey string
 	secretKey string
@@ -99,7 +97,11 @@ func NewAwsAdapter(ctx context.Context, options *options.AdapterOptions) *Anthro
 	}
 
 	if options.Path == "" {
-		options.Path = fmt.Sprintf("/model/%s/invoke", options.Model)
+		if options.Stream {
+			options.Path = fmt.Sprintf("/model/%s/invoke-with-response-stream", options.Model)
+		} else {
+			options.Path = fmt.Sprintf("/model/%s/invoke", options.Model)
+		}
 	}
 
 	logger.Infof(ctx, "NewAwsAdapter Anthropic model: %s, key: %s", aws.Model, aws.Key)

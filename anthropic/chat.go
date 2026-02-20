@@ -2,15 +2,15 @@ package anthropic
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
-	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime/types"
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/util/gconv"
+	"github.com/iimeta/fastapi-sdk/v2/anthropic/aws"
 	"github.com/iimeta/fastapi-sdk/v2/consts"
 	"github.com/iimeta/fastapi-sdk/v2/errors"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
@@ -58,7 +58,7 @@ func (a *Anthropic) ChatCompletions(ctx context.Context, data any) (response mod
 
 		data = gjson.MustEncode(chatCompletionReq)
 
-		a.header = signHeader(a.Path, a.region, a.accessKey, a.secretKey, data.([]byte))
+		a.header = aws.SignHeader(a.Path, a.region, a.accessKey, a.secretKey, data.([]byte))
 	}
 
 	if a.Path == "" {
@@ -116,27 +116,17 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 
 		chatCompletionReq.AnthropicVersion = "bedrock-2023-05-31"
 		chatCompletionReq.Stream = false
-
-		invokeModelStreamInput := &bedrockruntime.InvokeModelWithResponseStreamInput{
-			ModelId:     aws.String(chatCompletionReq.Model),
-			Accept:      aws.String("application/json"),
-			ContentType: aws.String("application/json"),
-		}
-
 		chatCompletionReq.Model = ""
 
-		if invokeModelStreamInput.Body, err = gjson.Marshal(chatCompletionReq); err != nil {
-			logger.Error(ctx, err)
-			return responseChan, err
-		}
+		data = gjson.MustEncode(chatCompletionReq)
 
-		invokeModelStreamOutput, err := a.awsClient.InvokeModelWithResponseStream(ctx, invokeModelStreamInput)
+		a.header = aws.SignHeader(a.Path, a.region, a.accessKey, a.secretKey, data.([]byte))
+
+		stream, err := util.SSEClient(ctx, a.BaseUrl+a.Path, a.header, data, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
 		if err != nil {
-			logger.Error(ctx, err)
+			logger.Errorf(ctx, "ChatCompletionsStream Anthropic model: %s, error: %v", a.Model, err)
 			return responseChan, err
 		}
-
-		stream := invokeModelStreamOutput.GetStream()
 
 		duration := gtime.TimestampMilli()
 
@@ -153,56 +143,60 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 				logger.Infof(ctx, "ChatCompletionsStream Anthropic model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", a.Model, duration-now, end-duration, end-now)
 			}()
 
-			var id string
-			var promptTokens int
+			var (
+				payloadBuf   = make([]byte, 10*1024)
+				id           string
+				promptTokens int
+			)
 
 			for {
 
-				event, ok := <-stream.Events()
-				if !ok {
+				payloadBuf = payloadBuf[0:0]
 
-					logger.Errorf(ctx, "ChatCompletionsStream Anthropic model: %s, error: %v", a.Model, context.Canceled)
+				decodedMessage, err := aws.DecodeMessage(stream.Response.Body, payloadBuf)
+				if err != nil {
+
+					if errors.Is(err, io.EOF) {
+						logger.Infof(ctx, "ChatCompletionsStream Anthropic model: %s finished", a.Model)
+					} else {
+						logger.Errorf(ctx, "ChatCompletionsStream Anthropic model: %s, error: %v", a.Model, err)
+					}
 
 					end := gtime.TimestampMilli()
 					responseChan <- &model.ChatCompletionResponse{
 						ConnTime:  duration - now,
 						Duration:  end - duration,
 						TotalTime: end - now,
-						Error:     context.Canceled,
+						Error:     err,
 					}
 
 					return
 				}
 
-				var bytes []byte
-
-				switch v := event.(type) {
-				case *types.ResponseStreamMemberChunk:
-
-					bytes = v.Value.Bytes
-
-				case *types.UnknownUnionMember:
+				payload := make(map[string]any)
+				if err := json.Unmarshal(decodedMessage.Payload, &payload); err != nil {
+					logger.Errorf(ctx, "ChatCompletionsStream Anthropic json.Unmarshal(decodedMessage.Payload, &payload), payload: %s, error: %v", decodedMessage.Payload, err)
 
 					end := gtime.TimestampMilli()
 					responseChan <- &model.ChatCompletionResponse{
 						ConnTime:  duration - now,
 						Duration:  end - duration,
 						TotalTime: end - now,
-						Error:     errors.New("unknown tag:" + v.Tag),
+						Error:     err,
 					}
+				}
 
-					return
-				default:
+				bytes, err := base64.StdEncoding.DecodeString(gconv.String(payload["bytes"]))
+				if err != nil {
+					logger.Errorf(ctx, `ChatCompletionsStream Anthropic base64.StdEncoding.DecodeString(gconv.String(payload["bytes"])), bytes: %s, error: %v`, payload["bytes"], err)
 
 					end := gtime.TimestampMilli()
 					responseChan <- &model.ChatCompletionResponse{
 						ConnTime:  duration - now,
 						Duration:  end - duration,
 						TotalTime: end - now,
-						Error:     errors.New("unknown type"),
+						Error:     err,
 					}
-
-					return
 				}
 
 				response, err := a.ConvChatCompletionsStreamResponse(ctx, bytes)
@@ -267,6 +261,7 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 
 				responseChan <- &response
 			}
+
 		}, nil); err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream Anthropic model: %s, error: %v", a.Model, err)
 			return responseChan, err

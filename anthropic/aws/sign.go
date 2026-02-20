@@ -1,4 +1,4 @@
-package anthropic
+package aws
 
 import (
 	"crypto/sha256"
@@ -11,7 +11,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/v2/util"
 )
 
-func signHeader(path, region, accessKey, secretKey string, data []byte) map[string]string {
+func SignHeader(path, region, accessKey, secretKey string, data []byte) map[string]string {
 
 	now := time.Now().UTC()
 	header := make(map[string]string)
