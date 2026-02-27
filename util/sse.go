@@ -17,9 +17,11 @@ import (
 )
 
 var (
-	headerData        = []byte("data: ")
-	headerDataNoSpace = []byte("data:")
-	errorPrefix       = []byte(`data: {"errors":`)
+	headerEvent        = []byte("event: ")
+	headerEventNoSpace = []byte("event:")
+	headerData         = []byte("data: ")
+	headerDataNoSpace  = []byte("data:")
+	errorPrefix        = []byte(`data: {"errors":`)
 )
 
 var (
@@ -32,6 +34,7 @@ type StreamReader struct {
 	Response           *http.Response
 	reader             *bufio.Reader
 	emptyMessagesLimit uint
+	event              string
 	isFinished         bool
 }
 
@@ -136,41 +139,50 @@ func (stream *StreamReader) Recv() (response []byte, err error) {
 
 func (stream *StreamReader) processLines() ([]byte, error) {
 
-	var (
-		emptyMessagesCount uint
-		hasErrorPrefix     bool
-	)
+	var emptyMessagesCount uint
 
 	for {
 
 		rawLine, readErr := stream.reader.ReadBytes('\n')
-		if readErr != nil || hasErrorPrefix {
+		if readErr != nil {
 			return rawLine, readErr
 		}
 
-		noSpaceLine := bytes.TrimSpace(rawLine)
-		if bytes.HasPrefix(noSpaceLine, errorPrefix) {
-			hasErrorPrefix = true
-		}
-
-		if (!bytes.HasPrefix(noSpaceLine, headerData) && !bytes.HasPrefix(noSpaceLine, headerDataNoSpace)) || hasErrorPrefix {
-
-			emptyMessagesCount++
-			if emptyMessagesCount > stream.emptyMessagesLimit {
-				return nil, ErrTooManyEmptyStreamMessages
-			}
-
+		line := bytes.TrimSpace(rawLine)
+		if len(line) == 0 {
+			stream.event = ""
 			continue
 		}
 
-		noPrefixLine := bytes.TrimPrefix(bytes.TrimPrefix(noSpaceLine, headerData), headerDataNoSpace)
-		if string(noPrefixLine) == "[DONE]" {
-			stream.isFinished = true
-			return nil, io.EOF
+		if bytes.HasPrefix(line, errorPrefix) {
+			return rawLine, fmt.Errorf("received error line: %s", rawLine)
 		}
 
-		return noPrefixLine, nil
+		if bytes.HasPrefix(line, headerEvent) || bytes.HasPrefix(line, headerEventNoSpace) {
+			eventVal := bytes.TrimPrefix(bytes.TrimPrefix(line, headerEvent), headerEventNoSpace)
+			stream.event = string(bytes.TrimSpace(eventVal))
+			continue
+		}
+
+		if bytes.HasPrefix(line, headerData) || bytes.HasPrefix(line, headerDataNoSpace) {
+			dataVal := bytes.TrimPrefix(bytes.TrimPrefix(line, headerData), headerDataNoSpace)
+			trimmedData := bytes.TrimSpace(dataVal)
+			if string(trimmedData) == "[DONE]" {
+				stream.isFinished = true
+				return nil, io.EOF
+			}
+			return trimmedData, nil
+		}
+
+		emptyMessagesCount++
+		if emptyMessagesCount > stream.emptyMessagesLimit {
+			return nil, ErrTooManyEmptyStreamMessages
+		}
 	}
+}
+
+func (stream *StreamReader) Event() string {
+	return stream.event
 }
 
 func (stream *StreamReader) Close() error {

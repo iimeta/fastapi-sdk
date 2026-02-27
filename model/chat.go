@@ -46,6 +46,7 @@ type ChatCompletionResponse struct {
 	SystemFingerprint string                 `json:"system_fingerprint,omitempty"`
 	Obfuscation       string                 `json:"obfuscation,omitempty"`
 	PromptAnnotations []PromptAnnotation     `json:"prompt_annotations,omitempty"`
+	SSEEvent          string                 `json:"-"`
 	ResponseBytes     []byte                 `json:"-"`
 	ConnTime          int64                  `json:"-"`
 	Duration          int64                  `json:"-"`

@@ -301,6 +301,7 @@ func (a *Anthropic) ChatCompletionsStreamOfficial(ctx context.Context, data []by
 
 					end := gtime.TimestampMilli()
 					responseChan <- &model.AnthropicChatCompletionRes{
+						SSEEvent:  stream.Event(),
 						ConnTime:  duration - now,
 						Duration:  end - duration,
 						TotalTime: end - now,
@@ -316,6 +317,7 @@ func (a *Anthropic) ChatCompletionsStreamOfficial(ctx context.Context, data []by
 
 					end := gtime.TimestampMilli()
 					responseChan <- &model.AnthropicChatCompletionRes{
+						SSEEvent:  stream.Event(),
 						ConnTime:  duration - now,
 						Duration:  end - duration,
 						TotalTime: end - now,
@@ -333,6 +335,7 @@ func (a *Anthropic) ChatCompletionsStreamOfficial(ctx context.Context, data []by
 
 					end := gtime.TimestampMilli()
 					responseChan <- &model.AnthropicChatCompletionRes{
+						SSEEvent:  stream.Event(),
 						ConnTime:  duration - now,
 						Duration:  end - duration,
 						TotalTime: end - now,
@@ -355,26 +358,9 @@ func (a *Anthropic) ChatCompletionsStreamOfficial(ctx context.Context, data []by
 					Delta:         chatCompletionRes.Delta,
 					Usage:         chatCompletionRes.Usage,
 					Error:         chatCompletionRes.Error,
+					SSEEvent:      stream.Event(),
 					ResponseBytes: responseBytes,
 					ConnTime:      duration - now,
-				}
-
-				if chatCompletionRes.Delta.StopReason != "" {
-					logger.Infof(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s finished", a.Model)
-
-					end := gtime.TimestampMilli()
-					response.Duration = end - duration
-					response.TotalTime = end - now
-					responseChan <- response
-
-					responseChan <- &model.AnthropicChatCompletionRes{
-						ConnTime:  duration - now,
-						Duration:  end - duration,
-						TotalTime: end - now,
-						Err:       io.EOF,
-					}
-
-					return
 				}
 
 				end := gtime.TimestampMilli()

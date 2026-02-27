@@ -29,6 +29,7 @@ type AnthropicChatCompletionRes struct {
 	Delta         AnthropicContent   `json:"delta"`
 	Usage         *AnthropicUsage    `json:"usage,omitempty"`
 	Error         *AnthropicError    `json:"error,omitempty"`
+	SSEEvent      string             `json:"-"`
 	ResponseBytes []byte             `json:"-"`
 	ConnTime      int64              `json:"-"`
 	Duration      int64              `json:"-"`

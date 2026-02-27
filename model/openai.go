@@ -67,6 +67,7 @@ type OpenAIResponsesStreamRes struct {
 	Delta          string                  `json:"delta"`
 	Part           OpenAIResponsesPart     `json:"part"`
 	Arguments      string                  `json:"arguments"`
+	SSEEvent       string                  `json:"-"`
 	ResponseBytes  []byte                  `json:"-"`
 	ConnTime       int64                   `json:"-"`
 	Duration       int64                   `json:"-"`

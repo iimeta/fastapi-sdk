@@ -108,6 +108,7 @@ func (o *OpenAI) ResponsesStream(ctx context.Context, data []byte) (responseChan
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.OpenAIResponsesStreamRes{
+					SSEEvent:  stream.Event(),
 					ConnTime:  duration - now,
 					Duration:  end - duration,
 					TotalTime: end - now,
@@ -123,6 +124,7 @@ func (o *OpenAI) ResponsesStream(ctx context.Context, data []byte) (responseChan
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.OpenAIResponsesStreamRes{
+					SSEEvent:  stream.Event(),
 					ConnTime:  duration - now,
 					Duration:  end - duration,
 					TotalTime: end - now,
@@ -140,6 +142,7 @@ func (o *OpenAI) ResponsesStream(ctx context.Context, data []byte) (responseChan
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.OpenAIResponsesStreamRes{
+					SSEEvent:  stream.Event(),
 					ConnTime:  duration - now,
 					Duration:  end - duration,
 					TotalTime: end - now,
@@ -150,6 +153,7 @@ func (o *OpenAI) ResponsesStream(ctx context.Context, data []byte) (responseChan
 			}
 
 			response := &model.OpenAIResponsesStreamRes{
+				SSEEvent:      stream.Event(),
 				ResponseBytes: responseBytes,
 				ConnTime:      duration - now,
 			}
