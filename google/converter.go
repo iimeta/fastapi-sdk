@@ -165,12 +165,18 @@ func (g *Google) ConvChatCompletionsStreamResponse(ctx context.Context, data []b
 	}
 
 	for _, candidate := range chatCompletionRes.Candidates {
+
+		delta := &model.ChatCompletionStreamChoiceDelta{
+			Role: consts.ROLE_ASSISTANT,
+		}
+
+		if len(candidate.Content.Parts) > 0 {
+			delta.Content = candidate.Content.Parts[0].Text
+		}
+
 		response.Choices = append(response.Choices, model.ChatCompletionChoice{
 			Index: candidate.Index,
-			Delta: &model.ChatCompletionStreamChoiceDelta{
-				Role:    consts.ROLE_ASSISTANT,
-				Content: candidate.Content.Parts[0].Text,
-			},
+			Delta: delta,
 		})
 	}
 
