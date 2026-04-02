@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/v2/errors"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
 	"github.com/iimeta/fastapi-sdk/v2/options"
@@ -19,17 +18,12 @@ type VolcEngine struct {
 
 func NewAdapter(ctx context.Context, options *options.AdapterOptions) *VolcEngine {
 
-	split := gstr.Split(options.Key, "|")
-
 	volcengine := &VolcEngine{
 		AdapterOptions: options,
 		header: map[string]string{
-			"Authorization": "Bearer " + split[1],
+			"Authorization": "Bearer " + options.Key,
 		},
 	}
-
-	volcengine.Model = split[0]
-	volcengine.Key = split[1]
 
 	if volcengine.BaseUrl == "" {
 		volcengine.BaseUrl = "https://ark.cn-beijing.volces.com/api/v3"
