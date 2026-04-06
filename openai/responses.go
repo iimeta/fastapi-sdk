@@ -172,6 +172,41 @@ func (o *OpenAI) ResponsesStream(ctx context.Context, data []byte) (responseChan
 	return responseChan, nil
 }
 
+func (o *OpenAI) ResponsesCompact(ctx context.Context, data []byte) (res model.OpenAIResponsesRes, err error) {
+
+	logger.Infof(ctx, "ResponsesCompact OpenAI model: %s start", o.Model)
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		res.TotalTime = gtime.TimestampMilli() - now
+		logger.Infof(ctx, "ResponsesCompact OpenAI model: %s totalTime: %d ms", o.Model, res.TotalTime)
+	}()
+
+	if o.Path == "" {
+		if o.isAzure {
+			o.Path = "/openai/responses/compact?api-version=" + o.apiVersion
+		} else {
+			o.Path = "/responses/compact"
+		}
+	}
+
+	if res.ResponseBytes, err = util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, &res, o.Timeout, o.ProxyUrl, o.requestErrorHandler); err != nil {
+		logger.Errorf(ctx, "ResponsesCompact OpenAI model: %s, error: %v", o.Model, err)
+		return res, err
+	}
+
+	if res.Error != nil {
+		logger.Errorf(ctx, "ResponsesCompact OpenAI model: %s, responsesRes: %s", o.Model, gjson.MustEncodeString(res))
+
+		err = o.responsesErrorHandler(res.Error)
+		logger.Errorf(ctx, "ResponsesCompact OpenAI model: %s, error: %v", o.Model, err)
+
+		return res, err
+	}
+
+	return res, nil
+}
+
 func (o *OpenAI) ResponsesStreamToNonStream(ctx context.Context, data []byte) (responseChan chan *model.OpenAIResponsesStreamRes, err error) {
 
 	logger.Infof(ctx, "ResponsesStreamToNonStream OpenAI model: %s start", o.Model)
