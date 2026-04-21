@@ -174,12 +174,16 @@ func (v *VolcEngine) ConvVideoJobResponse(ctx context.Context, data []byte) (res
 	}
 
 	response = model.VideoJobResponse{
-		Id:        raw.Id,
-		Object:    "video",
-		Model:     raw.Model,
-		Status:    convVolcStatus(raw.Status),
-		CreatedAt: raw.CreatedAt,
+		Id:            raw.Id,
+		Object:        "video",
+		Model:         raw.Model,
+		Status:        convVolcStatus(raw.Status),
+		CreatedAt:     raw.CreatedAt,
+		ResponseBytes: data,
 	}
+
+	expiresAt := raw.CreatedAt + int64(raw.ExecutionExpiresAfter)
+	response.ExpiresAt = &expiresAt
 
 	if raw.Duration != nil && *raw.Duration > 0 {
 		response.Seconds = gconv.String(*raw.Duration)
@@ -200,7 +204,7 @@ func (v *VolcEngine) ConvVideoJobResponse(ctx context.Context, data []byte) (res
 	}
 
 	if raw.Usage != nil {
-		response.Usage = &model.VideoUsage{
+		response.Usage = &model.Usage{
 			CompletionTokens: raw.Usage.CompletionTokens,
 			TotalTokens:      raw.Usage.TotalTokens,
 		}

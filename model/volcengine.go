@@ -94,7 +94,7 @@ type VolcVideoTaskRes struct {
 	Draft                 *bool                   `json:"draft,omitempty"`
 	DraftTaskId           string                  `json:"draft_task_id,omitempty"`
 	ServiceTier           string                  `json:"service_tier,omitempty"`
-	ExecutionExpiresAfter *int                    `json:"execution_expires_after,omitempty"`
+	ExecutionExpiresAfter int                     `json:"execution_expires_after,omitempty"`
 	Usage                 *VolcVideoUsage         `json:"usage,omitempty"`
 }
 

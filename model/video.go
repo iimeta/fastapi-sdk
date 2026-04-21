@@ -66,13 +66,9 @@ type VideoJobResponse struct {
 	VideoUrl           string      `json:"video_url,omitempty"`
 	Deleted            bool        `json:"deleted,omitempty"`
 	Error              *VideoError `json:"error"`
-	Usage              *VideoUsage `json:"usage,omitempty"`
+	Usage              *Usage      `json:"usage,omitempty"`
+	ResponseBytes      []byte      `json:"-"`
 	TotalTime          int64       `json:"-"`
-}
-
-type VideoUsage struct {
-	CompletionTokens int `json:"completion_tokens"`
-	TotalTokens      int `json:"total_tokens"`
 }
 
 type VideoError struct {
