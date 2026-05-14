@@ -24,16 +24,19 @@ func (o *OpenAI) BatchCreate(ctx context.Context, request model.BatchCreateReque
 		o.Path = "/batches"
 	}
 
-	bytes, _, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	responseBytes, responseHeader, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "BatchCreate OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
 	}
 
-	if response, err = o.ConvBatchResponse(ctx, bytes); err != nil {
+	if response, err = o.ConvBatchResponse(ctx, responseBytes); err != nil {
 		logger.Errorf(ctx, "BatchCreate OpenAI ConvBatchResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = responseBytes
+	response.ResponseHeaders = responseHeader
 
 	logger.Infof(ctx, "BatchCreate OpenAI model: %s finished", o.Model)
 

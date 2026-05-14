@@ -2,6 +2,7 @@ package model
 
 import (
 	"mime/multipart"
+	"net/http"
 )
 
 type VideoCreateRequest struct {
@@ -68,6 +69,7 @@ type VideoJobResponse struct {
 	Error              *VideoError `json:"error"`
 	Usage              *Usage      `json:"usage,omitempty"`
 	ResponseBytes      []byte      `json:"-"`
+	ResponseHeaders    http.Header `json:"-"`
 	TotalTime          int64       `json:"-"`
 }
 

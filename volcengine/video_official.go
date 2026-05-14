@@ -3,6 +3,7 @@ package volcengine
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 
 	"github.com/gogf/gf/v2/os/gtime"
@@ -12,7 +13,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/v2/util"
 )
 
-func (v *VolcEngine) VideoCreateOfficial(ctx context.Context, data []byte) (responseBytes []byte, err error) {
+func (v *VolcEngine) VideoCreateOfficial(ctx context.Context, data []byte) (responseBytes []byte, responseHeader http.Header, err error) {
 
 	logger.Infof(ctx, "VideoCreateOfficial VolcEngine model: %s start", v.Model)
 
@@ -25,17 +26,17 @@ func (v *VolcEngine) VideoCreateOfficial(ctx context.Context, data []byte) (resp
 		v.Path = "/contents/generations/tasks"
 	}
 
-	if responseBytes, _, err = util.HttpPost(ctx, v.BaseUrl+v.Path, v.header, data, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler); err != nil {
+	if responseBytes, responseHeader, err = util.HttpPost(ctx, v.BaseUrl+v.Path, v.header, data, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "VideoCreateOfficial VolcEngine model: %s, error: %v", v.Model, err)
-		return nil, err
+		return nil, nil, err
 	}
 
 	logger.Infof(ctx, "VideoCreateOfficial VolcEngine model: %s finished", v.Model)
 
-	return responseBytes, nil
+	return responseBytes, responseHeader, nil
 }
 
-func (v *VolcEngine) VideoListOfficial(ctx context.Context, params model.VolcVideoListReq) (responseBytes []byte, err error) {
+func (v *VolcEngine) VideoListOfficial(ctx context.Context, params model.VolcVideoListReq) (responseBytes []byte, responseHeader http.Header, err error) {
 
 	logger.Infof(ctx, "VideoListOfficial VolcEngine model: %s start", v.Model)
 
@@ -74,17 +75,17 @@ func (v *VolcEngine) VideoListOfficial(ctx context.Context, params model.VolcVid
 		reqUrl += "?" + query.Encode()
 	}
 
-	if responseBytes, _, err = util.HttpGet(ctx, reqUrl, v.header, nil, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler); err != nil {
+	if responseBytes, responseHeader, err = util.HttpGet(ctx, reqUrl, v.header, nil, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "VideoListOfficial VolcEngine model: %s, error: %v", v.Model, err)
-		return nil, err
+		return nil, nil, err
 	}
 
 	logger.Infof(ctx, "VideoListOfficial VolcEngine model: %s finished", v.Model)
 
-	return responseBytes, nil
+	return responseBytes, responseHeader, nil
 }
 
-func (v *VolcEngine) VideoRetrieveOfficial(ctx context.Context, taskId string) (responseBytes []byte, err error) {
+func (v *VolcEngine) VideoRetrieveOfficial(ctx context.Context, taskId string) (responseBytes []byte, responseHeader http.Header, err error) {
 
 	logger.Infof(ctx, "VideoRetrieveOfficial VolcEngine model: %s, taskId: %s start", v.Model, taskId)
 
@@ -97,14 +98,14 @@ func (v *VolcEngine) VideoRetrieveOfficial(ctx context.Context, taskId string) (
 		v.Path = fmt.Sprintf("/contents/generations/tasks/%s", taskId)
 	}
 
-	if responseBytes, _, err = util.HttpGet(ctx, v.BaseUrl+v.Path, v.header, nil, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler); err != nil {
+	if responseBytes, responseHeader, err = util.HttpGet(ctx, v.BaseUrl+v.Path, v.header, nil, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "VideoRetrieveOfficial VolcEngine model: %s, error: %v", v.Model, err)
-		return nil, err
+		return nil, nil, err
 	}
 
 	logger.Infof(ctx, "VideoRetrieveOfficial VolcEngine model: %s, taskId: %s finished", v.Model, taskId)
 
-	return responseBytes, nil
+	return responseBytes, responseHeader, nil
 }
 
 func (v *VolcEngine) VideoDeleteOfficial(ctx context.Context, taskId string) (err error) {

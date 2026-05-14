@@ -28,10 +28,13 @@ func (g *General) ChatCompletionsOfficial(ctx context.Context, data []byte) (res
 		logger.Infof(ctx, "ChatCompletionsOfficial General model: %s totalTime: %d ms", g.Model, res.TotalTime)
 	}()
 
-	if res.ResponseBytes, _, err = util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, &res, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
+	var responseHeader map[string][]string
+	if res.ResponseBytes, responseHeader, err = util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, &res, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "ChatCompletionsOfficial General model: %s, error: %v", g.Model, err)
 		return res, err
 	}
+
+	res.ResponseHeaders = responseHeader
 
 	logger.Infof(ctx, "ChatCompletionsOfficial General model: %s finished", g.Model)
 
@@ -54,6 +57,8 @@ func (g *General) ChatCompletionsStreamOfficial(ctx context.Context, data []byte
 		logger.Errorf(ctx, "ChatCompletionsStreamOfficial General model: %s, error: %v", g.Model, err)
 		return responseChan, err
 	}
+
+	streamResponseHeaders := stream.Response.Header
 
 	duration := gtime.TimestampMilli()
 
@@ -83,11 +88,12 @@ func (g *General) ChatCompletionsStreamOfficial(ctx context.Context, data []byte
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{
-					ResponseBytes: responseBytes,
-					ConnTime:      duration - now,
-					Duration:      end - duration,
-					TotalTime:     end - now,
-					Error:         err,
+					ResponseBytes:   responseBytes,
+					ResponseHeaders: streamResponseHeaders,
+					ConnTime:        duration - now,
+					Duration:        end - duration,
+					TotalTime:       end - now,
+					Error:           err,
 				}
 
 				return
@@ -99,11 +105,12 @@ func (g *General) ChatCompletionsStreamOfficial(ctx context.Context, data []byte
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.ChatCompletionResponse{
-					ResponseBytes: responseBytes,
-					ConnTime:      duration - now,
-					Duration:      end - duration,
-					TotalTime:     end - now,
-					Error:         errors.New(fmt.Sprintf("response: %s, error: %v", responseBytes, err)),
+					ResponseBytes:   responseBytes,
+					ResponseHeaders: streamResponseHeaders,
+					ConnTime:        duration - now,
+					Duration:        end - duration,
+					TotalTime:       end - now,
+					Error:           errors.New(fmt.Sprintf("response: %s, error: %v", responseBytes, err)),
 				}
 
 				return
@@ -112,6 +119,7 @@ func (g *General) ChatCompletionsStreamOfficial(ctx context.Context, data []byte
 			end := gtime.TimestampMilli()
 
 			response.ResponseBytes = responseBytes
+			response.ResponseHeaders = streamResponseHeaders
 			response.ConnTime = duration - now
 			response.Duration = end - duration
 			response.TotalTime = end - now

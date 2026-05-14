@@ -19,7 +19,7 @@ func (g *General) BatchCreate(ctx context.Context, request model.BatchCreateRequ
 		logger.Infof(ctx, "BatchCreate General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, responseHeader, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "BatchCreate General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -29,6 +29,9 @@ func (g *General) BatchCreate(ctx context.Context, request model.BatchCreateRequ
 		logger.Errorf(ctx, "BatchCreate General ConvBatchResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = bytes
+	response.ResponseHeaders = responseHeader
 
 	logger.Infof(ctx, "BatchCreate General model: %s finished", g.Model)
 

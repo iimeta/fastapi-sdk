@@ -1,5 +1,7 @@
 package model
 
+import "net/http"
+
 type EmbeddingRequest struct {
 	Input          any    `json:"input"`
 	Model          string `json:"model"`
@@ -11,9 +13,11 @@ type EmbeddingRequest struct {
 }
 
 type EmbeddingResponse struct {
-	Object    string `json:"object"`
-	Data      []any  `json:"data"`
-	Model     string `json:"model"`
-	Usage     *Usage `json:"usage"`
-	TotalTime int64  `json:"-"`
+	Object          string      `json:"object"`
+	Data            []any       `json:"data"`
+	Model           string      `json:"model"`
+	Usage           *Usage      `json:"usage"`
+	ResponseBytes   []byte      `json:"-"`
+	ResponseHeaders http.Header `json:"-"`
+	TotalTime       int64       `json:"-"`
 }

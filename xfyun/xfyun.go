@@ -77,6 +77,12 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Xfyun {
 		}
 	}
 
+	xfyun.header = make(map[string]string)
+
+	for k, v := range xfyun.PassthroughHeader {
+		xfyun.header[k] = v
+	}
+
 	for k, v := range xfyun.Header {
 		xfyun.header[k] = v
 	}

@@ -33,10 +33,13 @@ func (g *Google) ChatCompletionsOfficial(ctx context.Context, data []byte) (resp
 		g.Path = "/models/" + g.Model
 	}
 
-	if res.ResponseBytes, _, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", g.BaseUrl+g.Path, g.Key), g.header, data, &res, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
+	var responseHeader map[string][]string
+	if res.ResponseBytes, responseHeader, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", g.BaseUrl+g.Path, g.Key), g.header, data, &res, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "ChatCompletionsOfficial Google model: %s, error: %v", g.Model, err)
 		return res, err
 	}
+
+	res.ResponseHeaders = responseHeader
 
 	if res.Error.Code != 0 || res.Candidates[0].FinishReason != "STOP" {
 		logger.Errorf(ctx, "ChatCompletionsOfficial Google model: %s, chatCompletionRes: %s", g.Model, gjson.MustEncodeString(res))
@@ -71,6 +74,8 @@ func (g *Google) ChatCompletionsStreamOfficial(ctx context.Context, data []byte)
 		return responseChan, err
 	}
 
+	streamResponseHeaders := stream.Response.Header
+
 	duration := gtime.TimestampMilli()
 
 	responseChan = make(chan any)
@@ -103,11 +108,12 @@ func (g *Google) ChatCompletionsStreamOfficial(ctx context.Context, data []byte)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.GoogleChatCompletionRes{
-					UsageMetadata: usageMetadata,
-					ConnTime:      duration - now,
-					Duration:      end - duration,
-					TotalTime:     end - now,
-					Err:           err,
+					UsageMetadata:   usageMetadata,
+					ResponseHeaders: streamResponseHeaders,
+					ConnTime:        duration - now,
+					Duration:        end - duration,
+					TotalTime:       end - now,
+					Err:             err,
 				}
 
 				return
@@ -119,10 +125,11 @@ func (g *Google) ChatCompletionsStreamOfficial(ctx context.Context, data []byte)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.GoogleChatCompletionRes{
-					ConnTime:  duration - now,
-					Duration:  end - duration,
-					TotalTime: end - now,
-					Err:       errors.New(fmt.Sprintf("response: %s, error: %v", responseBytes, err)),
+					ResponseHeaders: streamResponseHeaders,
+					ConnTime:        duration - now,
+					Duration:        end - duration,
+					TotalTime:       end - now,
+					Err:             errors.New(fmt.Sprintf("response: %s, error: %v", responseBytes, err)),
 				}
 
 				return
@@ -136,10 +143,11 @@ func (g *Google) ChatCompletionsStreamOfficial(ctx context.Context, data []byte)
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.GoogleChatCompletionRes{
-					ConnTime:  duration - now,
-					Duration:  end - duration,
-					TotalTime: end - now,
-					Err:       err,
+					ResponseHeaders: streamResponseHeaders,
+					ConnTime:        duration - now,
+					Duration:        end - duration,
+					TotalTime:       end - now,
+					Err:             err,
 				}
 
 				return
@@ -150,11 +158,12 @@ func (g *Google) ChatCompletionsStreamOfficial(ctx context.Context, data []byte)
 			}
 
 			response := &model.GoogleChatCompletionRes{
-				Candidates:    chatCompletionRes.Candidates,
-				UsageMetadata: chatCompletionRes.UsageMetadata,
-				Error:         chatCompletionRes.Error,
-				ResponseBytes: responseBytes,
-				ConnTime:      duration - now,
+				Candidates:      chatCompletionRes.Candidates,
+				UsageMetadata:   chatCompletionRes.UsageMetadata,
+				Error:           chatCompletionRes.Error,
+				ResponseBytes:   responseBytes,
+				ResponseHeaders: streamResponseHeaders,
+				ConnTime:        duration - now,
 			}
 
 			end := gtime.TimestampMilli()

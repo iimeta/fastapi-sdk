@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"slices"
 
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
@@ -19,10 +20,12 @@ func (o *OpenAI) ImageGenerations(ctx context.Context, data []byte) (response mo
 		logger.Infof(ctx, "ImageGenerations OpenAI model: %s totalTime: %d ms", o.Model, gtime.TimestampMilli()-now)
 	}()
 
-	request, err := o.ConvImageGenerationsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ImageGenerations OpenAI ConvImageGenerationsRequest error: %v", err)
-		return response, err
+	var request any = data
+	if !slices.Contains(o.ReqPassthroughParams, "req_data") {
+		if request, err = o.ConvImageGenerationsRequest(ctx, data); err != nil {
+			logger.Errorf(ctx, "ImageGenerations OpenAI ConvImageGenerationsRequest error: %v", err)
+			return response, err
+		}
 	}
 
 	if o.Path == "" {
@@ -33,16 +36,19 @@ func (o *OpenAI) ImageGenerations(ctx context.Context, data []byte) (response mo
 		}
 	}
 
-	bytes, _, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	responseBytes, responseHeader, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageGenerations OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
 	}
 
-	if response, err = o.ConvImageGenerationsResponse(ctx, bytes); err != nil {
+	if response, err = o.ConvImageGenerationsResponse(ctx, responseBytes); err != nil {
 		logger.Errorf(ctx, "ImageGenerations OpenAI ConvImageGenerationsResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = responseBytes
+	response.ResponseHeaders = responseHeader
 
 	return response, nil
 }
@@ -71,16 +77,19 @@ func (o *OpenAI) ImageEdits(ctx context.Context, request model.ImageEditRequest)
 		}
 	}
 
-	bytes, _, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	responseBytes, responseHeader, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageEdits OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
 	}
 
-	if response, err = o.ConvImageEditsResponse(ctx, bytes); err != nil {
+	if response, err = o.ConvImageEditsResponse(ctx, responseBytes); err != nil {
 		logger.Errorf(ctx, "ImageEdits OpenAI ConvImageEditsResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = responseBytes
+	response.ResponseHeaders = responseHeader
 
 	return response, nil
 }

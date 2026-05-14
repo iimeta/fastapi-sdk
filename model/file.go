@@ -2,6 +2,7 @@ package model
 
 import (
 	"mime/multipart"
+	"net/http"
 )
 
 type FileUploadRequest struct {
@@ -62,6 +63,7 @@ type FileResponse struct {
 	StatusDetails *string `json:"status_details"`
 	Deleted       bool    `json:"deleted,omitempty"`
 	FileUrl       string  `json:"file_url,omitempty"` // 文件地址
-	ResponseBytes []byte  `json:"-"`
-	TotalTime     int64   `json:"-"`
+	ResponseBytes   []byte      `json:"-"`
+	ResponseHeaders http.Header `json:"-"`
+	TotalTime       int64       `json:"-"`
 }

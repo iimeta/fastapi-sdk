@@ -30,16 +30,19 @@ func (o *OpenAI) FileUpload(ctx context.Context, request model.FileUploadRequest
 		o.Path = "/files"
 	}
 
-	bytes, _, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	responseBytes, responseHeader, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileUpload OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
 	}
 
-	if response, err = o.ConvFileResponse(ctx, bytes); err != nil {
+	if response, err = o.ConvFileResponse(ctx, responseBytes); err != nil {
 		logger.Errorf(ctx, "FileUpload OpenAI ConvFileResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = responseBytes
+	response.ResponseHeaders = responseHeader
 
 	logger.Infof(ctx, "FileUpload OpenAI model: %s finished", o.Model)
 

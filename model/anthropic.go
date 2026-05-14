@@ -1,5 +1,7 @@
 package model
 
+import "net/http"
+
 type AnthropicChatCompletionReq struct {
 	Model            string                  `json:"model,omitempty"`
 	Messages         []ChatCompletionMessage `json:"messages"`
@@ -29,9 +31,10 @@ type AnthropicChatCompletionRes struct {
 	Delta         AnthropicContent   `json:"delta"`
 	Usage         *AnthropicUsage    `json:"usage,omitempty"`
 	Error         *AnthropicError    `json:"error,omitempty"`
-	SSEEvent      string             `json:"-"`
-	ResponseBytes []byte             `json:"-"`
-	ConnTime      int64              `json:"-"`
+	SSEEvent        string      `json:"-"`
+	ResponseBytes   []byte      `json:"-"`
+	ResponseHeaders http.Header `json:"-"`
+	ConnTime        int64       `json:"-"`
 	Duration      int64              `json:"-"`
 	TotalTime     int64              `json:"-"`
 	Err           error              `json:"-"`

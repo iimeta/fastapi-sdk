@@ -34,10 +34,13 @@ func (o *OpenAI) Responses(ctx context.Context, data []byte) (res model.OpenAIRe
 		}
 	}
 
-	if res.ResponseBytes, _, err = util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, &res, o.Timeout, o.ProxyUrl, o.requestErrorHandler); err != nil {
+	var responseHeader map[string][]string
+	if res.ResponseBytes, responseHeader, err = util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, &res, o.Timeout, o.ProxyUrl, o.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "Responses OpenAI model: %s, error: %v", o.Model, err)
 		return res, err
 	}
+
+	res.ResponseHeaders = responseHeader
 
 	if res.Error != nil {
 		logger.Errorf(ctx, "Responses OpenAI model: %s, responsesRes: %s", o.Model, gjson.MustEncodeString(res))
@@ -79,6 +82,8 @@ func (o *OpenAI) ResponsesStream(ctx context.Context, data []byte) (responseChan
 		logger.Errorf(ctx, "ResponsesStream OpenAI model: %s, error: %v", o.Model, err)
 		return responseChan, err
 	}
+
+	streamResponseHeaders := stream.Response.Header
 
 	duration := gtime.TimestampMilli()
 
@@ -153,9 +158,10 @@ func (o *OpenAI) ResponsesStream(ctx context.Context, data []byte) (responseChan
 			}
 
 			response := &model.OpenAIResponsesStreamRes{
-				SSEEvent:      stream.Event(),
-				ResponseBytes: responseBytes,
-				ConnTime:      duration - now,
+				SSEEvent:        stream.Event(),
+				ResponseBytes:   responseBytes,
+				ResponseHeaders: streamResponseHeaders,
+				ConnTime:        duration - now,
 			}
 
 			end := gtime.TimestampMilli()
@@ -190,10 +196,13 @@ func (o *OpenAI) ResponsesCompact(ctx context.Context, data []byte) (res model.O
 		}
 	}
 
-	if res.ResponseBytes, _, err = util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, &res, o.Timeout, o.ProxyUrl, o.requestErrorHandler); err != nil {
+	var compactResponseHeader map[string][]string
+	if res.ResponseBytes, compactResponseHeader, err = util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, &res, o.Timeout, o.ProxyUrl, o.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "ResponsesCompact OpenAI model: %s, error: %v", o.Model, err)
 		return res, err
 	}
+
+	res.ResponseHeaders = compactResponseHeader
 
 	if res.Error != nil {
 		logger.Errorf(ctx, "ResponsesCompact OpenAI model: %s, responsesRes: %s", o.Model, gjson.MustEncodeString(res))

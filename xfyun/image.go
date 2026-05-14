@@ -2,6 +2,7 @@ package xfyun
 
 import (
 	"context"
+	"slices"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -24,65 +25,70 @@ func (x *Xfyun) ImageGenerations(ctx context.Context, data []byte) (response mod
 		logger.Infof(ctx, "ImageGenerations Xfyun model: %s totalTime: %d ms", x.Model, gtime.TimestampMilli()-now)
 	}()
 
-	request, err := x.ConvImageGenerationsRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "ImageGenerations Xfyun ConvImageGenerationsRequest error: %v", err)
-		return response, err
-	}
+	var imageData any = data
+	if !slices.Contains(x.ReqPassthroughParams, "req_data") {
 
-	width := 512
-	height := 512
-
-	if request.Size != "" {
-
-		size := gstr.Split(request.Size, `×`)
-
-		if len(size) != 2 {
-			size = gstr.Split(request.Size, `x`)
+		request, err := x.ConvImageGenerationsRequest(ctx, data)
+		if err != nil {
+			logger.Errorf(ctx, "ImageGenerations Xfyun ConvImageGenerationsRequest error: %v", err)
+			return response, err
 		}
 
-		if len(size) != 2 {
-			size = gstr.Split(request.Size, `X`)
+		width := 512
+		height := 512
+
+		if request.Size != "" {
+
+			size := gstr.Split(request.Size, `×`)
+
+			if len(size) != 2 {
+				size = gstr.Split(request.Size, `x`)
+			}
+
+			if len(size) != 2 {
+				size = gstr.Split(request.Size, `X`)
+			}
+
+			if len(size) != 2 {
+				size = gstr.Split(request.Size, `*`)
+			}
+
+			if len(size) != 2 {
+				size = gstr.Split(request.Size, `:`)
+			}
+
+			if len(size) == 2 {
+				width = gconv.Int(size[0])
+				height = gconv.Int(size[1])
+			}
 		}
 
-		if len(size) != 2 {
-			size = gstr.Split(request.Size, `*`)
-		}
-
-		if len(size) != 2 {
-			size = gstr.Split(request.Size, `:`)
-		}
-
-		if len(size) == 2 {
-			width = gconv.Int(size[0])
-			height = gconv.Int(size[1])
-		}
-	}
-
-	imageReq := model.XfyunChatCompletionReq{
-		Header: model.Header{
-			AppId: x.appId,
-			Uid:   grand.Digits(10),
-		},
-		Parameter: model.Parameter{
-			Chat: &model.Chat{
-				Domain: "general",
-				Width:  width,
-				Height: height,
+		imageData = gjson.MustEncode(model.XfyunChatCompletionReq{
+			Header: model.Header{
+				AppId: x.appId,
+				Uid:   grand.Digits(10),
 			},
-		},
-		Payload: model.Payload{
-			Message: &model.Message{
-				Text: []model.ChatCompletionMessage{{
-					Role:    consts.ROLE_USER,
-					Content: request.Prompt,
-				}},
+			Parameter: model.Parameter{
+				Chat: &model.Chat{
+					Domain: "general",
+					Width:  width,
+					Height: height,
+				},
 			},
-		},
+			Payload: model.Payload{
+				Message: &model.Message{
+					Text: []model.ChatCompletionMessage{{
+						Role:    consts.ROLE_USER,
+						Content: request.Prompt,
+					}},
+				},
+			},
+		})
 	}
 
 	imageRes := model.XfyunChatCompletionRes{}
-	if _, _, err = util.HttpPost(ctx, x.getHttpUrl(ctx), x.header, gjson.MustEncode(imageReq), &imageRes, x.Timeout, x.ProxyUrl, x.requestErrorHandler); err != nil {
+	bytes, responseHeader, err := util.HttpPost(ctx, x.getHttpUrl(ctx), x.header, imageData, &imageRes, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
+	if err != nil {
 		logger.Errorf(ctx, "ImageGenerations Xfyun model: %s, error: %v", x.Model, err)
 		return response, err
 	}
@@ -93,6 +99,9 @@ func (x *Xfyun) ImageGenerations(ctx context.Context, data []byte) (response mod
 			B64Json: imageRes.Payload.Choices.Text[0].Content,
 		}},
 	}
+
+	response.ResponseBytes = bytes
+	response.ResponseHeaders = responseHeader
 
 	return response, nil
 }

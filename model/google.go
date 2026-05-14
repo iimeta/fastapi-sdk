@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"net/http"
+	"time"
+)
 
 type GoogleChatCompletionReq struct {
 	Contents         []Content        `json:"contents"`
@@ -25,8 +28,9 @@ type GoogleChatCompletionRes struct {
 			} `json:"metadata"`
 		} `json:"details"`
 	} `json:"error"`
-	ResponseBytes []byte `json:"-"`
-	ConnTime      int64  `json:"-"`
+	ResponseBytes   []byte      `json:"-"`
+	ResponseHeaders http.Header `json:"-"`
+	ConnTime        int64       `json:"-"`
 	Duration      int64  `json:"-"`
 	TotalTime     int64  `json:"-"`
 	Err           error  `json:"-"`

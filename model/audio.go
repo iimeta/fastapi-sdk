@@ -2,6 +2,7 @@ package model
 
 import (
 	"mime/multipart"
+	"net/http"
 )
 
 type SpeechRequest struct {
@@ -13,8 +14,10 @@ type SpeechRequest struct {
 }
 
 type SpeechResponse struct {
-	Data      []byte `json:"-"`
-	TotalTime int64  `json:"-"`
+	Data            []byte      `json:"-"`
+	ResponseBytes   []byte      `json:"-"`
+	ResponseHeaders http.Header `json:"-"`
+	TotalTime       int64       `json:"-"`
 }
 
 type AudioRequest struct {
@@ -38,7 +41,9 @@ type AudioResponse struct {
 		Type    string `json:"type"`
 		Seconds int    `json:"seconds"`
 	} `json:"usage"`
-	TotalTime int64 `json:"-"`
+	ResponseBytes   []byte      `json:"-"`
+	ResponseHeaders http.Header `json:"-"`
+	TotalTime       int64       `json:"-"`
 }
 
 type Segment struct {

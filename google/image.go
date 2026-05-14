@@ -43,24 +43,26 @@ func (g *Google) ImageGenerations(ctx context.Context, data []byte) (response mo
 		g.Action = "generateContent"
 	}
 
-	var bytes []byte
-
+	var url string
 	if g.isGcp {
-		if bytes, _, err = util.HttpPost(ctx, fmt.Sprintf("%s%s:%s", g.BaseUrl, g.Path, g.Action), g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
-			logger.Errorf(ctx, "ImageGenerations Google model: %s, error: %v", g.Model, err)
-			return response, err
-		}
+		url = fmt.Sprintf("%s%s:%s", g.BaseUrl, g.Path, g.Action)
 	} else {
-		if bytes, _, err = util.HttpPost(ctx, fmt.Sprintf("%s%s:%s?key=%s", g.BaseUrl, g.Path, g.Action, g.Key), g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
-			logger.Errorf(ctx, "ImageGenerations Google model: %s, error: %v", g.Model, err)
-			return response, err
-		}
+		url = fmt.Sprintf("%s%s:%s?key=%s", g.BaseUrl, g.Path, g.Action, g.Key)
+	}
+
+	bytes, responseHeader, err := util.HttpPost(ctx, url, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	if err != nil {
+		logger.Errorf(ctx, "ImageGenerations Google model: %s, error: %v", g.Model, err)
+		return response, err
 	}
 
 	if response, err = g.ConvImageGenerationsResponse(ctx, bytes); err != nil {
 		logger.Errorf(ctx, "ImageGenerations Google ConvImageGenerationsResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = bytes
+	response.ResponseHeaders = responseHeader
 
 	return response, nil
 }
@@ -89,24 +91,26 @@ func (g *Google) ImageEdits(ctx context.Context, request model.ImageEditRequest)
 		g.Action = "generateContent"
 	}
 
-	var bytes []byte
-
+	var url string
 	if g.isGcp {
-		if bytes, _, err = util.HttpPost(ctx, fmt.Sprintf("%s%s:%s", g.BaseUrl, g.Path, g.Action), g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
-			logger.Errorf(ctx, "ImageEdits Google model: %s, error: %v", g.Model, err)
-			return response, err
-		}
+		url = fmt.Sprintf("%s%s:%s", g.BaseUrl, g.Path, g.Action)
 	} else {
-		if bytes, _, err = util.HttpPost(ctx, fmt.Sprintf("%s%s:%s?key=%s", g.BaseUrl, g.Path, g.Action, g.Key), g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
-			logger.Errorf(ctx, "ImageEdits Google model: %s, error: %v", g.Model, err)
-			return response, err
-		}
+		url = fmt.Sprintf("%s%s:%s?key=%s", g.BaseUrl, g.Path, g.Action, g.Key)
+	}
+
+	bytes, responseHeader, err := util.HttpPost(ctx, url, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	if err != nil {
+		logger.Errorf(ctx, "ImageEdits Google model: %s, error: %v", g.Model, err)
+		return response, err
 	}
 
 	if response, err = g.ConvImageGenerationsResponse(ctx, bytes); err != nil {
 		logger.Errorf(ctx, "ImageEdits Google ConvImageGenerationsResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = bytes
+	response.ResponseHeaders = responseHeader
 
 	return response, nil
 }

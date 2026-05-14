@@ -3,6 +3,7 @@ package volcengine
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
@@ -20,17 +21,20 @@ func (v *VolcEngine) VideoCreate(ctx context.Context, request model.VideoCreateR
 		logger.Infof(ctx, "VideoCreate VolcEngine model: %s totalTime: %d ms", v.Model, response.TotalTime)
 	}()
 
-	data, err := v.ConvVideoCreateRequest(ctx, request)
-	if err != nil {
-		logger.Errorf(ctx, "VideoCreate VolcEngine ConvVideoCreateRequest error: %v", err)
-		return response, err
+	var data any = request
+	if !slices.Contains(v.ReqPassthroughParams, "req_data") {
+		data, err = v.ConvVideoCreateRequest(ctx, request)
+		if err != nil {
+			logger.Errorf(ctx, "VideoCreate VolcEngine ConvVideoCreateRequest error: %v", err)
+			return response, err
+		}
 	}
 
 	if v.Path == "" {
 		v.Path = "/contents/generations/tasks"
 	}
 
-	bytes, _, err := util.HttpPost(ctx, v.BaseUrl+v.Path, v.header, data, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
+	bytes, responseHeader, err := util.HttpPost(ctx, v.BaseUrl+v.Path, v.header, data, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoCreate VolcEngine model: %s, error: %v", v.Model, err)
 		return response, err
@@ -40,6 +44,9 @@ func (v *VolcEngine) VideoCreate(ctx context.Context, request model.VideoCreateR
 		logger.Errorf(ctx, "VideoCreate VolcEngine ConvVideoJobResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = bytes
+	response.ResponseHeaders = responseHeader
 
 	logger.Infof(ctx, "VideoCreate VolcEngine model: %s finished, id: %s", v.Model, response.Id)
 

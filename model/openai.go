@@ -1,5 +1,7 @@
 package model
 
+import "net/http"
+
 type OpenAIResponsesReq struct {
 	Model              string                    `json:"model,omitempty"`
 	Input              any                       `json:"input"`
@@ -50,6 +52,7 @@ type OpenAIResponsesRes struct {
 	Usage              *Usage                   `json:"usage"`
 	Error              *OpenAIResponsesError    `json:"error"`
 	ResponseBytes      []byte                   `json:"-"`
+	ResponseHeaders    http.Header              `json:"-"`
 	ConnTime           int64                    `json:"-"`
 	Duration           int64                    `json:"-"`
 	TotalTime          int64                    `json:"-"`
@@ -67,12 +70,13 @@ type OpenAIResponsesStreamRes struct {
 	Delta          string                  `json:"delta"`
 	Part           OpenAIResponsesPart     `json:"part"`
 	Arguments      string                  `json:"arguments"`
-	SSEEvent       string                  `json:"-"`
-	ResponseBytes  []byte                  `json:"-"`
-	ConnTime       int64                   `json:"-"`
-	Duration       int64                   `json:"-"`
-	TotalTime      int64                   `json:"-"`
-	Err            error                   `json:"-"`
+	SSEEvent        string                  `json:"-"`
+	ResponseBytes   []byte                  `json:"-"`
+	ResponseHeaders http.Header             `json:"-"`
+	ConnTime        int64                   `json:"-"`
+	Duration        int64                   `json:"-"`
+	TotalTime       int64                   `json:"-"`
+	Err             error                   `json:"-"`
 }
 
 type OpenAIResponsesResponse struct {

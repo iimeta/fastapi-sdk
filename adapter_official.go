@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/iimeta/fastapi-sdk/v2/anthropic"
 	"github.com/iimeta/fastapi-sdk/v2/consts"
@@ -21,9 +22,9 @@ type AdapterOfficialGroup interface {
 type AdapterOfficial interface {
 	ChatCompletionsOfficial(ctx context.Context, data []byte) (response any, err error)
 	ChatCompletionsStreamOfficial(ctx context.Context, data []byte) (responseChan chan any, err error)
-	VideoCreateOfficial(ctx context.Context, data []byte) (responseBytes []byte, err error)
-	VideoListOfficial(ctx context.Context, params model.VolcVideoListReq) (responseBytes []byte, err error)
-	VideoRetrieveOfficial(ctx context.Context, taskId string) (responseBytes []byte, err error)
+	VideoCreateOfficial(ctx context.Context, data []byte) (responseBytes []byte, responseHeader http.Header, err error)
+	VideoListOfficial(ctx context.Context, params model.VolcVideoListReq) (responseBytes []byte, responseHeader http.Header, err error)
+	VideoRetrieveOfficial(ctx context.Context, taskId string) (responseBytes []byte, responseHeader http.Header, err error)
 	VideoDeleteOfficial(ctx context.Context, taskId string) (err error)
 }
 

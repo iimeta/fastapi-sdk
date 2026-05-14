@@ -1,5 +1,7 @@
 package model
 
+import "net/http"
+
 type BatchCreateRequest struct {
 	InputFileId        string              `json:"input_file_id"`
 	Endpoint           string              `json:"endpoint"`
@@ -60,6 +62,7 @@ type BatchResponse struct {
 	Usage            Usage         `json:"usage"`
 	Errors           *BatchError   `json:"errors"`
 	ResponseBytes    []byte        `json:"-"`
+	ResponseHeaders  http.Header   `json:"-"`
 	TotalTime        int64         `json:"-"`
 }
 

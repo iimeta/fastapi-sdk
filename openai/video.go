@@ -3,6 +3,7 @@ package openai
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
@@ -20,26 +21,31 @@ func (o *OpenAI) VideoCreate(ctx context.Context, request model.VideoCreateReque
 		logger.Infof(ctx, "VideoCreate OpenAI model: %s totalTime: %d ms", o.Model, response.TotalTime)
 	}()
 
-	data, err := o.ConvVideoCreateRequest(ctx, request)
-	if err != nil {
-		logger.Errorf(ctx, "VideoCreate OpenAI ConvVideoCreateRequest error: %v", err)
-		return response, err
+	var data any = request
+	if !slices.Contains(o.ReqPassthroughParams, "req_data") {
+		if data, err = o.ConvVideoCreateRequest(ctx, request); err != nil {
+			logger.Errorf(ctx, "VideoCreate OpenAI ConvVideoCreateRequest error: %v", err)
+			return response, err
+		}
 	}
 
 	if o.Path == "" {
 		o.Path = "/videos"
 	}
 
-	bytes, _, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	responseBytes, responseHeader, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoCreate OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
 	}
 
-	if response, err = o.ConvVideoJobResponse(ctx, bytes); err != nil {
+	if response, err = o.ConvVideoJobResponse(ctx, responseBytes); err != nil {
 		logger.Errorf(ctx, "VideoCreate OpenAI ConvVideoJobResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = responseBytes
+	response.ResponseHeaders = responseHeader
 
 	logger.Infof(ctx, "VideoCreate OpenAI model: %s finished", o.Model)
 
@@ -60,16 +66,19 @@ func (o *OpenAI) VideoRemix(ctx context.Context, request model.VideoRemixRequest
 		o.Path = fmt.Sprintf("/videos/%s/remix", request.VideoId)
 	}
 
-	bytes, _, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	responseBytes, responseHeader, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoRemix OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
 	}
 
-	if response, err = o.ConvVideoJobResponse(ctx, bytes); err != nil {
+	if response, err = o.ConvVideoJobResponse(ctx, responseBytes); err != nil {
 		logger.Errorf(ctx, "VideoRemix OpenAI ConvVideoJobResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = responseBytes
+	response.ResponseHeaders = responseHeader
 
 	logger.Infof(ctx, "VideoRemix OpenAI model: %s finished", o.Model)
 

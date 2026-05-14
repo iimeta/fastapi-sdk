@@ -25,7 +25,7 @@ func (g *General) FileUpload(ctx context.Context, request model.FileUploadReques
 		return response, err
 	}
 
-	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, responseHeader, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileUpload General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -35,6 +35,9 @@ func (g *General) FileUpload(ctx context.Context, request model.FileUploadReques
 		logger.Errorf(ctx, "FileUpload General ConvFileResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = bytes
+	response.ResponseHeaders = responseHeader
 
 	logger.Infof(ctx, "FileUpload General model: %s finished", g.Model)
 

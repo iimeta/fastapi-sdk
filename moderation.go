@@ -16,25 +16,29 @@ import (
 )
 
 type ModerationClient struct {
-	model    string
-	key      string
-	baseUrl  string
-	path     string
-	timeout  time.Duration
-	proxyURL string
+	model              string
+	key                string
+	baseUrl            string
+	path               string
+	timeout            time.Duration
+	proxyURL           string
+	reqPassthroughParams []string
+	passthroughHeader    map[string]string
 }
 
-func NewModerationClient(ctx context.Context, model, key, baseURL, path string, timeout time.Duration, proxyUrl string) *ModerationClient {
+func NewModerationClient(ctx context.Context, model, key, baseURL, path string, timeout time.Duration, proxyUrl string, reqPassthroughParams []string, passthroughHeader map[string]string) *ModerationClient {
 
 	logger.Infof(ctx, "NewModerationClient OpenAI model: %s, key: %s", model, key)
 
 	moderationClient := &ModerationClient{
-		model:    model,
-		key:      key,
-		baseUrl:  "https://api.openai.com/v1",
-		path:     "/moderations",
-		timeout:  timeout,
-		proxyURL: proxyUrl,
+		model:                model,
+		key:                  key,
+		baseUrl:              "https://api.openai.com/v1",
+		path:                 "/moderations",
+		timeout:              timeout,
+		proxyURL:             proxyUrl,
+		reqPassthroughParams: reqPassthroughParams,
+		passthroughHeader:    passthroughHeader,
 	}
 
 	if baseURL != "" {
@@ -61,10 +65,16 @@ func (c *ModerationClient) TextModerations(ctx context.Context, request model.Mo
 	}()
 
 	header := make(map[string]string)
+	// Set passthrough headers first (lowest priority)
+	for k, v := range c.passthroughHeader {
+		header[k] = v
+	}
+	// Set auth header last (highest priority)
 	header["Authorization"] = "Bearer " + c.key
 
 	response := model.ModerationResponse{}
-	if _, _, err = util.HttpPost(ctx, c.baseUrl+c.path, header, request, &response, c.timeout, c.proxyURL, c.requestErrorHandler); err != nil {
+	responseBytes, responseHeader, err := util.HttpPost(ctx, c.baseUrl+c.path, header, request, &response, c.timeout, c.proxyURL, c.requestErrorHandler)
+	if err != nil {
 		logger.Errorf(ctx, "TextModerations OpenAI model: %s, error: %v", request.Model, err)
 		return res, err
 	}
@@ -76,10 +86,12 @@ func (c *ModerationClient) TextModerations(ctx context.Context, request model.Mo
 	}
 
 	res = model.ModerationResponse{
-		Id:      response.Id,
-		Model:   response.Model,
-		Results: response.Results,
-		Usage:   &model.Usage{},
+		Id:              response.Id,
+		Model:           response.Model,
+		Results:         response.Results,
+		Usage:           &model.Usage{},
+		ResponseBytes:   responseBytes,
+		ResponseHeaders: responseHeader,
 	}
 
 	return res, nil

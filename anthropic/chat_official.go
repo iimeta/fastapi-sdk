@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
@@ -23,8 +24,9 @@ func (a *Anthropic) ChatCompletionsOfficial(ctx context.Context, data []byte) (r
 	logger.Infof(ctx, "ChatCompletionsOfficial Anthropic model: %s start", a.Model)
 
 	var (
-		now = gtime.TimestampMilli()
-		res = &model.AnthropicChatCompletionRes{}
+		now            = gtime.TimestampMilli()
+		res            = &model.AnthropicChatCompletionRes{}
+		responseHeader http.Header
 	)
 
 	defer func() {
@@ -62,10 +64,12 @@ func (a *Anthropic) ChatCompletionsOfficial(ctx context.Context, data []byte) (r
 		a.Path = "/messages"
 	}
 
-	if res.ResponseBytes, _, err = util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, &res, a.Timeout, a.ProxyUrl, a.requestErrorHandler); err != nil {
+	if res.ResponseBytes, responseHeader, err = util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, &res, a.Timeout, a.ProxyUrl, a.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "ChatCompletionsOfficial Anthropic model: %s, error: %v", a.Model, err)
 		return res, err
 	}
+
+	res.ResponseHeaders = responseHeader
 
 	if res.Error != nil && res.Error.Type != "" {
 		logger.Errorf(ctx, "ChatCompletionsOfficial Anthropic model: %s, chatCompletionRes: %s", a.Model, gjson.MustEncodeString(res))
@@ -115,6 +119,8 @@ func (a *Anthropic) ChatCompletionsStreamOfficial(ctx context.Context, data []by
 			logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, error: %v", a.Model, err)
 			return responseChan, err
 		}
+
+		streamResponseHeaders := stream.Response.Header
 
 		payloadBuf := make([]byte, 10*1024)
 
@@ -216,20 +222,21 @@ func (a *Anthropic) ChatCompletionsStreamOfficial(ctx context.Context, data []by
 				}
 
 				response := &model.AnthropicChatCompletionRes{
-					Id:            chatCompletionRes.Id,
-					Type:          chatCompletionRes.Type,
-					Role:          chatCompletionRes.Role,
-					Content:       chatCompletionRes.Content,
-					Model:         chatCompletionRes.Model,
-					StopReason:    chatCompletionRes.StopReason,
-					StopSequence:  chatCompletionRes.StopSequence,
-					Message:       chatCompletionRes.Message,
-					Index:         chatCompletionRes.Index,
-					Delta:         chatCompletionRes.Delta,
-					Usage:         chatCompletionRes.Usage,
-					Error:         chatCompletionRes.Error,
-					ResponseBytes: bytes,
-					ConnTime:      duration - now,
+					Id:              chatCompletionRes.Id,
+					Type:            chatCompletionRes.Type,
+					Role:            chatCompletionRes.Role,
+					Content:         chatCompletionRes.Content,
+					Model:           chatCompletionRes.Model,
+					StopReason:      chatCompletionRes.StopReason,
+					StopSequence:    chatCompletionRes.StopSequence,
+					Message:         chatCompletionRes.Message,
+					Index:           chatCompletionRes.Index,
+					Delta:           chatCompletionRes.Delta,
+					Usage:           chatCompletionRes.Usage,
+					Error:           chatCompletionRes.Error,
+					ResponseBytes:   bytes,
+					ResponseHeaders: streamResponseHeaders,
+					ConnTime:        duration - now,
 				}
 
 				if chatCompletionRes.Delta.StopReason != "" {
@@ -272,6 +279,8 @@ func (a *Anthropic) ChatCompletionsStreamOfficial(ctx context.Context, data []by
 			logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, error: %v", a.Model, err)
 			return responseChan, err
 		}
+
+		streamResponseHeaders := stream.Response.Header
 
 		duration := gtime.TimestampMilli()
 
@@ -346,21 +355,22 @@ func (a *Anthropic) ChatCompletionsStreamOfficial(ctx context.Context, data []by
 				}
 
 				response := &model.AnthropicChatCompletionRes{
-					Id:            chatCompletionRes.Id,
-					Type:          chatCompletionRes.Type,
-					Role:          chatCompletionRes.Role,
-					Content:       chatCompletionRes.Content,
-					Model:         chatCompletionRes.Model,
-					StopReason:    chatCompletionRes.StopReason,
-					StopSequence:  chatCompletionRes.StopSequence,
-					Message:       chatCompletionRes.Message,
-					Index:         chatCompletionRes.Index,
-					Delta:         chatCompletionRes.Delta,
-					Usage:         chatCompletionRes.Usage,
-					Error:         chatCompletionRes.Error,
-					SSEEvent:      stream.Event(),
-					ResponseBytes: responseBytes,
-					ConnTime:      duration - now,
+					Id:              chatCompletionRes.Id,
+					Type:            chatCompletionRes.Type,
+					Role:            chatCompletionRes.Role,
+					Content:         chatCompletionRes.Content,
+					Model:           chatCompletionRes.Model,
+					StopReason:      chatCompletionRes.StopReason,
+					StopSequence:    chatCompletionRes.StopSequence,
+					Message:         chatCompletionRes.Message,
+					Index:           chatCompletionRes.Index,
+					Delta:           chatCompletionRes.Delta,
+					Usage:           chatCompletionRes.Usage,
+					Error:           chatCompletionRes.Error,
+					SSEEvent:        stream.Event(),
+					ResponseBytes:   responseBytes,
+					ResponseHeaders: streamResponseHeaders,
+					ConnTime:        duration - now,
 				}
 
 				end := gtime.TimestampMilli()

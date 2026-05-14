@@ -2,6 +2,7 @@ package general
 
 import (
 	"context"
+	"slices"
 
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
@@ -19,13 +20,16 @@ func (g *General) VideoCreate(ctx context.Context, request model.VideoCreateRequ
 		logger.Infof(ctx, "VideoCreate General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	data, err := g.ConvVideoCreateRequest(ctx, request)
-	if err != nil {
-		logger.Errorf(ctx, "VideoCreate General ConvVideoCreateRequest error: %v", err)
-		return response, err
+	var data any = request
+	if !slices.Contains(g.ReqPassthroughParams, "req_data") {
+		data, err = g.ConvVideoCreateRequest(ctx, request)
+		if err != nil {
+			logger.Errorf(ctx, "VideoCreate General ConvVideoCreateRequest error: %v", err)
+			return response, err
+		}
 	}
 
-	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, responseHeader, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoCreate General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -35,6 +39,9 @@ func (g *General) VideoCreate(ctx context.Context, request model.VideoCreateRequ
 		logger.Errorf(ctx, "VideoCreate General ConvVideoJobResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = bytes
+	response.ResponseHeaders = responseHeader
 
 	logger.Infof(ctx, "VideoCreate General model: %s finished", g.Model)
 
@@ -51,7 +58,7 @@ func (g *General) VideoRemix(ctx context.Context, request model.VideoRemixReques
 		logger.Infof(ctx, "VideoRemix General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, responseHeader, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoRemix General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -61,6 +68,9 @@ func (g *General) VideoRemix(ctx context.Context, request model.VideoRemixReques
 		logger.Errorf(ctx, "VideoRemix General ConvVideoJobResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = bytes
+	response.ResponseHeaders = responseHeader
 
 	logger.Infof(ctx, "VideoRemix General model: %s finished", g.Model)
 

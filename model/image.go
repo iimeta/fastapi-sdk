@@ -1,6 +1,9 @@
 package model
 
-import "mime/multipart"
+import (
+	"mime/multipart"
+	"net/http"
+)
 
 type ImageGenerationRequest struct {
 	Prompt            string `json:"prompt,omitempty"`
@@ -19,10 +22,12 @@ type ImageGenerationRequest struct {
 }
 
 type ImageResponse struct {
-	Created   int64               `json:"created,omitempty"`
-	Data      []ImageResponseData `json:"data,omitempty"`
-	Usage     Usage               `json:"usage,omitempty"`
-	TotalTime int64               `json:"-"`
+	Created         int64               `json:"created,omitempty"`
+	Data            []ImageResponseData `json:"data,omitempty"`
+	Usage           Usage               `json:"usage,omitempty"`
+	ResponseBytes   []byte              `json:"-"`
+	ResponseHeaders http.Header         `json:"-"`
+	TotalTime       int64               `json:"-"`
 }
 
 type ImageResponseData struct {

@@ -35,7 +35,7 @@ func (g *Google) FileUpload(ctx context.Context, request model.FileUploadRequest
 		g.BaseUrl = strings.TrimSuffix(g.BaseUrl, "/v1beta")
 	}
 
-	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, responseHeader, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileUpload Google model: %s, error: %v", g.Model, err)
 		return response, err
@@ -46,6 +46,8 @@ func (g *Google) FileUpload(ctx context.Context, request model.FileUploadRequest
 		return response, err
 	}
 
+	response.ResponseBytes = bytes
+	response.ResponseHeaders = responseHeader
 	response.Filename = request.File.Filename
 
 	if request.Purpose != "" {

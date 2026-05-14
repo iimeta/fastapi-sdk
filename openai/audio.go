@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"slices"
 
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
@@ -19,10 +20,12 @@ func (o *OpenAI) AudioSpeech(ctx context.Context, data []byte) (response model.S
 		logger.Infof(ctx, "AudioSpeech OpenAI model: %s totalTime: %d ms", o.Model, response.TotalTime)
 	}()
 
-	request, err := o.ConvAudioSpeechRequest(ctx, data)
-	if err != nil {
-		logger.Errorf(ctx, "AudioSpeech OpenAI ConvAudioSpeechRequest error: %v", err)
-		return response, err
+	var request any = data
+	if !slices.Contains(o.ReqPassthroughParams, "req_data") {
+		if request, err = o.ConvAudioSpeechRequest(ctx, data); err != nil {
+			logger.Errorf(ctx, "AudioSpeech OpenAI ConvAudioSpeechRequest error: %v", err)
+			return response, err
+		}
 	}
 
 	if o.Path == "" {
@@ -33,16 +36,19 @@ func (o *OpenAI) AudioSpeech(ctx context.Context, data []byte) (response model.S
 		}
 	}
 
-	bytes, _, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	responseBytes, responseHeader, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "AudioSpeech OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
 	}
 
-	if response, err = o.ConvAudioSpeechResponse(ctx, bytes); err != nil {
+	if response, err = o.ConvAudioSpeechResponse(ctx, responseBytes); err != nil {
 		logger.Errorf(ctx, "AudioSpeech OpenAI ConvAudioSpeechResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = responseBytes
+	response.ResponseHeaders = responseHeader
 
 	logger.Infof(ctx, "AudioSpeech OpenAI model: %s finished", o.Model)
 
@@ -73,16 +79,19 @@ func (o *OpenAI) AudioTranscriptions(ctx context.Context, request model.AudioReq
 		}
 	}
 
-	bytes, _, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	responseBytes, responseHeader, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "AudioTranscriptions OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
 	}
 
-	if response, err = o.ConvAudioTranscriptionsResponse(ctx, bytes); err != nil {
+	if response, err = o.ConvAudioTranscriptionsResponse(ctx, responseBytes); err != nil {
 		logger.Errorf(ctx, "AudioTranscriptions OpenAI ConvAudioTranscriptionsResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = responseBytes
+	response.ResponseHeaders = responseHeader
 
 	logger.Infof(ctx, "AudioTranscriptions OpenAI model: %s finished", o.Model)
 

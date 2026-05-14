@@ -2,6 +2,7 @@ package general
 
 import (
 	"context"
+	"slices"
 
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
@@ -19,7 +20,7 @@ func (g *General) ImageGenerations(ctx context.Context, data []byte) (response m
 		logger.Infof(ctx, "ImageGenerations General model: %s totalTime: %d ms", g.Model, gtime.TimestampMilli()-now)
 	}()
 
-	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, responseHeader, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageGenerations General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -29,6 +30,9 @@ func (g *General) ImageGenerations(ctx context.Context, data []byte) (response m
 		logger.Errorf(ctx, "ImageGenerations General ConvImageGenerationsResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = bytes
+	response.ResponseHeaders = responseHeader
 
 	return response, nil
 }
@@ -43,13 +47,16 @@ func (g *General) ImageEdits(ctx context.Context, request model.ImageEditRequest
 		logger.Infof(ctx, "ImageEdits General model: %s totalTime: %d ms", g.Model, gtime.TimestampMilli()-now)
 	}()
 
-	data, err := g.ConvImageEditsRequest(ctx, request)
-	if err != nil {
-		logger.Errorf(ctx, "ImageEdits General ConvImageEditsRequest error: %v", err)
-		return response, err
+	var data any = request
+	if !slices.Contains(g.ReqPassthroughParams, "req_data") {
+		data, err = g.ConvImageEditsRequest(ctx, request)
+		if err != nil {
+			logger.Errorf(ctx, "ImageEdits General ConvImageEditsRequest error: %v", err)
+			return response, err
+		}
 	}
 
-	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, responseHeader, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageEdits General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -59,6 +66,9 @@ func (g *General) ImageEdits(ctx context.Context, request model.ImageEditRequest
 		logger.Errorf(ctx, "ImageEdits General ConvImageEditsResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseBytes = bytes
+	response.ResponseHeaders = responseHeader
 
 	return response, nil
 }
