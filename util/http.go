@@ -16,7 +16,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/v2/logger"
 )
 
-func HttpDo(ctx context.Context, method, rawURL string, header map[string]string, data, result any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) ([]byte, error) {
+func HttpDo(ctx context.Context, method, rawURL string, header map[string]string, data, result any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) ([]byte, http.Header, error) {
 
 	logger.Debugf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s", method, rawURL, header, mustEncodeString(data), proxyURL)
 
@@ -27,7 +27,7 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 	if proxyURL != "" {
 		if proxyUrl, err := url.Parse(proxyURL); err != nil {
 			logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", method, rawURL, header, mustEncodeString(data), proxyURL, err)
-			return nil, err
+			return nil, nil, err
 		} else {
 			client.Transport = &http.Transport{
 				Proxy: http.ProxyURL(proxyUrl),
@@ -50,7 +50,7 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 	request, err := http.NewRequestWithContext(ctx, method, rawURL, bodyReader)
 	if err != nil {
 		logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", method, rawURL, header, mustEncodeString(data), proxyURL, err)
-		return nil, err
+		return nil, nil, err
 	}
 
 	contentType := request.Header.Get("Content-Type")
@@ -79,12 +79,12 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 				logger.Error(ctx, err)
 			}
 
-			return nil, err
+			return nil, nil, err
 		}
 
 		logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", method, rawURL, header, mustEncodeString(data), proxyURL, err)
 
-		return nil, err
+		return nil, nil, err
 	}
 
 	if isFailureStatusCode(response) {
@@ -96,16 +96,16 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 		}()
 
 		if requestErrorHandler != nil {
-			return nil, requestErrorHandler(ctx, response)
+			return nil, nil, requestErrorHandler(ctx, response)
 		}
 
 		bytes, err := io.ReadAll(response.Body)
 		if err != nil {
 			logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, statusCode: %d, header: %+v, error: %v", method, rawURL, header, mustEncodeString(data), proxyURL, response.StatusCode, response.Header, err)
-			return nil, err
+			return nil, nil, err
 		}
 
-		return nil, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes))
+		return nil, nil, errors.New(fmt.Sprintf("error, status code: %d, response: %s", response.StatusCode, bytes))
 	}
 
 	defer func() {
@@ -117,7 +117,7 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 	bytes, err := io.ReadAll(response.Body)
 	if err != nil {
 		logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, statusCode: %d, header: %+v, error: %v", method, rawURL, header, mustEncodeString(data), proxyURL, response.StatusCode, response.Header, err)
-		return nil, err
+		return nil, nil, err
 	}
 
 	logger.Debugf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, statusCode: %d, header: %+v, response: %s", method, rawURL, header, mustEncodeString(data), proxyURL, response.StatusCode, response.Header, bytes)
@@ -125,21 +125,21 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 	if bytes != nil && len(bytes) > 0 && result != nil {
 		if err = json.Unmarshal(bytes, result); err != nil {
 			logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, statusCode: %d, header: %+v, response: %s, error: %v", method, rawURL, header, mustEncodeString(data), proxyURL, response.StatusCode, response.Header, bytes, err)
-			return bytes, errors.New(fmt.Sprintf("response: %s, error: %v", bytes, err))
+			return bytes, nil, errors.New(fmt.Sprintf("response: %s, error: %v", bytes, err))
 		}
 	}
 
-	return bytes, nil
+	return bytes, response.Header, nil
 }
 
-func HttpGet(ctx context.Context, rawURL string, header map[string]string, data, result any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) ([]byte, error) {
+func HttpGet(ctx context.Context, rawURL string, header map[string]string, data, result any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) ([]byte, http.Header, error) {
 	return HttpDo(ctx, http.MethodGet, rawURL, header, data, result, timeout, proxyURL, requestErrorHandler)
 }
 
-func HttpPost(ctx context.Context, rawURL string, header map[string]string, data, result any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) ([]byte, error) {
+func HttpPost(ctx context.Context, rawURL string, header map[string]string, data, result any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) ([]byte, http.Header, error) {
 	return HttpDo(ctx, http.MethodPost, rawURL, header, data, result, timeout, proxyURL, requestErrorHandler)
 }
 
-func HttpDelete(ctx context.Context, rawURL string, header map[string]string, data, result any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) ([]byte, error) {
+func HttpDelete(ctx context.Context, rawURL string, header map[string]string, data, result any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) ([]byte, http.Header, error) {
 	return HttpDo(ctx, http.MethodDelete, rawURL, header, data, result, timeout, proxyURL, requestErrorHandler)
 }

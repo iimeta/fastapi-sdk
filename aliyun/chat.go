@@ -3,6 +3,7 @@ package aliyun
 import (
 	"context"
 	"io"
+	"slices"
 
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -22,7 +23,7 @@ func (a *Aliyun) ChatCompletions(ctx context.Context, data any) (response model.
 		logger.Infof(ctx, "ChatCompletions Aliyun model: %s totalTime: %d ms", a.Model, response.TotalTime)
 	}()
 
-	if !a.IsOfficialFormatRequest {
+	if !slices.Contains(a.ReqPassthroughParams, "req_data") {
 
 		request, err := a.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
@@ -40,7 +41,7 @@ func (a *Aliyun) ChatCompletions(ctx context.Context, data any) (response model.
 		a.Path = "/services/aigc/text-generation/generation"
 	}
 
-	bytes, err := util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, nil, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
+	bytes, responseHeader, err := util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, nil, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions Aliyun model: %s, error: %v", a.Model, err)
 		return response, err
@@ -50,6 +51,8 @@ func (a *Aliyun) ChatCompletions(ctx context.Context, data any) (response model.
 		logger.Errorf(ctx, "ChatCompletions Aliyun ConvChatCompletionsResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseHeaders = responseHeader
 
 	return response, nil
 }
@@ -65,7 +68,7 @@ func (a *Aliyun) ChatCompletionsStream(ctx context.Context, data any) (responseC
 		}
 	}()
 
-	if !a.IsOfficialFormatRequest {
+	if !slices.Contains(a.ReqPassthroughParams, "req_data") {
 
 		request, err := a.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
@@ -88,6 +91,8 @@ func (a *Aliyun) ChatCompletionsStream(ctx context.Context, data any) (responseC
 		logger.Errorf(ctx, "ChatCompletionsStream Aliyun model: %s, error: %v", a.Model, err)
 		return responseChan, err
 	}
+
+	streamResponseHeaders := stream.Response.Header
 
 	duration := gtime.TimestampMilli()
 
@@ -146,6 +151,7 @@ func (a *Aliyun) ChatCompletionsStream(ctx context.Context, data any) (responseC
 			response.ConnTime = duration - now
 			response.Duration = end - duration
 			response.TotalTime = end - now
+			response.ResponseHeaders = streamResponseHeaders
 
 			responseChan <- &response
 		}

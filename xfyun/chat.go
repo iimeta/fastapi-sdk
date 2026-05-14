@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"slices"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
@@ -27,7 +28,7 @@ func (x *Xfyun) ChatCompletions(ctx context.Context, data any) (response model.C
 		logger.Infof(ctx, "ChatCompletions Xfyun model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", x.Model, response.ConnTime, response.Duration, response.TotalTime)
 	}()
 
-	if !x.IsOfficialFormatRequest {
+	if !slices.Contains(x.ReqPassthroughParams, "req_data") {
 
 		request, err := x.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
@@ -124,7 +125,7 @@ func (x *Xfyun) ChatCompletionsStream(ctx context.Context, data any) (responseCh
 		}
 	}()
 
-	if !x.IsOfficialFormatRequest {
+	if !slices.Contains(x.ReqPassthroughParams, "req_data") {
 
 		request, err := x.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {

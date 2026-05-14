@@ -62,7 +62,7 @@ func (a *Anthropic) ChatCompletionsOfficial(ctx context.Context, data []byte) (r
 		a.Path = "/messages"
 	}
 
-	if res.ResponseBytes, err = util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, &res, a.Timeout, a.ProxyUrl, a.requestErrorHandler); err != nil {
+	if res.ResponseBytes, _, err = util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, &res, a.Timeout, a.ProxyUrl, a.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "ChatCompletionsOfficial Anthropic model: %s, error: %v", a.Model, err)
 		return res, err
 	}

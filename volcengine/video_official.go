@@ -25,7 +25,7 @@ func (v *VolcEngine) VideoCreateOfficial(ctx context.Context, data []byte) (resp
 		v.Path = "/contents/generations/tasks"
 	}
 
-	if responseBytes, err = util.HttpPost(ctx, v.BaseUrl+v.Path, v.header, data, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler); err != nil {
+	if responseBytes, _, err = util.HttpPost(ctx, v.BaseUrl+v.Path, v.header, data, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "VideoCreateOfficial VolcEngine model: %s, error: %v", v.Model, err)
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (v *VolcEngine) VideoListOfficial(ctx context.Context, params model.VolcVid
 		reqUrl += "?" + query.Encode()
 	}
 
-	if responseBytes, err = util.HttpGet(ctx, reqUrl, v.header, nil, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler); err != nil {
+	if responseBytes, _, err = util.HttpGet(ctx, reqUrl, v.header, nil, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "VideoListOfficial VolcEngine model: %s, error: %v", v.Model, err)
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (v *VolcEngine) VideoRetrieveOfficial(ctx context.Context, taskId string) (
 		v.Path = fmt.Sprintf("/contents/generations/tasks/%s", taskId)
 	}
 
-	if responseBytes, err = util.HttpGet(ctx, v.BaseUrl+v.Path, v.header, nil, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler); err != nil {
+	if responseBytes, _, err = util.HttpGet(ctx, v.BaseUrl+v.Path, v.header, nil, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "VideoRetrieveOfficial VolcEngine model: %s, error: %v", v.Model, err)
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func (v *VolcEngine) VideoDeleteOfficial(ctx context.Context, taskId string) (er
 		v.Path = fmt.Sprintf("/contents/generations/tasks/%s", taskId)
 	}
 
-	if _, err = util.HttpDelete(ctx, v.BaseUrl+v.Path, v.header, nil, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler); err != nil {
+	if _, _, err = util.HttpDelete(ctx, v.BaseUrl+v.Path, v.header, nil, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "VideoDeleteOfficial VolcEngine model: %s, error: %v", v.Model, err)
 		return err
 	}

@@ -24,7 +24,7 @@ func (o *OpenAI) BatchCreate(ctx context.Context, request model.BatchCreateReque
 		o.Path = "/batches"
 	}
 
-	bytes, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "BatchCreate OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
@@ -54,7 +54,7 @@ func (o *OpenAI) BatchList(ctx context.Context, request model.BatchListRequest) 
 		o.Path = "/batches"
 	}
 
-	bytes, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "BatchList OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
@@ -84,7 +84,7 @@ func (o *OpenAI) BatchRetrieve(ctx context.Context, request model.BatchRetrieveR
 		o.Path = fmt.Sprintf("/batches/%s", request.BatchId)
 	}
 
-	bytes, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, nil, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, nil, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "BatchRetrieve OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
@@ -114,7 +114,7 @@ func (o *OpenAI) BatchCancel(ctx context.Context, request model.BatchCancelReque
 		o.Path = fmt.Sprintf("/batches/%s/cancel", request.BatchId)
 	}
 
-	bytes, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, nil, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, nil, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "BatchCancel OpenAI model: %s, error: %v", o.Model, err)
 		return response, err

@@ -33,7 +33,7 @@ func (o *OpenAI) TextEmbeddings(ctx context.Context, data []byte) (response mode
 		}
 	}
 
-	bytes, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "TextEmbeddings OpenAI model: %s, error: %v", o.Model, err)
 		return response, err

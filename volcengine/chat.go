@@ -3,6 +3,7 @@ package volcengine
 import (
 	"context"
 	"io"
+	"slices"
 
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -22,7 +23,7 @@ func (v *VolcEngine) ChatCompletions(ctx context.Context, data any) (response mo
 		logger.Infof(ctx, "ChatCompletions VolcEngine model: %s totalTime: %d ms", v.Model, response.TotalTime)
 	}()
 
-	if !v.IsOfficialFormatRequest {
+	if !slices.Contains(v.ReqPassthroughParams, "req_data") {
 		if data, err = v.ConvChatCompletionsRequest(ctx, data); err != nil {
 			logger.Errorf(ctx, "ChatCompletions VolcEngine ConvChatCompletionsRequest error: %v", err)
 			return response, err
@@ -33,7 +34,7 @@ func (v *VolcEngine) ChatCompletions(ctx context.Context, data any) (response mo
 		v.Path = "/chat/completions"
 	}
 
-	bytes, err := util.HttpPost(ctx, v.BaseUrl+v.Path, v.header, data, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
+	bytes, responseHeader, err := util.HttpPost(ctx, v.BaseUrl+v.Path, v.header, data, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions VolcEngine model: %s, error: %v", v.Model, err)
 		return response, err
@@ -43,6 +44,8 @@ func (v *VolcEngine) ChatCompletions(ctx context.Context, data any) (response mo
 		logger.Errorf(ctx, "ChatCompletions VolcEngine ConvChatCompletionsResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseHeaders = responseHeader
 
 	logger.Infof(ctx, "ChatCompletions VolcEngine model: %s finished", v.Model)
 
@@ -60,7 +63,7 @@ func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data any) (respo
 		}
 	}()
 
-	if !v.IsOfficialFormatRequest {
+	if !slices.Contains(v.ReqPassthroughParams, "req_data") {
 		if data, err = v.ConvChatCompletionsRequest(ctx, data); err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream VolcEngine ConvChatCompletionsRequest error: %v", err)
 			return nil, err
@@ -76,6 +79,8 @@ func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data any) (respo
 		logger.Errorf(ctx, "ChatCompletionsStream VolcEngine model: %s, error: %v", v.Model, err)
 		return responseChan, err
 	}
+
+	streamResponseHeaders := stream.Response.Header
 
 	duration := gtime.TimestampMilli()
 
@@ -134,6 +139,7 @@ func (v *VolcEngine) ChatCompletionsStream(ctx context.Context, data any) (respo
 			response.ConnTime = duration - now
 			response.Duration = end - duration
 			response.TotalTime = end - now
+			response.ResponseHeaders = streamResponseHeaders
 
 			responseChan <- &response
 		}

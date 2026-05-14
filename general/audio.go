@@ -19,7 +19,7 @@ func (g *General) AudioSpeech(ctx context.Context, data []byte) (response model.
 		logger.Infof(ctx, "AudioSpeech General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "AudioSpeech General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -51,7 +51,7 @@ func (g *General) AudioTranscriptions(ctx context.Context, request model.AudioRe
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "AudioTranscriptions General model: %s, error: %v", g.Model, err)
 		return response, err

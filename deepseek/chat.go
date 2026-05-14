@@ -3,6 +3,7 @@ package deepseek
 import (
 	"context"
 	"io"
+	"slices"
 
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -22,7 +23,7 @@ func (d *DeepSeek) ChatCompletions(ctx context.Context, data any) (response mode
 		logger.Infof(ctx, "ChatCompletions DeepSeek model: %s totalTime: %d ms", d.Model, response.TotalTime)
 	}()
 
-	if !d.IsOfficialFormatRequest {
+	if !slices.Contains(d.ReqPassthroughParams, "req_data") {
 		if data, err = d.ConvChatCompletionsRequest(ctx, data); err != nil {
 			logger.Errorf(ctx, "ChatCompletions DeepSeek ConvChatCompletionsRequest error: %v", err)
 			return response, err
@@ -33,7 +34,7 @@ func (d *DeepSeek) ChatCompletions(ctx context.Context, data any) (response mode
 		d.Path = "/chat/completions"
 	}
 
-	bytes, err := util.HttpPost(ctx, d.BaseUrl+d.Path, d.header, data, nil, d.Timeout, d.ProxyUrl, d.requestErrorHandler)
+	bytes, responseHeader, err := util.HttpPost(ctx, d.BaseUrl+d.Path, d.header, data, nil, d.Timeout, d.ProxyUrl, d.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions DeepSeek model: %s, error: %v", d.Model, err)
 		return response, err
@@ -43,6 +44,8 @@ func (d *DeepSeek) ChatCompletions(ctx context.Context, data any) (response mode
 		logger.Errorf(ctx, "ChatCompletions DeepSeek ConvChatCompletionsResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseHeaders = responseHeader
 
 	logger.Infof(ctx, "ChatCompletions DeepSeek model: %s finished", d.Model)
 
@@ -60,7 +63,7 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data any) (respons
 		}
 	}()
 
-	if !d.IsOfficialFormatRequest {
+	if !slices.Contains(d.ReqPassthroughParams, "req_data") {
 		if data, err = d.ConvChatCompletionsRequest(ctx, data); err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream DeepSeek ConvChatCompletionsRequest error: %v", err)
 			return nil, err
@@ -76,6 +79,8 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data any) (respons
 		logger.Errorf(ctx, "ChatCompletionsStream DeepSeek model: %s, error: %v", d.Model, err)
 		return responseChan, err
 	}
+
+	streamResponseHeaders := stream.Response.Header
 
 	duration := gtime.TimestampMilli()
 
@@ -134,6 +139,7 @@ func (d *DeepSeek) ChatCompletionsStream(ctx context.Context, data any) (respons
 			response.ConnTime = duration - now
 			response.Duration = end - duration
 			response.TotalTime = end - now
+			response.ResponseHeaders = streamResponseHeaders
 
 			responseChan <- &response
 		}

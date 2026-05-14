@@ -82,7 +82,7 @@ func (x *Xfyun) ImageGenerations(ctx context.Context, data []byte) (response mod
 	}
 
 	imageRes := model.XfyunChatCompletionRes{}
-	if _, err = util.HttpPost(ctx, x.getHttpUrl(ctx), x.header, gjson.MustEncode(imageReq), &imageRes, x.Timeout, x.ProxyUrl, x.requestErrorHandler); err != nil {
+	if _, _, err = util.HttpPost(ctx, x.getHttpUrl(ctx), x.header, gjson.MustEncode(imageReq), &imageRes, x.Timeout, x.ProxyUrl, x.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "ImageGenerations Xfyun model: %s, error: %v", x.Model, err)
 		return response, err
 	}

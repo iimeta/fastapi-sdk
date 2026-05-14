@@ -32,6 +32,10 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Aliyun {
 		aliyun.BaseUrl = "https://dashscope.aliyuncs.com/api/v1"
 	}
 
+	for k, v := range aliyun.PassthroughHeader {
+		aliyun.header[k] = v
+	}
+
 	for k, v := range aliyun.Header {
 		aliyun.header[k] = v
 	}

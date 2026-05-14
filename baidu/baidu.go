@@ -30,6 +30,12 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Baidu {
 
 	baidu.Path += "?access_token=" + options.Key
 
+	baidu.header = make(map[string]string)
+
+	for k, v := range baidu.PassthroughHeader {
+		baidu.header[k] = v
+	}
+
 	for k, v := range baidu.Header {
 		baidu.header[k] = v
 	}

@@ -34,7 +34,7 @@ func (o *OpenAI) Responses(ctx context.Context, data []byte) (res model.OpenAIRe
 		}
 	}
 
-	if res.ResponseBytes, err = util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, &res, o.Timeout, o.ProxyUrl, o.requestErrorHandler); err != nil {
+	if res.ResponseBytes, _, err = util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, &res, o.Timeout, o.ProxyUrl, o.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "Responses OpenAI model: %s, error: %v", o.Model, err)
 		return res, err
 	}
@@ -190,7 +190,7 @@ func (o *OpenAI) ResponsesCompact(ctx context.Context, data []byte) (res model.O
 		}
 	}
 
-	if res.ResponseBytes, err = util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, &res, o.Timeout, o.ProxyUrl, o.requestErrorHandler); err != nil {
+	if res.ResponseBytes, _, err = util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, &res, o.Timeout, o.ProxyUrl, o.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "ResponsesCompact OpenAI model: %s, error: %v", o.Model, err)
 		return res, err
 	}

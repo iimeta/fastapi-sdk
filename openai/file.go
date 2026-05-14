@@ -30,7 +30,7 @@ func (o *OpenAI) FileUpload(ctx context.Context, request model.FileUploadRequest
 		o.Path = "/files"
 	}
 
-	bytes, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileUpload OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
@@ -60,7 +60,7 @@ func (o *OpenAI) FileList(ctx context.Context, request model.FileListRequest) (r
 		o.Path = "/files"
 	}
 
-	bytes, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileList OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
@@ -90,7 +90,7 @@ func (o *OpenAI) FileRetrieve(ctx context.Context, request model.FileRetrieveReq
 		o.Path = fmt.Sprintf("/files/%s", request.FileId)
 	}
 
-	bytes, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, nil, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, nil, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileRetrieve OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
@@ -120,7 +120,7 @@ func (o *OpenAI) FileDelete(ctx context.Context, request model.FileDeleteRequest
 		o.Path = fmt.Sprintf("/files/%s", request.FileId)
 	}
 
-	bytes, err := util.HttpDelete(ctx, o.BaseUrl+o.Path, o.header, nil, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, _, err := util.HttpDelete(ctx, o.BaseUrl+o.Path, o.header, nil, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileDelete OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
@@ -150,7 +150,7 @@ func (o *OpenAI) FileContent(ctx context.Context, request model.FileContentReque
 		o.Path = fmt.Sprintf("/files/%s/content", request.FileId)
 	}
 
-	bytes, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, nil, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, o.BaseUrl+o.Path, o.header, nil, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileContent OpenAI model: %s, error: %v", o.Model, err)
 		return response, err

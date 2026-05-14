@@ -30,7 +30,7 @@ func (v *VolcEngine) VideoCreate(ctx context.Context, request model.VideoCreateR
 		v.Path = "/contents/generations/tasks"
 	}
 
-	bytes, err := util.HttpPost(ctx, v.BaseUrl+v.Path, v.header, data, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, v.BaseUrl+v.Path, v.header, data, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoCreate VolcEngine model: %s, error: %v", v.Model, err)
 		return response, err
@@ -85,7 +85,7 @@ func (v *VolcEngine) VideoList(ctx context.Context, request model.VideoListReque
 		v.Path = "/contents/generations/tasks"
 	}
 
-	bytes, err := util.HttpGet(ctx, v.BaseUrl+v.Path, v.header, request, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, v.BaseUrl+v.Path, v.header, request, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoList VolcEngine model: %s, error: %v", v.Model, err)
 		return response, err
@@ -115,7 +115,7 @@ func (v *VolcEngine) VideoRetrieve(ctx context.Context, request model.VideoRetri
 		v.Path = fmt.Sprintf("/contents/generations/tasks/%s", request.VideoId)
 	}
 
-	bytes, err := util.HttpGet(ctx, v.BaseUrl+v.Path, v.header, nil, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, v.BaseUrl+v.Path, v.header, nil, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoRetrieve VolcEngine model: %s, error: %v", v.Model, err)
 		return response, err
@@ -145,7 +145,7 @@ func (v *VolcEngine) VideoDelete(ctx context.Context, request model.VideoDeleteR
 		v.Path = fmt.Sprintf("/contents/generations/tasks/%s", request.VideoId)
 	}
 
-	bytes, err := util.HttpDelete(ctx, v.BaseUrl+v.Path, v.header, nil, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
+	bytes, _, err := util.HttpDelete(ctx, v.BaseUrl+v.Path, v.header, nil, nil, v.Timeout, v.ProxyUrl, v.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoDelete VolcEngine model: %s, error: %v", v.Model, err)
 		return response, err
@@ -190,7 +190,7 @@ func (v *VolcEngine) VideoContent(ctx context.Context, request model.VideoConten
 		return response, fmt.Errorf("VideoContent VolcEngine: video_url is empty for videoId %s", request.VideoId)
 	}
 
-	data, err := util.HttpGet(ctx, retrieve.VideoUrl, nil, nil, nil, v.Timeout, v.ProxyUrl, nil)
+	data, _, err := util.HttpGet(ctx, retrieve.VideoUrl, nil, nil, nil, v.Timeout, v.ProxyUrl, nil)
 	if err != nil {
 		logger.Errorf(ctx, "VideoContent VolcEngine download error: %v", err)
 		return response, err

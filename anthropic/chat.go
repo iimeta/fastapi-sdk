@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
+	"slices"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
@@ -28,7 +29,7 @@ func (a *Anthropic) ChatCompletions(ctx context.Context, data any) (response mod
 		logger.Infof(ctx, "ChatCompletions Anthropic model: %s totalTime: %d ms", a.Model, response.TotalTime)
 	}()
 
-	if !a.IsOfficialFormatRequest {
+	if !slices.Contains(a.ReqPassthroughParams, "req_data") {
 
 		request, err := a.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
@@ -65,15 +66,18 @@ func (a *Anthropic) ChatCompletions(ctx context.Context, data any) (response mod
 		a.Path = "/messages"
 	}
 
-	if response.ResponseBytes, err = util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, nil, a.Timeout, a.ProxyUrl, a.requestErrorHandler); err != nil {
+	responseBytes, responseHeader, err := util.HttpPost(ctx, a.BaseUrl+a.Path, a.header, data, nil, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
+	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions Anthropic model: %s, error: %v", a.Model, err)
 		return response, err
 	}
 
-	if response, err = a.ConvChatCompletionsResponse(ctx, response.ResponseBytes); err != nil {
+	if response, err = a.ConvChatCompletionsResponse(ctx, responseBytes); err != nil {
 		logger.Errorf(ctx, "ChatCompletions Anthropic ConvChatCompletionsResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseHeaders = responseHeader
 
 	return response, nil
 }
@@ -89,7 +93,7 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 		}
 	}()
 
-	if !a.IsOfficialFormatRequest {
+	if !slices.Contains(a.ReqPassthroughParams, "req_data") {
 
 		request, err := a.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
@@ -127,6 +131,8 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 			logger.Errorf(ctx, "ChatCompletionsStream Anthropic model: %s, error: %v", a.Model, err)
 			return responseChan, err
 		}
+
+		streamResponseHeaders := stream.Response.Header
 
 		duration := gtime.TimestampMilli()
 
@@ -241,6 +247,7 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 					response.ConnTime = duration - now
 					response.Duration = end - duration
 					response.TotalTime = end - now
+					response.ResponseHeaders = streamResponseHeaders
 					responseChan <- &response
 
 					responseChan <- &model.ChatCompletionResponse{
@@ -258,6 +265,7 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 				response.ConnTime = duration - now
 				response.Duration = end - duration
 				response.TotalTime = end - now
+				response.ResponseHeaders = streamResponseHeaders
 
 				responseChan <- &response
 			}
@@ -278,6 +286,8 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 			logger.Errorf(ctx, "ChatCompletionsStream Anthropic model: %s, error: %v", a.Model, err)
 			return responseChan, err
 		}
+
+		streamResponseHeaders := stream.Response.Header
 
 		duration := gtime.TimestampMilli()
 
@@ -361,6 +371,7 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 					response.ConnTime = duration - now
 					response.Duration = end - duration
 					response.TotalTime = end - now
+					response.ResponseHeaders = streamResponseHeaders
 					responseChan <- &response
 
 					responseChan <- &model.ChatCompletionResponse{
@@ -378,6 +389,7 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 				response.ConnTime = duration - now
 				response.Duration = end - duration
 				response.TotalTime = end - now
+				response.ResponseHeaders = streamResponseHeaders
 
 				responseChan <- &response
 			}

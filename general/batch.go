@@ -19,7 +19,7 @@ func (g *General) BatchCreate(ctx context.Context, request model.BatchCreateRequ
 		logger.Infof(ctx, "BatchCreate General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "BatchCreate General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -45,7 +45,7 @@ func (g *General) BatchList(ctx context.Context, request model.BatchListRequest)
 		logger.Infof(ctx, "BatchList General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "BatchList General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -71,7 +71,7 @@ func (g *General) BatchRetrieve(ctx context.Context, request model.BatchRetrieve
 		logger.Infof(ctx, "BatchRetrieve General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "BatchRetrieve General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -97,7 +97,7 @@ func (g *General) BatchCancel(ctx context.Context, request model.BatchCancelRequ
 		logger.Infof(ctx, "BatchCancel General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "BatchCancel General model: %s, error: %v", g.Model, err)
 		return response, err

@@ -33,7 +33,7 @@ func (o *OpenAI) ImageGenerations(ctx context.Context, data []byte) (response mo
 		}
 	}
 
-	bytes, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, request, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageGenerations OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
@@ -71,7 +71,7 @@ func (o *OpenAI) ImageEdits(ctx context.Context, request model.ImageEditRequest)
 		}
 	}
 
-	bytes, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageEdits OpenAI model: %s, error: %v", o.Model, err)
 		return response, err

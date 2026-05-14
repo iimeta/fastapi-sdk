@@ -35,7 +35,7 @@ func (g *Google) FileUpload(ctx context.Context, request model.FileUploadRequest
 		g.BaseUrl = strings.TrimSuffix(g.BaseUrl, "/v1beta")
 	}
 
-	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileUpload Google model: %s, error: %v", g.Model, err)
 		return response, err
@@ -71,7 +71,7 @@ func (g *Google) FileList(ctx context.Context, request model.FileListRequest) (r
 		g.Path = "/files"
 	}
 
-	bytes, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileList Google model: %s, error: %v", g.Model, err)
 		return response, err
@@ -101,7 +101,7 @@ func (g *Google) FileRetrieve(ctx context.Context, request model.FileRetrieveReq
 		g.Path = fmt.Sprintf("/files/%s", request.FileId)
 	}
 
-	bytes, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileRetrieve Google model: %s, error: %v", g.Model, err)
 		return response, err
@@ -131,7 +131,7 @@ func (g *Google) FileDelete(ctx context.Context, request model.FileDeleteRequest
 		g.Path = fmt.Sprintf("/files/%s", request.FileId)
 	}
 
-	_, err = util.HttpDelete(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	_, _, err = util.HttpDelete(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileDelete Google model: %s, error: %v", g.Model, err)
 		return response, err

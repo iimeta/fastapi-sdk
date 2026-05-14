@@ -25,7 +25,7 @@ func (g *General) FileUpload(ctx context.Context, request model.FileUploadReques
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileUpload General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -51,7 +51,7 @@ func (g *General) FileList(ctx context.Context, request model.FileListRequest) (
 		logger.Infof(ctx, "FileList General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileList General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -77,7 +77,7 @@ func (g *General) FileRetrieve(ctx context.Context, request model.FileRetrieveRe
 		logger.Infof(ctx, "FileRetrieve General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileRetrieve General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -103,7 +103,7 @@ func (g *General) FileDelete(ctx context.Context, request model.FileDeleteReques
 		logger.Infof(ctx, "FileDelete General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpDelete(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpDelete(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileDelete General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -129,7 +129,7 @@ func (g *General) FileContent(ctx context.Context, request model.FileContentRequ
 		logger.Infof(ctx, "FileContent General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "FileContent General model: %s, error: %v", g.Model, err)
 		return response, err

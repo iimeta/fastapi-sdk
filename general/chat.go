@@ -22,7 +22,7 @@ func (g *General) ChatCompletions(ctx context.Context, data any) (response model
 		logger.Infof(ctx, "ChatCompletions General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, responseHeader, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -32,6 +32,8 @@ func (g *General) ChatCompletions(ctx context.Context, data any) (response model
 		logger.Errorf(ctx, "ChatCompletions General ConvChatCompletionsResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseHeaders = responseHeader
 
 	logger.Infof(ctx, "ChatCompletions General model: %s finished", g.Model)
 
@@ -54,6 +56,8 @@ func (g *General) ChatCompletionsStream(ctx context.Context, data any) (response
 		logger.Errorf(ctx, "ChatCompletionsStream General model: %s, error: %v", g.Model, err)
 		return responseChan, err
 	}
+
+	streamResponseHeaders := stream.Response.Header
 
 	duration := gtime.TimestampMilli()
 
@@ -112,6 +116,7 @@ func (g *General) ChatCompletionsStream(ctx context.Context, data any) (response
 			response.ConnTime = duration - now
 			response.Duration = end - duration
 			response.TotalTime = end - now
+			response.ResponseHeaders = streamResponseHeaders
 
 			responseChan <- &response
 		}

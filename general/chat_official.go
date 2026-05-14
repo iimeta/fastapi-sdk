@@ -28,7 +28,7 @@ func (g *General) ChatCompletionsOfficial(ctx context.Context, data []byte) (res
 		logger.Infof(ctx, "ChatCompletionsOfficial General model: %s totalTime: %d ms", g.Model, res.TotalTime)
 	}()
 
-	if res.ResponseBytes, err = util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, &res, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
+	if res.ResponseBytes, _, err = util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, &res, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "ChatCompletionsOfficial General model: %s, error: %v", g.Model, err)
 		return res, err
 	}

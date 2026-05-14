@@ -3,6 +3,7 @@ package google
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
@@ -20,7 +21,7 @@ func (g *Google) ImageGenerations(ctx context.Context, data []byte) (response mo
 		logger.Infof(ctx, "ImageGenerations Google model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	if !g.IsOfficialFormatRequest {
+	if !slices.Contains(g.ReqPassthroughParams, "req_data") {
 
 		request, err := g.ConvImageGenerationsRequest(ctx, data)
 		if err != nil {
@@ -45,12 +46,12 @@ func (g *Google) ImageGenerations(ctx context.Context, data []byte) (response mo
 	var bytes []byte
 
 	if g.isGcp {
-		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s%s:%s", g.BaseUrl, g.Path, g.Action), g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
+		if bytes, _, err = util.HttpPost(ctx, fmt.Sprintf("%s%s:%s", g.BaseUrl, g.Path, g.Action), g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
 			logger.Errorf(ctx, "ImageGenerations Google model: %s, error: %v", g.Model, err)
 			return response, err
 		}
 	} else {
-		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s%s:%s?key=%s", g.BaseUrl, g.Path, g.Action, g.Key), g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
+		if bytes, _, err = util.HttpPost(ctx, fmt.Sprintf("%s%s:%s?key=%s", g.BaseUrl, g.Path, g.Action, g.Key), g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
 			logger.Errorf(ctx, "ImageGenerations Google model: %s, error: %v", g.Model, err)
 			return response, err
 		}
@@ -91,12 +92,12 @@ func (g *Google) ImageEdits(ctx context.Context, request model.ImageEditRequest)
 	var bytes []byte
 
 	if g.isGcp {
-		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s%s:%s", g.BaseUrl, g.Path, g.Action), g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
+		if bytes, _, err = util.HttpPost(ctx, fmt.Sprintf("%s%s:%s", g.BaseUrl, g.Path, g.Action), g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
 			logger.Errorf(ctx, "ImageEdits Google model: %s, error: %v", g.Model, err)
 			return response, err
 		}
 	} else {
-		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s%s:%s?key=%s", g.BaseUrl, g.Path, g.Action, g.Key), g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
+		if bytes, _, err = util.HttpPost(ctx, fmt.Sprintf("%s%s:%s?key=%s", g.BaseUrl, g.Path, g.Action, g.Key), g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
 			logger.Errorf(ctx, "ImageEdits Google model: %s, error: %v", g.Model, err)
 			return response, err
 		}

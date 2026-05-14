@@ -32,6 +32,10 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Google {
 		google.BaseUrl = "https://generativelanguage.googleapis.com/v1beta"
 	}
 
+	for k, v := range google.PassthroughHeader {
+		google.header[k] = v
+	}
+
 	for k, v := range google.Header {
 		google.header[k] = v
 	}
@@ -53,6 +57,10 @@ func NewGcpAdapter(ctx context.Context, options *options.AdapterOptions) *Google
 
 	if gcp.BaseUrl == "" {
 		gcp.BaseUrl = "https://us-east5-aiplatform.googleapis.com/v1"
+	}
+
+	for k, v := range gcp.PassthroughHeader {
+		gcp.header[k] = v
 	}
 
 	logger.Infof(ctx, "NewGcpAdapter Google model: %s, key: %s", gcp.Model, gcp.Key)

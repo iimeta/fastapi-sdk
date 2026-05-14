@@ -36,6 +36,10 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *ZhipuAI {
 		"Authorization": "Bearer " + zhipuai.generateToken(ctx),
 	}
 
+	for k, v := range zhipuai.PassthroughHeader {
+		zhipuai.header[k] = v
+	}
+
 	for k, v := range zhipuai.Header {
 		zhipuai.header[k] = v
 	}

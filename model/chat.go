@@ -1,5 +1,7 @@
 package model
 
+import "net/http"
+
 type ChatCompletionRequest struct {
 	Model               string                        `json:"model"`
 	Messages            []ChatCompletionMessage       `json:"messages"`
@@ -48,6 +50,7 @@ type ChatCompletionResponse struct {
 	PromptAnnotations []PromptAnnotation     `json:"prompt_annotations,omitempty"`
 	SSEEvent          string                 `json:"-"`
 	ResponseBytes     []byte                 `json:"-"`
+	ResponseHeaders   http.Header            `json:"-"` // 响应头
 	ConnTime          int64                  `json:"-"`
 	Duration          int64                  `json:"-"`
 	TotalTime         int64                  `json:"-"`

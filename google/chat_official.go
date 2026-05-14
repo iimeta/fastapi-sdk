@@ -33,7 +33,7 @@ func (g *Google) ChatCompletionsOfficial(ctx context.Context, data []byte) (resp
 		g.Path = "/models/" + g.Model
 	}
 
-	if res.ResponseBytes, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", g.BaseUrl+g.Path, g.Key), g.header, data, &res, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
+	if res.ResponseBytes, _, err = util.HttpPost(ctx, fmt.Sprintf("%s:generateContent?key=%s", g.BaseUrl+g.Path, g.Key), g.header, data, &res, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "ChatCompletionsOfficial Google model: %s, error: %v", g.Model, err)
 		return res, err
 	}

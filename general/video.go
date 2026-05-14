@@ -25,7 +25,7 @@ func (g *General) VideoCreate(ctx context.Context, request model.VideoCreateRequ
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoCreate General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -51,7 +51,7 @@ func (g *General) VideoRemix(ctx context.Context, request model.VideoRemixReques
 		logger.Infof(ctx, "VideoRemix General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoRemix General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -77,7 +77,7 @@ func (g *General) VideoList(ctx context.Context, request model.VideoListRequest)
 		logger.Infof(ctx, "VideoList General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, request, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoList General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -103,7 +103,7 @@ func (g *General) VideoRetrieve(ctx context.Context, request model.VideoRetrieve
 		logger.Infof(ctx, "VideoRetrieve General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoRetrieve General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -129,7 +129,7 @@ func (g *General) VideoDelete(ctx context.Context, request model.VideoDeleteRequ
 		logger.Infof(ctx, "VideoDelete General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpDelete(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpDelete(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoDelete General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -155,7 +155,7 @@ func (g *General) VideoContent(ctx context.Context, request model.VideoContentRe
 		logger.Infof(ctx, "VideoContent General model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	bytes, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, g.BaseUrl+g.Path, g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoContent General model: %s, error: %v", g.Model, err)
 		return response, err

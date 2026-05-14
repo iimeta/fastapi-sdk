@@ -29,6 +29,10 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *VolcEngin
 		volcengine.BaseUrl = "https://ark.cn-beijing.volces.com/api/v3"
 	}
 
+	for k, v := range volcengine.PassthroughHeader {
+		volcengine.header[k] = v
+	}
+
 	for k, v := range volcengine.Header {
 		volcengine.header[k] = v
 	}

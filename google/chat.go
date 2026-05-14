@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"slices"
 
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -23,7 +24,7 @@ func (g *Google) ChatCompletions(ctx context.Context, data any) (response model.
 		logger.Infof(ctx, "ChatCompletions Google model: %s totalTime: %d ms", g.Model, response.TotalTime)
 	}()
 
-	if !g.IsOfficialFormatRequest {
+	if !slices.Contains(g.ReqPassthroughParams, "req_data") {
 
 		request, err := g.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
@@ -45,24 +46,25 @@ func (g *Google) ChatCompletions(ctx context.Context, data any) (response model.
 		g.Action = "generateContent"
 	}
 
-	var bytes []byte
-
+	var url string
 	if g.isGcp {
-		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s%s:%s", g.BaseUrl, g.Path, g.Action), g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
-			logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", g.Model, err)
-			return response, err
-		}
+		url = fmt.Sprintf("%s%s:%s", g.BaseUrl, g.Path, g.Action)
 	} else {
-		if bytes, err = util.HttpPost(ctx, fmt.Sprintf("%s%s:%s?key=%s", g.BaseUrl, g.Path, g.Action, g.Key), g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler); err != nil {
-			logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", g.Model, err)
-			return response, err
-		}
+		url = fmt.Sprintf("%s%s:%s?key=%s", g.BaseUrl, g.Path, g.Action, g.Key)
+	}
+
+	bytes, responseHeader, err := util.HttpPost(ctx, url, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	if err != nil {
+		logger.Errorf(ctx, "ChatCompletions Google model: %s, error: %v", g.Model, err)
+		return response, err
 	}
 
 	if response, err = g.ConvChatCompletionsResponse(ctx, bytes); err != nil {
 		logger.Errorf(ctx, "ChatCompletions Google ConvChatCompletionsResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseHeaders = responseHeader
 
 	return response, nil
 }
@@ -78,7 +80,7 @@ func (g *Google) ChatCompletionsStream(ctx context.Context, data any) (responseC
 		}
 	}()
 
-	if !g.IsOfficialFormatRequest {
+	if !slices.Contains(g.ReqPassthroughParams, "req_data") {
 
 		request, err := g.ConvChatCompletionsRequest(ctx, data)
 		if err != nil {
@@ -115,6 +117,8 @@ func (g *Google) ChatCompletionsStream(ctx context.Context, data any) (responseC
 			return responseChan, err
 		}
 	}
+
+	streamResponseHeaders := stream.Response.Header
 
 	duration := gtime.TimestampMilli()
 
@@ -183,6 +187,7 @@ func (g *Google) ChatCompletionsStream(ctx context.Context, data any) (responseC
 			response.ConnTime = duration - now
 			response.Duration = end - duration
 			response.TotalTime = end - now
+			response.ResponseHeaders = streamResponseHeaders
 
 			responseChan <- &response
 		}

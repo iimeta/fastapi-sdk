@@ -30,6 +30,10 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *DeepSeek 
 		deepseek.BaseUrl = "https://api.deepseek.com/v1"
 	}
 
+	for k, v := range deepseek.PassthroughHeader {
+		deepseek.header[k] = v
+	}
+
 	for k, v := range deepseek.Header {
 		deepseek.header[k] = v
 	}
@@ -54,6 +58,10 @@ func NewAdapterBaidu(ctx context.Context, options *options.AdapterOptions) *Deep
 
 	if baidu.BaseUrl == "" {
 		baidu.BaseUrl = "https://qianfan.baidubce.com/v2"
+	}
+
+	for k, v := range baidu.PassthroughHeader {
+		baidu.header[k] = v
 	}
 
 	for k, v := range baidu.Header {

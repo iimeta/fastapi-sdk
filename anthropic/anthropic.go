@@ -42,6 +42,10 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Anthropic
 		anthropic.BaseUrl = "https://api.anthropic.com/v1"
 	}
 
+	for k, v := range anthropic.PassthroughHeader {
+		anthropic.header[k] = v
+	}
+
 	for k, v := range anthropic.Header {
 		anthropic.header[k] = v
 	}
@@ -68,6 +72,10 @@ func NewGcpAdapter(ctx context.Context, options *options.AdapterOptions) *Anthro
 	//if gcp.Path == "" {
 	//	gcp.Path = "/projects/%s/locations/us-east5/publishers/anthropic/models/%s:streamRawPredict"
 	//}
+
+	for k, v := range gcp.PassthroughHeader {
+		gcp.header[k] = v
+	}
 
 	for k, v := range gcp.Header {
 		gcp.header[k] = v

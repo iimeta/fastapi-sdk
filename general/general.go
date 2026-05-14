@@ -25,6 +25,10 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *General {
 		},
 	}
 
+	for k, v := range general.PassthroughHeader {
+		general.header[k] = v
+	}
+
 	for k, v := range general.Header {
 		general.header[k] = v
 	}

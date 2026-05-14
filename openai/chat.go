@@ -3,6 +3,7 @@ package openai
 import (
 	"context"
 	"io"
+	"slices"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/grpool"
@@ -24,7 +25,7 @@ func (o *OpenAI) ChatCompletions(ctx context.Context, data any) (response model.
 		logger.Infof(ctx, "ChatCompletions OpenAI model: %s totalTime: %d ms", o.Model, response.TotalTime)
 	}()
 
-	if !o.IsOfficialFormatRequest {
+	if !slices.Contains(o.ReqPassthroughParams, "req_data") {
 		if data, err = o.ConvChatCompletionsRequest(ctx, data); err != nil {
 			logger.Errorf(ctx, "ChatCompletions OpenAI ConvChatCompletionsRequest error: %v", err)
 			return response, err
@@ -39,7 +40,7 @@ func (o *OpenAI) ChatCompletions(ctx context.Context, data any) (response model.
 		}
 	}
 
-	bytes, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
+	bytes, responseHeader, err := util.HttpPost(ctx, o.BaseUrl+o.Path, o.header, data, nil, o.Timeout, o.ProxyUrl, o.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ChatCompletions OpenAI model: %s, error: %v", o.Model, err)
 		return response, err
@@ -49,6 +50,8 @@ func (o *OpenAI) ChatCompletions(ctx context.Context, data any) (response model.
 		logger.Errorf(ctx, "ChatCompletions OpenAI ConvChatCompletionsResponse error: %v", err)
 		return response, err
 	}
+
+	response.ResponseHeaders = responseHeader
 
 	logger.Infof(ctx, "ChatCompletions OpenAI model: %s finished", o.Model)
 
@@ -66,7 +69,7 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data any) (responseC
 		}
 	}()
 
-	if !o.IsOfficialFormatRequest {
+	if !slices.Contains(o.ReqPassthroughParams, "req_data") {
 		if data, err = o.ConvChatCompletionsRequest(ctx, data); err != nil {
 			logger.Errorf(ctx, "ChatCompletionsStream OpenAI ConvChatCompletionsRequest error: %v", err)
 			return nil, err
@@ -90,6 +93,8 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data any) (responseC
 		logger.Errorf(ctx, "ChatCompletionsStream OpenAI model: %s, error: %v", o.Model, err)
 		return responseChan, err
 	}
+
+	streamResponseHeaders := stream.Response.Header
 
 	duration := gtime.TimestampMilli()
 
@@ -148,6 +153,7 @@ func (o *OpenAI) ChatCompletionsStream(ctx context.Context, data any) (responseC
 			response.ConnTime = duration - now
 			response.Duration = end - duration
 			response.TotalTime = end - now
+			response.ResponseHeaders = streamResponseHeaders
 
 			responseChan <- &response
 		}

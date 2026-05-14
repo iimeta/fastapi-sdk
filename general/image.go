@@ -19,7 +19,7 @@ func (g *General) ImageGenerations(ctx context.Context, data []byte) (response m
 		logger.Infof(ctx, "ImageGenerations General model: %s totalTime: %d ms", g.Model, gtime.TimestampMilli()-now)
 	}()
 
-	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageGenerations General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -49,7 +49,7 @@ func (g *General) ImageEdits(ctx context.Context, request model.ImageEditRequest
 		return response, err
 	}
 
-	bytes, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	bytes, _, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageEdits General model: %s, error: %v", g.Model, err)
 		return response, err

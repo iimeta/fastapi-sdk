@@ -35,6 +35,10 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *OpenAI {
 		openai.BaseUrl = "https://api.openai.com/v1"
 	}
 
+	for k, v := range openai.PassthroughHeader {
+		openai.header[k] = v
+	}
+
 	for k, v := range openai.Header {
 		openai.header[k] = v
 	}
@@ -82,6 +86,10 @@ func NewAzureAdapter(ctx context.Context, options *options.AdapterOptions) *Open
 		if azure.Path != "" {
 			azure.Path += "?api-version=" + azure.apiVersion
 		}
+	}
+
+	for k, v := range azure.PassthroughHeader {
+		azure.header[k] = v
 	}
 
 	for k, v := range azure.Header {
