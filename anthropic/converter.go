@@ -61,11 +61,13 @@ func (a *Anthropic) ConvChatCompletionsResponse(ctx context.Context, data []byte
 		Created: gtime.Timestamp(),
 		Model:   a.Model,
 		Usage: &model.Usage{
-			PromptTokens:             chatCompletionRes.Usage.InputTokens,
-			CompletionTokens:         chatCompletionRes.Usage.OutputTokens,
-			TotalTokens:              chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
-			CacheCreationInputTokens: chatCompletionRes.Usage.CacheCreationInputTokens,
-			CacheReadInputTokens:     chatCompletionRes.Usage.CacheReadInputTokens,
+			PromptTokens:               chatCompletionRes.Usage.InputTokens,
+			CompletionTokens:           chatCompletionRes.Usage.OutputTokens,
+			TotalTokens:                chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
+			CacheCreationInputTokens:   chatCompletionRes.Usage.CacheCreationInputTokens,
+			CacheReadInputTokens:       chatCompletionRes.Usage.CacheReadInputTokens,
+			CacheCreation5MInputTokens: chatCompletionRes.Usage.CacheCreation.Ephemeral5MInputTokens,
+			CacheCreation1HInputTokens: chatCompletionRes.Usage.CacheCreation.Ephemeral1HInputTokens,
 		},
 		ResponseBytes: data,
 	}
@@ -123,21 +125,25 @@ func (a *Anthropic) ConvChatCompletionsStreamResponse(ctx context.Context, data 
 
 	if chatCompletionRes.Usage != nil {
 		response.Usage = &model.Usage{
-			PromptTokens:             chatCompletionRes.Usage.InputTokens,
-			CompletionTokens:         chatCompletionRes.Usage.OutputTokens,
-			TotalTokens:              chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
-			CacheCreationInputTokens: chatCompletionRes.Usage.CacheCreationInputTokens,
-			CacheReadInputTokens:     chatCompletionRes.Usage.CacheReadInputTokens,
+			PromptTokens:               chatCompletionRes.Usage.InputTokens,
+			CompletionTokens:           chatCompletionRes.Usage.OutputTokens,
+			TotalTokens:                chatCompletionRes.Usage.InputTokens + chatCompletionRes.Usage.OutputTokens,
+			CacheCreationInputTokens:   chatCompletionRes.Usage.CacheCreationInputTokens,
+			CacheReadInputTokens:       chatCompletionRes.Usage.CacheReadInputTokens,
+			CacheCreation5MInputTokens: chatCompletionRes.Usage.CacheCreation.Ephemeral5MInputTokens,
+			CacheCreation1HInputTokens: chatCompletionRes.Usage.CacheCreation.Ephemeral1HInputTokens,
 		}
 	}
 
 	if chatCompletionRes.Message.Usage != nil {
 		response.Usage = &model.Usage{
-			PromptTokens:             chatCompletionRes.Message.Usage.InputTokens,
-			CompletionTokens:         chatCompletionRes.Message.Usage.OutputTokens,
-			TotalTokens:              chatCompletionRes.Message.Usage.InputTokens + chatCompletionRes.Message.Usage.OutputTokens,
-			CacheCreationInputTokens: chatCompletionRes.Message.Usage.CacheCreationInputTokens,
-			CacheReadInputTokens:     chatCompletionRes.Message.Usage.CacheReadInputTokens,
+			PromptTokens:               chatCompletionRes.Message.Usage.InputTokens,
+			CompletionTokens:           chatCompletionRes.Message.Usage.OutputTokens,
+			TotalTokens:                chatCompletionRes.Message.Usage.InputTokens + chatCompletionRes.Message.Usage.OutputTokens,
+			CacheCreationInputTokens:   chatCompletionRes.Message.Usage.CacheCreationInputTokens,
+			CacheReadInputTokens:       chatCompletionRes.Message.Usage.CacheReadInputTokens,
+			CacheCreation5MInputTokens: chatCompletionRes.Message.Usage.CacheCreation.Ephemeral5MInputTokens,
+			CacheCreation1HInputTokens: chatCompletionRes.Message.Usage.CacheCreation.Ephemeral1HInputTokens,
 		}
 	}
 

@@ -80,18 +80,20 @@ type ChatCompletionChoice struct {
 }
 
 type Usage struct {
-	PromptTokens             int                     `json:"prompt_tokens"`
-	CompletionTokens         int                     `json:"completion_tokens"`
-	TotalTokens              int                     `json:"total_tokens"`
-	PromptTokensDetails      PromptTokensDetails     `json:"prompt_tokens_details,omitempty"`
-	CompletionTokensDetails  CompletionTokensDetails `json:"completion_tokens_details,omitempty"`
-	SearchTokens             int                     `json:"search_tokens,omitempty"`
-	CacheCreationInputTokens int                     `json:"cache_creation_input_tokens,omitempty"`
-	CacheReadInputTokens     int                     `json:"cache_read_input_tokens,omitempty"`
-	InputTokens              int                     `json:"input_tokens,omitempty"`
-	OutputTokens             int                     `json:"output_tokens,omitempty"`
-	InputTokensDetails       InputTokensDetails      `json:"input_tokens_details,omitempty"`
-	OutputTokensDetails      OutputTokensDetails     `json:"output_tokens_details,omitempty"`
+	PromptTokens               int                     `json:"prompt_tokens"`
+	CompletionTokens           int                     `json:"completion_tokens"`
+	TotalTokens                int                     `json:"total_tokens"`
+	PromptTokensDetails        PromptTokensDetails     `json:"prompt_tokens_details,omitempty"`
+	CompletionTokensDetails    CompletionTokensDetails `json:"completion_tokens_details,omitempty"`
+	SearchTokens               int                     `json:"search_tokens,omitempty"`
+	CacheCreationInputTokens   int                     `json:"cache_creation_input_tokens,omitempty"`
+	CacheReadInputTokens       int                     `json:"cache_read_input_tokens,omitempty"`
+	CacheCreation5MInputTokens int                     `json:"cache_creation_5m_input_tokens,omitempty"`
+	CacheCreation1HInputTokens int                     `json:"cache_creation_1h_input_tokens,omitempty"`
+	InputTokens                int                     `json:"input_tokens,omitempty"`
+	OutputTokens               int                     `json:"output_tokens,omitempty"`
+	InputTokensDetails         InputTokensDetails      `json:"input_tokens_details,omitempty"`
+	OutputTokensDetails        OutputTokensDetails     `json:"output_tokens_details,omitempty"`
 }
 
 type PromptTokensDetails struct {
