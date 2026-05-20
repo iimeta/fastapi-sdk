@@ -33,6 +33,7 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *Anthropic
 		AdapterOptions: options,
 		header: map[string]string{
 			"x-api-key":         options.Key,
+			"Authorization":     "Bearer " + options.Key,
 			"anthropic-version": "2023-06-01",
 			//"anthropic-beta":    "compact-2026-01-12",
 		},
