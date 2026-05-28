@@ -122,7 +122,9 @@ type InputTokensDetails struct {
 }
 
 type OutputTokensDetails struct {
+	TextTokens      int `json:"text_tokens,omitempty"`
 	ReasoningTokens int `json:"reasoning_tokens,omitempty"`
+	ImageTokens     int `json:"image_tokens,omitempty"`
 }
 
 type ChatCompletionStreamChoiceDelta struct {
