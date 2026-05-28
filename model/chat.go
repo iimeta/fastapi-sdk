@@ -207,7 +207,7 @@ type ContentFilterResults struct {
 
 type FunctionCall struct {
 	Name      string `json:"name"`
-	Arguments string `json:"arguments"`
+	Arguments any    `json:"arguments"`
 }
 
 type ToolCall struct {

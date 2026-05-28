@@ -10,6 +10,7 @@ import (
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/v2/errors"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
 	"github.com/iimeta/fastapi-sdk/v2/model"
@@ -342,7 +343,7 @@ func (o *OpenAI) ResponsesStreamToNonStream(ctx context.Context, data []byte) (r
 		for _, output := range responsesRes.Output {
 			if output.Status == "completed" {
 				if output.Type == "function_call" {
-					delta += output.Arguments
+					delta += gconv.String(output.Arguments)
 				} else if len(output.Content) > 0 {
 					delta += output.Content[0].Text
 				}

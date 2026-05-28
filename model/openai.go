@@ -60,16 +60,16 @@ type OpenAIResponsesRes struct {
 }
 
 type OpenAIResponsesStreamRes struct {
-	Type           string                  `json:"type"`
-	SequenceNumber int                     `json:"sequence_number"`
-	Response       OpenAIResponsesResponse `json:"response"`
-	OutputIndex    int                     `json:"output_index"`
-	ContentIndex   int                     `json:"content_index"`
-	ItemId         string                  `json:"item_id"`
-	Item           OpenAIResponsesItem     `json:"item"`
-	Delta          string                  `json:"delta"`
-	Part           OpenAIResponsesPart     `json:"part"`
-	Arguments      string                  `json:"arguments"`
+	Type            string                  `json:"type"`
+	SequenceNumber  int                     `json:"sequence_number"`
+	Response        OpenAIResponsesResponse `json:"response"`
+	OutputIndex     int                     `json:"output_index"`
+	ContentIndex    int                     `json:"content_index"`
+	ItemId          string                  `json:"item_id"`
+	Item            OpenAIResponsesItem     `json:"item"`
+	Delta           string                  `json:"delta"`
+	Part            OpenAIResponsesPart     `json:"part"`
+	Arguments       any                     `json:"arguments"`
 	SSEEvent        string                  `json:"-"`
 	ResponseBytes   []byte                  `json:"-"`
 	ResponseHeaders http.Header             `json:"-"`
@@ -124,7 +124,7 @@ type OpenAIResponsesOutput struct {
 	Role      string                   `json:"role,omitempty"`
 	Content   []OpenAIResponsesContent `json:"content,omitempty"`
 	Summary   []OpenAIResponsesSummary `json:"summary,omitempty"`
-	Arguments string                   `json:"arguments,omitempty"`
+	Arguments any                      `json:"arguments,omitempty"`
 	CallId    string                   `json:"call_id,omitempty"`
 	Name      string                   `json:"name,omitempty"`
 }
@@ -142,7 +142,7 @@ type OpenAIResponsesItem struct {
 	Status    string                   `json:"status"`
 	Content   []OpenAIResponsesContent `json:"content"`
 	Role      string                   `json:"role"`
-	Arguments string                   `json:"arguments"`
+	Arguments any                      `json:"arguments"`
 	CallId    string                   `json:"call_id"`
 	Name      string                   `json:"name"`
 	Summary   []OpenAIResponsesSummary `json:"summary"`
