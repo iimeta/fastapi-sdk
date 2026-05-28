@@ -239,27 +239,6 @@ func (a *Anthropic) ChatCompletionsStream(ctx context.Context, data any) (respon
 					}
 				}
 
-				if len(response.Choices) > 0 && response.Choices[0].FinishReason != "" {
-					logger.Infof(ctx, "ChatCompletionsStream Anthropic model: %s, finishReason: %s finished", a.Model, response.Choices[0].FinishReason)
-
-					end := gtime.TimestampMilli()
-
-					response.ConnTime = duration - now
-					response.Duration = end - duration
-					response.TotalTime = end - now
-					response.ResponseHeaders = streamResponseHeaders
-					responseChan <- &response
-
-					responseChan <- &model.ChatCompletionResponse{
-						ConnTime:  duration - now,
-						Duration:  end - duration,
-						TotalTime: end - now,
-						Error:     io.EOF,
-					}
-
-					return
-				}
-
 				end := gtime.TimestampMilli()
 
 				response.ConnTime = duration - now
