@@ -15,6 +15,11 @@ import (
 
 func (x *Xfyun) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsRequest time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	if v, ok := data.(model.ChatCompletionRequest); ok {
 		request = v
 	} else if v, ok := data.([]byte); ok {
@@ -39,6 +44,11 @@ func (x *Xfyun) ConvChatCompletionsRequest(ctx context.Context, data any) (reque
 }
 
 func (x *Xfyun) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	chatCompletionRes := model.XfyunChatCompletionRes{}
 	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
@@ -79,6 +89,11 @@ func (x *Xfyun) ConvChatCompletionsResponse(ctx context.Context, data []byte) (r
 }
 
 func (x *Xfyun) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsStreamResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	chatCompletionRes := model.XfyunChatCompletionRes{}
 	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
@@ -138,6 +153,11 @@ func (x *Xfyun) ConvChatResponsesStreamResponse(ctx context.Context, data []byte
 }
 
 func (x *Xfyun) ConvImageGenerationsRequest(ctx context.Context, data []byte) (request model.ImageGenerationRequest, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvImageGenerationsRequest time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	if err = json.Unmarshal(data, &request); err != nil {
 		logger.Error(ctx, err)

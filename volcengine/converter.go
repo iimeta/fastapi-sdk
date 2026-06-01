@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/v2/common"
@@ -16,6 +17,11 @@ import (
 )
 
 func (v *VolcEngine) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsRequest time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	if v, ok := data.(model.ChatCompletionRequest); ok {
 		request = v
@@ -42,6 +48,11 @@ func (v *VolcEngine) ConvChatCompletionsRequest(ctx context.Context, data any) (
 
 func (v *VolcEngine) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	response.ResponseBytes = data
 
 	if err = json.Unmarshal(data, &response); err != nil {
@@ -57,6 +68,11 @@ func (v *VolcEngine) ConvChatCompletionsResponse(ctx context.Context, data []byt
 }
 
 func (v *VolcEngine) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsStreamResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	response.ResponseBytes = data
 
@@ -139,6 +155,11 @@ func (v *VolcEngine) ConvTextEmbeddingsResponse(ctx context.Context, data []byte
 
 func (v *VolcEngine) ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (*bytes.Buffer, error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvVideoCreateRequest time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	req := model.VolcVideoCreateReq{
 		Model: v.Model,
 	}
@@ -166,6 +187,11 @@ func (v *VolcEngine) ConvVideoCreateRequest(ctx context.Context, request model.V
 }
 
 func (v *VolcEngine) ConvVideoJobResponse(ctx context.Context, data []byte) (response model.VideoJobResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvVideoJobResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	var raw model.VolcVideoTaskRes
 	if err = json.Unmarshal(data, &raw); err != nil {
@@ -222,6 +248,11 @@ func (v *VolcEngine) ConvVideoJobResponse(ctx context.Context, data []byte) (res
 
 func (v *VolcEngine) ConvVideoListResponse(ctx context.Context, data []byte) (response model.VideoListResponse, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvVideoListResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	var raw model.VolcVideoListRes
 	if err = json.Unmarshal(data, &raw); err != nil {
 		logger.Errorf(ctx, "ConvVideoListResponse VolcEngine json.Unmarshal error: %v", err)
@@ -249,6 +280,12 @@ func (v *VolcEngine) ConvVideoListResponse(ctx context.Context, data []byte) (re
 }
 
 func (v *VolcEngine) ConvVideoContentResponse(ctx context.Context, data []byte) (model.VideoContentResponse, error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvVideoContentResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	return model.VideoContentResponse{Data: data}, nil
 }
 

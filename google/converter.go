@@ -19,6 +19,11 @@ import (
 
 func (g *Google) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsRequest time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	if v, ok := data.(model.ChatCompletionRequest); ok {
 		request = v
 	} else if v, ok := data.([]byte); ok {
@@ -43,6 +48,11 @@ func (g *Google) ConvChatCompletionsRequest(ctx context.Context, data any) (requ
 }
 
 func (g *Google) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	chatCompletionRes := model.GoogleChatCompletionRes{}
 	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
@@ -140,6 +150,11 @@ func (g *Google) ConvChatCompletionsResponse(ctx context.Context, data []byte) (
 }
 
 func (g *Google) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsStreamResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	chatCompletionRes := model.GoogleChatCompletionRes{}
 	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
@@ -239,6 +254,11 @@ func (g *Google) ConvChatResponsesStreamResponse(ctx context.Context, data []byt
 
 func (g *Google) ConvImageGenerationsRequest(ctx context.Context, data []byte) (request model.ImageGenerationRequest, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvImageGenerationsRequest time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	if err = json.Unmarshal(data, &request); err != nil {
 		logger.Error(ctx, err)
 		return request, err
@@ -272,6 +292,11 @@ func (g *Google) ConvImageGenerationsRequest(ctx context.Context, data []byte) (
 }
 
 func (g *Google) ConvImageGenerationsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvImageGenerationsResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	chatCompletionRes := model.GoogleChatCompletionRes{}
 	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
@@ -412,6 +437,11 @@ func (g *Google) ConvVideoJobResponse(ctx context.Context, data []byte) (respons
 
 func (g *Google) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (data *bytes.Buffer, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvFileUploadRequest time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	data = &bytes.Buffer{}
 	builder := util.NewFormBuilder(data)
 
@@ -434,6 +464,11 @@ func (g *Google) ConvFileUploadRequest(ctx context.Context, request model.FileUp
 }
 
 func (g *Google) ConvFileListResponse(ctx context.Context, data []byte) (response model.FileListResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvFileListResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	response.ResponseBytes = data
 
@@ -485,6 +520,11 @@ func (g *Google) ConvFileContentResponse(ctx context.Context, data []byte) (resp
 }
 
 func (g *Google) ConvFileResponse(ctx context.Context, data []byte) (response model.FileResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvFileResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	response.ResponseBytes = data
 

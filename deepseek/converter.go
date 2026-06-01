@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/v2/common"
 	"github.com/iimeta/fastapi-sdk/v2/consts"
@@ -14,6 +15,11 @@ import (
 )
 
 func (d *DeepSeek) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsRequest time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	if v, ok := data.(model.ChatCompletionRequest); ok {
 		request = v
@@ -38,6 +44,11 @@ func (d *DeepSeek) ConvChatCompletionsRequest(ctx context.Context, data any) (re
 
 func (d *DeepSeek) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	response.ResponseBytes = data
 
 	if err = json.Unmarshal(data, &response); err != nil {
@@ -53,6 +64,11 @@ func (d *DeepSeek) ConvChatCompletionsResponse(ctx context.Context, data []byte)
 }
 
 func (d *DeepSeek) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsStreamResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	response.ResponseBytes = data
 

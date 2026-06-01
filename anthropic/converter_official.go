@@ -4,13 +4,20 @@ import (
 	"context"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/v2/common"
 	"github.com/iimeta/fastapi-sdk/v2/consts"
+	"github.com/iimeta/fastapi-sdk/v2/logger"
 	"github.com/iimeta/fastapi-sdk/v2/model"
 )
 
 func (a *Anthropic) ConvChatCompletionsRequestOfficial(ctx context.Context, request model.ChatCompletionRequest) ([]byte, error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsRequestOfficial time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	chatCompletionReq := model.AnthropicChatCompletionReq{
 		Model:         request.Model,

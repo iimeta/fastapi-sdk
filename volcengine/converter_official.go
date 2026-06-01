@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
 	"github.com/iimeta/fastapi-sdk/v2/model"
@@ -46,6 +47,11 @@ func (v *VolcEngine) ConvImageEditsResponseOfficial(ctx context.Context, respons
 }
 
 func (v *VolcEngine) ConvVideoJobResponseOfficial(ctx context.Context, response model.VideoJobResponse) (*model.VolcVideoTaskRes, error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvVideoJobResponseOfficial time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	res := &model.VolcVideoTaskRes{
 		Id:        response.Id,
@@ -91,6 +97,11 @@ func (v *VolcEngine) ConvVideoJobResponseOfficial(ctx context.Context, response 
 }
 
 func (v *VolcEngine) ConvVideoListResponseOfficial(ctx context.Context, response model.VideoListResponse) ([]byte, error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvVideoListResponseOfficial time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	listRes := model.VolcVideoListRes{
 		Total: len(response.Data),

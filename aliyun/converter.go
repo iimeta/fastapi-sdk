@@ -15,6 +15,11 @@ import (
 
 func (a *Aliyun) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsRequest time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	if v, ok := data.(model.ChatCompletionRequest); ok {
 		request = v
 	} else if v, ok := data.([]byte); ok {
@@ -39,6 +44,11 @@ func (a *Aliyun) ConvChatCompletionsRequest(ctx context.Context, data any) (requ
 }
 
 func (a *Aliyun) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	chatCompletionRes := model.AliyunChatCompletionRes{}
 	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
@@ -78,6 +88,11 @@ func (a *Aliyun) ConvChatCompletionsResponse(ctx context.Context, data []byte) (
 }
 
 func (a *Aliyun) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsStreamResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	chatCompletionRes := model.AliyunChatCompletionRes{}
 	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/v2/common"
 	"github.com/iimeta/fastapi-sdk/v2/consts"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
@@ -13,6 +14,11 @@ import (
 )
 
 func (z *ZhipuAI) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsRequest time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	if v, ok := data.(model.ChatCompletionRequest); ok {
 		request = v
@@ -38,6 +44,11 @@ func (z *ZhipuAI) ConvChatCompletionsRequest(ctx context.Context, data any) (req
 }
 
 func (z *ZhipuAI) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	chatCompletionRes := model.ZhipuAIChatCompletionRes{}
 	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
@@ -68,6 +79,11 @@ func (z *ZhipuAI) ConvChatCompletionsResponse(ctx context.Context, data []byte) 
 }
 
 func (z *ZhipuAI) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsStreamResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	chatCompletionRes := model.ZhipuAIChatCompletionRes{}
 	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {

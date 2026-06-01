@@ -4,12 +4,19 @@ import (
 	"context"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-sdk/v2/consts"
+	"github.com/iimeta/fastapi-sdk/v2/logger"
 	"github.com/iimeta/fastapi-sdk/v2/model"
 )
 
 func (x *Xfyun) ConvChatCompletionsRequestOfficial(ctx context.Context, request model.ChatCompletionRequest) ([]byte, error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsRequestOfficial time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	if len(request.Messages) == 1 && request.Messages[0].Role == consts.ROLE_SYSTEM {
 		request.Messages[0].Role = consts.ROLE_USER

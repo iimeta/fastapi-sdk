@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/iimeta/fastapi-sdk/v2/common"
 	"github.com/iimeta/fastapi-sdk/v2/consts"
@@ -14,6 +15,11 @@ import (
 )
 
 func (g *Google) ConvChatCompletionsRequestOfficial(ctx context.Context, request model.ChatCompletionRequest) ([]byte, error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsRequestOfficial time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	contents := make([]model.Content, 0)
 	for _, message := range request.Messages {
@@ -123,6 +129,11 @@ func (g *Google) ConvChatCompletionsStreamResponseOfficial(ctx context.Context, 
 
 func (g *Google) ConvImageGenerationsRequestOfficial(ctx context.Context, request model.ImageGenerationRequest) ([]byte, error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvImageGenerationsRequestOfficial time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	parts := make([]model.Part, 0)
 
 	parts = append(parts, model.Part{
@@ -155,6 +166,11 @@ func (g *Google) ConvImageGenerationsResponseOfficial(ctx context.Context, respo
 }
 
 func (g *Google) ConvImageEditsRequestOfficial(ctx context.Context, request model.ImageEditRequest) ([]byte, error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvImageEditsRequestOfficial time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	parts := make([]model.Part, 0)
 

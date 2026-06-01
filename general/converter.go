@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
+	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/v2/common"
 	"github.com/iimeta/fastapi-sdk/v2/consts"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
@@ -16,6 +17,11 @@ import (
 )
 
 func (g *General) ConvChatCompletionsRequest(ctx context.Context, data any) (request model.ChatCompletionRequest, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsRequest time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	if v, ok := data.(model.ChatCompletionRequest); ok {
 		request = v
@@ -42,6 +48,11 @@ func (g *General) ConvChatCompletionsRequest(ctx context.Context, data any) (req
 
 func (g *General) ConvChatCompletionsResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	response.ResponseBytes = data
 
 	if err = json.Unmarshal(data, &response); err != nil {
@@ -53,6 +64,11 @@ func (g *General) ConvChatCompletionsResponse(ctx context.Context, data []byte) 
 }
 
 func (g *General) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvChatCompletionsStreamResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	response.ResponseBytes = data
 
@@ -90,6 +106,11 @@ func (g *General) ConvChatResponsesStreamResponse(ctx context.Context, data []by
 
 func (g *General) ConvImageGenerationsRequest(ctx context.Context, data []byte) (request model.ImageGenerationRequest, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvImageGenerationsRequest time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	if err = json.Unmarshal(data, &request); err != nil {
 		logger.Error(ctx, err)
 		return request, err
@@ -100,6 +121,11 @@ func (g *General) ConvImageGenerationsRequest(ctx context.Context, data []byte) 
 
 func (g *General) ConvImageGenerationsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvImageGenerationsResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
@@ -109,6 +135,11 @@ func (g *General) ConvImageGenerationsResponse(ctx context.Context, data []byte)
 }
 
 func (g *General) ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (data *bytes.Buffer, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvImageEditsRequest time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	data = &bytes.Buffer{}
 	builder := util.NewFormBuilder(data)
@@ -201,6 +232,11 @@ func (g *General) ConvImageEditsRequest(ctx context.Context, request model.Image
 
 func (g *General) ConvImageEditsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvImageEditsResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
@@ -211,6 +247,11 @@ func (g *General) ConvImageEditsResponse(ctx context.Context, data []byte) (resp
 
 func (g *General) ConvAudioSpeechRequest(ctx context.Context, data []byte) (request model.SpeechRequest, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvAudioSpeechRequest time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	if err = json.Unmarshal(data, &request); err != nil {
 		logger.Error(ctx, err)
 		return request, err
@@ -220,12 +261,23 @@ func (g *General) ConvAudioSpeechRequest(ctx context.Context, data []byte) (requ
 }
 
 func (g *General) ConvAudioSpeechResponse(ctx context.Context, data []byte) (response model.SpeechResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvAudioSpeechResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	return model.SpeechResponse{
 		Data: data,
 	}, nil
 }
 
 func (g *General) ConvAudioTranscriptionsRequest(ctx context.Context, request model.AudioRequest) (data *bytes.Buffer, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvAudioTranscriptionsRequest time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	data = &bytes.Buffer{}
 	builder := util.NewFormBuilder(data)
@@ -292,6 +344,11 @@ func (g *General) ConvAudioTranscriptionsRequest(ctx context.Context, request mo
 
 func (g *General) ConvAudioTranscriptionsResponse(ctx context.Context, data []byte) (response model.AudioResponse, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvAudioTranscriptionsResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
@@ -301,6 +358,11 @@ func (g *General) ConvAudioTranscriptionsResponse(ctx context.Context, data []by
 }
 
 func (g *General) ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (request model.EmbeddingRequest, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvTextEmbeddingsRequest time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	if err = json.Unmarshal(data, &request); err != nil {
 		logger.Error(ctx, err)
@@ -312,6 +374,11 @@ func (g *General) ConvTextEmbeddingsRequest(ctx context.Context, data []byte) (r
 
 func (g *General) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (response model.EmbeddingResponse, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvTextEmbeddingsResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
@@ -321,6 +388,11 @@ func (g *General) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (
 }
 
 func (g *General) ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (data *bytes.Buffer, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvVideoCreateRequest time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	data = &bytes.Buffer{}
 	builder := util.NewFormBuilder(data)
@@ -371,6 +443,11 @@ func (g *General) ConvVideoCreateRequest(ctx context.Context, request model.Vide
 
 func (g *General) ConvVideoListResponse(ctx context.Context, data []byte) (response model.VideoListResponse, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvVideoListResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
@@ -380,12 +457,23 @@ func (g *General) ConvVideoListResponse(ctx context.Context, data []byte) (respo
 }
 
 func (g *General) ConvVideoContentResponse(ctx context.Context, data []byte) (response model.VideoContentResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvVideoContentResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	return model.VideoContentResponse{
 		Data: data,
 	}, nil
 }
 
 func (g *General) ConvVideoJobResponse(ctx context.Context, data []byte) (response model.VideoJobResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvVideoJobResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
@@ -396,6 +484,11 @@ func (g *General) ConvVideoJobResponse(ctx context.Context, data []byte) (respon
 }
 
 func (g *General) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (data *bytes.Buffer, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvFileUploadRequest time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	data = &bytes.Buffer{}
 	builder := util.NewFormBuilder(data)
@@ -441,6 +534,11 @@ func (g *General) ConvFileUploadRequest(ctx context.Context, request model.FileU
 
 func (g *General) ConvFileListResponse(ctx context.Context, data []byte) (response model.FileListResponse, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvFileListResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	response.ResponseBytes = data
 
 	if err = json.Unmarshal(data, &response); err != nil {
@@ -452,12 +550,23 @@ func (g *General) ConvFileListResponse(ctx context.Context, data []byte) (respon
 }
 
 func (g *General) ConvFileContentResponse(ctx context.Context, data []byte) (response model.FileContentResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvFileContentResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	return model.FileContentResponse{
 		Data: data,
 	}, nil
 }
 
 func (g *General) ConvFileResponse(ctx context.Context, data []byte) (response model.FileResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvFileResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	response.ResponseBytes = data
 
@@ -476,6 +585,11 @@ func (g *General) ConvBatchCreateRequest(ctx context.Context, request model.Batc
 
 func (g *General) ConvBatchListResponse(ctx context.Context, data []byte) (response model.BatchListResponse, err error) {
 
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvBatchListResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
@@ -485,6 +599,11 @@ func (g *General) ConvBatchListResponse(ctx context.Context, data []byte) (respo
 }
 
 func (g *General) ConvBatchResponse(ctx context.Context, data []byte) (response model.BatchResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvBatchResponse time: %d", gtime.TimestampMilli()-now)
+	}()
 
 	response.ResponseBytes = data
 
