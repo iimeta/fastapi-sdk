@@ -97,7 +97,7 @@ type OpenAIResponsesResponse struct {
 	Store              bool                     `json:"store"`
 	Temperature        float32                  `json:"temperature"`
 	Text               OpenAIResponsesText      `json:"text"`
-	ToolChoice         string                   `json:"tool_choice"`
+	ToolChoice         any                      `json:"tool_choice"`
 	Tools              any                      `json:"tools"`
 	TopP               float32                  `json:"top_p"`
 	Truncation         string                   `json:"truncation"`
