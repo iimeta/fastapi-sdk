@@ -161,6 +161,35 @@ func (o *OpenAI) ConvImageGenerationsResponse(ctx context.Context, data []byte) 
 	return response, nil
 }
 
+func (o *OpenAI) ConvImageGenerationsStreamResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvImageGenerationsStreamResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
+	response.ResponseBytes = data
+
+	streamResponse := model.ImageStreamResponse{}
+	if err = json.Unmarshal(data, &streamResponse); err != nil {
+		logger.Error(ctx, err)
+		return response, err
+	}
+
+	response.Created = streamResponse.CreatedAt
+	response.Usage = streamResponse.Usage
+
+	if streamResponse.B64Json != "" {
+		response.Data = []model.ImageResponseData{
+			{
+				B64Json: streamResponse.B64Json,
+			},
+		}
+	}
+
+	return response, nil
+}
+
 func (o *OpenAI) ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (data *bytes.Buffer, err error) {
 
 	now := gtime.TimestampMilli()
@@ -180,6 +209,13 @@ func (o *OpenAI) ConvImageEditsRequest(ctx context.Context, request model.ImageE
 	if err = builder.WriteField("model", request.Model); err != nil {
 		logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 		return data, err
+	}
+
+	if request.InputFidelity != "" {
+		if err = builder.WriteField("input_fidelity", request.InputFidelity); err != nil {
+			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
+			return data, err
+		}
 	}
 
 	if len(request.Image) > 0 {
@@ -224,6 +260,13 @@ func (o *OpenAI) ConvImageEditsRequest(ctx context.Context, request model.ImageE
 		}
 	}
 
+	if request.PartialImages != 0 {
+		if err = builder.WriteField("partial_images", strconv.Itoa(request.PartialImages)); err != nil {
+			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
+			return data, err
+		}
+	}
+
 	if request.Quality != "" {
 		if err = builder.WriteField("quality", request.Quality); err != nil {
 			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
@@ -247,6 +290,13 @@ func (o *OpenAI) ConvImageEditsRequest(ctx context.Context, request model.ImageE
 
 	if request.User != "" {
 		if err = builder.WriteField("user", request.User); err != nil {
+			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
+			return data, err
+		}
+	}
+
+	if request.Stream {
+		if err = builder.WriteField("stream", "true"); err != nil {
 			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}

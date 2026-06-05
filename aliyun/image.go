@@ -15,3 +15,13 @@ func (a *Aliyun) ImageEdits(ctx context.Context, request model.ImageEditRequest)
 	//TODO implement me
 	panic("implement me")
 }
+
+func (a *Aliyun) ImageGenerationsStream(ctx context.Context, data []byte) (responseChan chan *model.ImageResponse, err error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *Aliyun) ImageEditsStream(ctx context.Context, request model.ImageEditRequest) (responseChan chan *model.ImageResponse, err error) {
+	//TODO implement me
+	panic("implement me")
+}

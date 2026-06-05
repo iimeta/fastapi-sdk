@@ -72,3 +72,13 @@ func (g *General) ImageEdits(ctx context.Context, request model.ImageEditRequest
 
 	return response, nil
 }
+
+func (g *General) ImageGenerationsStream(ctx context.Context, data []byte) (responseChan chan *model.ImageResponse, err error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *General) ImageEditsStream(ctx context.Context, request model.ImageEditRequest) (responseChan chan *model.ImageResponse, err error) {
+	//TODO implement me
+	panic("implement me")
+}

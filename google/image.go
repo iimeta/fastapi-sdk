@@ -114,3 +114,13 @@ func (g *Google) ImageEdits(ctx context.Context, request model.ImageEditRequest)
 
 	return response, nil
 }
+
+func (g *Google) ImageGenerationsStream(ctx context.Context, data []byte) (responseChan chan *model.ImageResponse, err error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *Google) ImageEditsStream(ctx context.Context, request model.ImageEditRequest) (responseChan chan *model.ImageResponse, err error) {
+	//TODO implement me
+	panic("implement me")
+}

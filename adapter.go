@@ -29,7 +29,9 @@ type Adapter interface {
 	ChatCompletionsStream(ctx context.Context, data any) (responseChan chan *model.ChatCompletionResponse, err error)
 
 	ImageGenerations(ctx context.Context, data []byte) (response model.ImageResponse, err error)
+	ImageGenerationsStream(ctx context.Context, data []byte) (responseChan chan *model.ImageResponse, err error)
 	ImageEdits(ctx context.Context, request model.ImageEditRequest) (response model.ImageResponse, err error)
+	ImageEditsStream(ctx context.Context, request model.ImageEditRequest) (responseChan chan *model.ImageResponse, err error)
 
 	AudioSpeech(ctx context.Context, data []byte) (response model.SpeechResponse, err error)
 	AudioTranscriptions(ctx context.Context, request model.AudioRequest) (response model.AudioResponse, err error)
