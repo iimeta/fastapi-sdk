@@ -23,6 +23,7 @@ type ImageGenerationRequest struct {
 	AspectRatio       string `json:"aspect_ratio,omitempty"`
 	Stream            bool   `json:"stream,omitempty"`
 	Async             bool   `json:"async,omitempty"`
+	Image             any    `json:"image,omitempty"`
 }
 
 type ImageResponse struct {
