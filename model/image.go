@@ -22,6 +22,7 @@ type ImageGenerationRequest struct {
 	User              string `json:"user,omitempty"`
 	AspectRatio       string `json:"aspect_ratio,omitempty"`
 	Stream            bool   `json:"stream,omitempty"`
+	Async             bool   `json:"async,omitempty"`
 }
 
 type ImageResponse struct {
@@ -54,6 +55,67 @@ type ImageStreamResponse struct {
 	SequenceNumber    int    `json:"sequence_number,omitempty"`
 	Size              string `json:"size,omitempty"`
 	Usage             Usage  `json:"usage,omitempty"`
+}
+
+type ImageJobResponse struct {
+	Id              string              `json:"id"`
+	Object          string              `json:"object"`
+	Model           string              `json:"model"`
+	Status          string              `json:"status"`
+	Progress        int                 `json:"progress"`
+	CreatedAt       int64               `json:"created_at"`
+	CompletedAt     *int64              `json:"completed_at"`
+	ExpiresAt       *int64              `json:"expires_at"`
+	Size            string              `json:"size"`
+	Quality         string              `json:"quality"`
+	N               int                 `json:"n"`
+	Prompt          string              `json:"prompt"`
+	Data            []ImageResponseData `json:"data,omitempty"`
+	ImageUrl        string              `json:"image_url,omitempty"`
+	Deleted         bool                `json:"deleted,omitempty"`
+	Error           *ImageError         `json:"error"`
+	Usage           *Usage              `json:"usage,omitempty"`
+	ResponseBytes   []byte              `json:"-"`
+	ResponseHeaders http.Header         `json:"-"`
+	TotalTime       int64               `json:"-"`
+}
+
+type ImageError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+type ImageListRequest struct {
+	After string `json:"after"`
+	Limit int64  `json:"limit"`
+	Order string `json:"order"`
+}
+
+type ImageListResponse struct {
+	Object    string             `json:"object"`
+	Data      []ImageJobResponse `json:"data"`
+	FirstId   *string            `json:"first_id"`
+	LastId    *string            `json:"last_id"`
+	HasMore   bool               `json:"has_more"`
+	TotalTime int64              `json:"-"`
+}
+
+type ImageRetrieveRequest struct {
+	ImageId string `json:"image_id"`
+}
+
+type ImageDeleteRequest struct {
+	ImageId string `json:"image_id"`
+}
+
+type ImageContentRequest struct {
+	ImageId string `json:"image_id"`
+	Index   int    `json:"index"`
+}
+
+type ImageContentResponse struct {
+	Data      []byte `json:"-"`
+	TotalTime int64  `json:"-"`
 }
 
 type ImageEditRequest struct {
