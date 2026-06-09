@@ -71,6 +71,7 @@ type ImageJobResponse struct {
 	Quality         string              `json:"quality"`
 	N               int                 `json:"n"`
 	Prompt          string              `json:"prompt"`
+	OutputFormat    string              `json:"output_format"`
 	Data            []ImageResponseData `json:"data,omitempty"`
 	ImageUrl        string              `json:"image_url,omitempty"`
 	Deleted         bool                `json:"deleted,omitempty"`
