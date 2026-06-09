@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"io"
+	"mime/multipart"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -178,31 +179,33 @@ func (g *Google) ConvImageEditsRequestOfficial(ctx context.Context, request mode
 		Text: gconv.String(request.Prompt),
 	})
 
-	for _, image := range request.Image {
+	if fileHeaders, ok := request.Image.([]*multipart.FileHeader); ok {
+		for _, image := range fileHeaders {
 
-		file, err := image.Open()
-		if err != nil {
-			logger.Error(ctx, err)
-			return nil, err
+			file, err := image.Open()
+			if err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+
+			fileBytes, err := io.ReadAll(file)
+
+			if err := file.Close(); err != nil {
+				logger.Error(ctx, err)
+			}
+
+			if err != nil {
+				logger.Error(ctx, err)
+				return nil, err
+			}
+
+			parts = append(parts, model.Part{
+				InlineData: &model.InlineData{
+					MimeType: image.Header.Get("Content-Type"),
+					Data:     base64.StdEncoding.EncodeToString(fileBytes),
+				},
+			})
 		}
-
-		fileBytes, err := io.ReadAll(file)
-
-		if err := file.Close(); err != nil {
-			logger.Error(ctx, err)
-		}
-
-		if err != nil {
-			logger.Error(ctx, err)
-			return nil, err
-		}
-
-		parts = append(parts, model.Part{
-			InlineData: &model.InlineData{
-				MimeType: image.Header.Get("Content-Type"),
-				Data:     base64.StdEncoding.EncodeToString(fileBytes),
-			},
-		})
 	}
 
 	contents := make([]model.Content, 0)

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
 	"strconv"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
@@ -197,6 +198,95 @@ func (o *OpenAI) ConvImageEditsRequest(ctx context.Context, request model.ImageE
 		logger.Debugf(ctx, "ConvImageEditsRequest time: %d", gtime.TimestampMilli()-now)
 	}()
 
+	if len(request.Images) > 0 {
+		return o.convImageEditsRequestJSON(ctx, request)
+	}
+
+	switch v := request.Image.(type) {
+	case string:
+		request.Images = []model.ImageEditImage{{ImageUrl: v}}
+		return o.convImageEditsRequestJSON(ctx, request)
+	case []string:
+		for _, u := range v {
+			request.Images = append(request.Images, model.ImageEditImage{ImageUrl: u})
+		}
+		return o.convImageEditsRequestJSON(ctx, request)
+	case []any:
+		for _, item := range v {
+			if u, ok := item.(string); ok {
+				request.Images = append(request.Images, model.ImageEditImage{ImageUrl: u})
+			}
+		}
+		if len(request.Images) > 0 {
+			return o.convImageEditsRequestJSON(ctx, request)
+		}
+	}
+
+	return o.convImageEditsRequestForm(ctx, request)
+}
+
+func (o *OpenAI) convImageEditsRequestJSON(ctx context.Context, request model.ImageEditRequest) (data *bytes.Buffer, err error) {
+
+	jsonReq := map[string]any{
+		"prompt": request.Prompt,
+		"model":  request.Model,
+	}
+
+	jsonReq["images"] = request.Images
+
+	if request.Background != "" {
+		jsonReq["background"] = request.Background
+	}
+
+	if request.InputFidelity != "" {
+		jsonReq["input_fidelity"] = request.InputFidelity
+	}
+
+	if request.N != 0 {
+		jsonReq["n"] = request.N
+	}
+
+	if request.PartialImages != 0 {
+		jsonReq["partial_images"] = request.PartialImages
+	}
+
+	if request.Quality != "" {
+		jsonReq["quality"] = request.Quality
+	}
+
+	if request.ResponseFormat != "" {
+		jsonReq["response_format"] = request.ResponseFormat
+	}
+
+	if request.Size != "" {
+		jsonReq["size"] = request.Size
+	}
+
+	if request.User != "" {
+		jsonReq["user"] = request.User
+	}
+
+	if request.AspectRatio != "" {
+		jsonReq["aspect_ratio"] = request.AspectRatio
+	}
+
+	if request.Stream {
+		jsonReq["stream"] = true
+	}
+
+	jsonBytes, err := json.Marshal(jsonReq)
+	if err != nil {
+		logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, json.Marshal error: %v", o.Model, err)
+		return nil, err
+	}
+
+	o.header["Content-Type"] = "application/json"
+
+	return bytes.NewBuffer(jsonBytes), nil
+}
+
+func (o *OpenAI) convImageEditsRequestForm(ctx context.Context, request model.ImageEditRequest) (data *bytes.Buffer, err error) {
+
 	data = &bytes.Buffer{}
 	builder := util.NewFormBuilder(data)
 
@@ -218,14 +308,14 @@ func (o *OpenAI) ConvImageEditsRequest(ctx context.Context, request model.ImageE
 		}
 	}
 
-	if len(request.Image) > 0 {
-		if len(request.Image) == 1 {
-			if err = builder.CreateFormFileHeader("image", request.Image[0]); err != nil {
+	if fileHeaders, ok := request.Image.([]*multipart.FileHeader); ok && len(fileHeaders) > 0 {
+		if len(fileHeaders) == 1 {
+			if err = builder.CreateFormFileHeader("image", fileHeaders[0]); err != nil {
 				logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 				return data, err
 			}
 		} else {
-			for _, image := range request.Image {
+			for _, image := range fileHeaders {
 				if err = builder.CreateFormFileHeader("image[]", image); err != nil {
 					logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 					return data, err

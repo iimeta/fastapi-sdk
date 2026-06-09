@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
 	"strconv"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
@@ -155,14 +156,14 @@ func (g *General) ConvImageEditsRequest(ctx context.Context, request model.Image
 		return data, err
 	}
 
-	if len(request.Image) > 0 {
-		if len(request.Image) == 1 {
-			if err = builder.CreateFormFileHeader("image", request.Image[0]); err != nil {
+	if fileHeaders, ok := request.Image.([]*multipart.FileHeader); ok && len(fileHeaders) > 0 {
+		if len(fileHeaders) == 1 {
+			if err = builder.CreateFormFileHeader("image", fileHeaders[0]); err != nil {
 				logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
 				return data, err
 			}
 		} else {
-			for _, image := range request.Image {
+			for _, image := range fileHeaders {
 				if err = builder.CreateFormFileHeader("image[]", image); err != nil {
 					logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
 					return data, err

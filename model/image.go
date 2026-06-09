@@ -120,19 +120,25 @@ type ImageContentResponse struct {
 	TotalTime int64  `json:"-"`
 }
 
+type ImageEditImage struct {
+	ImageUrl string `json:"image_url,omitempty"`
+	FileId   string `json:"file_id,omitempty"`
+}
+
 type ImageEditRequest struct {
-	Image          []*multipart.FileHeader `json:"image,omitempty"`
-	Prompt         string                  `json:"prompt,omitempty"`
-	Background     string                  `json:"background,omitempty"`
-	Mask           *multipart.FileHeader   `json:"mask,omitempty"`
-	Model          string                  `json:"model,omitempty"`
-	InputFidelity  string                  `json:"input_fidelity,omitempty"`
-	N              int                     `json:"n,omitempty"`
-	PartialImages  int                     `json:"partial_images,omitempty"`
-	Quality        string                  `json:"quality,omitempty"`
-	ResponseFormat string                  `json:"response_format,omitempty"`
-	Size           string                  `json:"size,omitempty"`
-	User           string                  `json:"user,omitempty"`
-	AspectRatio    string                  `json:"aspect_ratio,omitempty"`
-	Stream         bool                    `json:"stream,omitempty"`
+	Image          any                   `json:"image,omitempty"`
+	Images         []ImageEditImage      `json:"images,omitempty"`
+	Prompt         string                `json:"prompt,omitempty"`
+	Background     string                `json:"background,omitempty"`
+	Mask           *multipart.FileHeader `json:"mask,omitempty"`
+	Model          string                `json:"model,omitempty"`
+	InputFidelity  string                `json:"input_fidelity,omitempty"`
+	N              int                   `json:"n,omitempty"`
+	PartialImages  int                   `json:"partial_images,omitempty"`
+	Quality        string                `json:"quality,omitempty"`
+	ResponseFormat string                `json:"response_format,omitempty"`
+	Size           string                `json:"size,omitempty"`
+	User           string                `json:"user,omitempty"`
+	AspectRatio    string                `json:"aspect_ratio,omitempty"`
+	Stream         bool                  `json:"stream,omitempty"`
 }
