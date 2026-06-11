@@ -259,7 +259,7 @@ func (o *OpenAI) convImageEditsRequestJSON(ctx context.Context, request model.Im
 	}
 
 	if request.Size != "" {
-		jsonReq["size"] = request.Size
+		jsonReq["size"] = gstr.Replace(request.Size, ":", "x")
 	}
 
 	if request.User != "" {
@@ -372,7 +372,7 @@ func (o *OpenAI) convImageEditsRequestForm(ctx context.Context, request model.Im
 	}
 
 	if request.Size != "" {
-		if err = builder.WriteField("size", request.Size); err != nil {
+		if err = builder.WriteField("size", gstr.Replace(request.Size, ":", "x")); err != nil {
 			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
@@ -597,7 +597,7 @@ func (o *OpenAI) ConvVideoCreateRequest(ctx context.Context, request model.Video
 	}
 
 	if request.Size != "" {
-		if err = builder.WriteField("size", request.Size); err != nil {
+		if err = builder.WriteField("size", gstr.Replace(request.Size, ":", "x")); err != nil {
 			logger.Errorf(ctx, "ConvVideoCreateRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}
