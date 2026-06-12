@@ -274,6 +274,10 @@ func (o *OpenAI) convImageEditsRequestJSON(ctx context.Context, request model.Im
 		jsonReq["stream"] = true
 	}
 
+	if request.Async {
+		jsonReq["async"] = true
+	}
+
 	jsonBytes, err := json.Marshal(jsonReq)
 	if err != nil {
 		logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, json.Marshal error: %v", o.Model, err)

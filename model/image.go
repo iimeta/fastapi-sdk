@@ -141,4 +141,5 @@ type ImageEditRequest struct {
 	User           string                `json:"user,omitempty"`
 	AspectRatio    string                `json:"aspect_ratio,omitempty"`
 	Stream         bool                  `json:"stream,omitempty"`
+	Async          bool                  `json:"async,omitempty"`
 }
