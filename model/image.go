@@ -6,24 +6,25 @@ import (
 )
 
 type ImageGenerationRequest struct {
-	Prompt            string `json:"prompt,omitempty"`
-	Background        string `json:"background,omitempty"`
-	Model             string `json:"model,omitempty"`
-	Moderation        string `json:"moderation,omitempty"`
-	InputFidelity     string `json:"input_fidelity,omitempty"`
-	N                 int    `json:"n,omitempty"`
-	OutputCompression int    `json:"output_compression,omitempty"`
-	OutputFormat      string `json:"output_format,omitempty"`
-	PartialImages     int    `json:"partial_images,omitempty"`
-	Quality           string `json:"quality,omitempty"`
-	ResponseFormat    string `json:"response_format,omitempty"`
-	Size              string `json:"size,omitempty"`
-	Style             string `json:"style,omitempty"`
-	User              string `json:"user,omitempty"`
-	AspectRatio       string `json:"aspect_ratio,omitempty"`
-	Stream            bool   `json:"stream,omitempty"`
-	Async             bool   `json:"async,omitempty"`
-	Image             any    `json:"image,omitempty"`
+	Prompt            string           `json:"prompt,omitempty"`
+	Background        string           `json:"background,omitempty"`
+	Model             string           `json:"model,omitempty"`
+	Moderation        string           `json:"moderation,omitempty"`
+	InputFidelity     string           `json:"input_fidelity,omitempty"`
+	N                 int              `json:"n,omitempty"`
+	OutputCompression int              `json:"output_compression,omitempty"`
+	OutputFormat      string           `json:"output_format,omitempty"`
+	PartialImages     int              `json:"partial_images,omitempty"`
+	Quality           string           `json:"quality,omitempty"`
+	ResponseFormat    string           `json:"response_format,omitempty"`
+	Size              string           `json:"size,omitempty"`
+	Style             string           `json:"style,omitempty"`
+	User              string           `json:"user,omitempty"`
+	AspectRatio       string           `json:"aspect_ratio,omitempty"`
+	Stream            bool             `json:"stream,omitempty"`
+	Async             bool             `json:"async,omitempty"`
+	Image             any              `json:"image,omitempty"`
+	Images            []ImageEditImage `json:"images,omitempty"`
 }
 
 type ImageResponse struct {

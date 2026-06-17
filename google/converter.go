@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"reflect"
 	"strings"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
@@ -264,7 +265,7 @@ func (g *Google) ConvImageGenerationsRequest(ctx context.Context, data []byte) (
 		return request, err
 	}
 
-	if request == (model.ImageGenerationRequest{}) {
+	if reflect.DeepEqual(request, model.ImageGenerationRequest{}) {
 
 		googleImageGenerationReq := model.GoogleImageGenerationReq{}
 		if err = json.Unmarshal(data, &googleImageGenerationReq); err != nil {
