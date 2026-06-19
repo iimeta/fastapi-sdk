@@ -279,8 +279,15 @@ func (o *OpenAI) convImageEditsRequestJSON(ctx context.Context, request model.Im
 	}
 
 	if request.Mask != nil {
-		if maskUrl, ok := request.Mask.(string); ok && maskUrl != "" {
-			jsonReq["mask"] = maskUrl
+		switch v := request.Mask.(type) {
+		case string:
+			if v != "" {
+				jsonReq["mask"] = model.ImageEditImage{ImageUrl: v}
+			}
+		case model.ImageEditImage:
+			jsonReq["mask"] = v
+		default:
+			jsonReq["mask"] = v
 		}
 	}
 
