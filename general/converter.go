@@ -185,9 +185,11 @@ func (g *General) ConvImageEditsRequest(ctx context.Context, request model.Image
 	}
 
 	if request.Mask != nil {
-		if err = builder.CreateFormFileHeader("mask", request.Mask); err != nil {
-			logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
-			return data, err
+		if maskFileHeader, ok := request.Mask.(*multipart.FileHeader); ok {
+			if err = builder.CreateFormFileHeader("mask", maskFileHeader); err != nil {
+				logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
+				return data, err
+			}
 		}
 	}
 

@@ -1,7 +1,6 @@
 package model
 
 import (
-	"mime/multipart"
 	"net/http"
 )
 
@@ -131,7 +130,7 @@ type ImageEditRequest struct {
 	Images         []ImageEditImage      `json:"images,omitempty"`
 	Prompt         string                `json:"prompt,omitempty"`
 	Background     string                `json:"background,omitempty"`
-	Mask           *multipart.FileHeader `json:"mask,omitempty"`
+	Mask           any                   `json:"mask,omitempty"`
 	Model          string                `json:"model,omitempty"`
 	InputFidelity  string                `json:"input_fidelity,omitempty"`
 	N              int                   `json:"n,omitempty"`

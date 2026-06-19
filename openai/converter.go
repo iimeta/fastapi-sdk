@@ -278,6 +278,12 @@ func (o *OpenAI) convImageEditsRequestJSON(ctx context.Context, request model.Im
 		jsonReq["async"] = true
 	}
 
+	if request.Mask != nil {
+		if maskUrl, ok := request.Mask.(string); ok && maskUrl != "" {
+			jsonReq["mask"] = maskUrl
+		}
+	}
+
 	jsonBytes, err := json.Marshal(jsonReq)
 	if err != nil {
 		logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, json.Marshal error: %v", o.Model, err)
@@ -341,9 +347,11 @@ func (o *OpenAI) convImageEditsRequestForm(ctx context.Context, request model.Im
 	}
 
 	if request.Mask != nil {
-		if err = builder.CreateFormFileHeader("mask", request.Mask); err != nil {
-			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
-			return data, err
+		if maskFileHeader, ok := request.Mask.(*multipart.FileHeader); ok {
+			if err = builder.CreateFormFileHeader("mask", maskFileHeader); err != nil {
+				logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
+				return data, err
+			}
 		}
 	}
 
