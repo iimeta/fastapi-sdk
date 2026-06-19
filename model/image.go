@@ -126,20 +126,22 @@ type ImageEditImage struct {
 }
 
 type ImageEditRequest struct {
-	Image          any                   `json:"image,omitempty"`
-	Images         []ImageEditImage      `json:"images,omitempty"`
-	Prompt         string                `json:"prompt,omitempty"`
-	Background     string                `json:"background,omitempty"`
-	Mask           any                   `json:"mask,omitempty"`
-	Model          string                `json:"model,omitempty"`
-	InputFidelity  string                `json:"input_fidelity,omitempty"`
-	N              int                   `json:"n,omitempty"`
-	PartialImages  int                   `json:"partial_images,omitempty"`
-	Quality        string                `json:"quality,omitempty"`
-	ResponseFormat string                `json:"response_format,omitempty"`
-	Size           string                `json:"size,omitempty"`
-	User           string                `json:"user,omitempty"`
-	AspectRatio    string                `json:"aspect_ratio,omitempty"`
-	Stream         bool                  `json:"stream,omitempty"`
-	Async          bool                  `json:"async,omitempty"`
+	Image             any              `json:"image,omitempty"`
+	Images            []ImageEditImage `json:"images,omitempty"`
+	Prompt            string           `json:"prompt,omitempty"`
+	Background        string           `json:"background,omitempty"`
+	Mask              any              `json:"mask,omitempty"`
+	Model             string           `json:"model,omitempty"`
+	InputFidelity     string           `json:"input_fidelity,omitempty"`
+	N                 int              `json:"n,omitempty"`
+	OutputCompression int              `json:"output_compression,omitempty"`
+	OutputFormat      string           `json:"output_format,omitempty"`
+	PartialImages     int              `json:"partial_images,omitempty"`
+	Quality           string           `json:"quality,omitempty"`
+	ResponseFormat    string           `json:"response_format,omitempty"`
+	Size              string           `json:"size,omitempty"`
+	User              string           `json:"user,omitempty"`
+	AspectRatio       string           `json:"aspect_ratio,omitempty"`
+	Stream            bool             `json:"stream,omitempty"`
+	Async             bool             `json:"async,omitempty"`
 }

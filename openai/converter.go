@@ -246,6 +246,14 @@ func (o *OpenAI) convImageEditsRequestJSON(ctx context.Context, request model.Im
 		jsonReq["n"] = request.N
 	}
 
+	if request.OutputCompression != 0 {
+		jsonReq["output_compression"] = request.OutputCompression
+	}
+
+	if request.OutputFormat != "" {
+		jsonReq["output_format"] = request.OutputFormat
+	}
+
 	if request.PartialImages != 0 {
 		jsonReq["partial_images"] = request.PartialImages
 	}
@@ -364,6 +372,20 @@ func (o *OpenAI) convImageEditsRequestForm(ctx context.Context, request model.Im
 
 	if request.N != 0 {
 		if err = builder.WriteField("n", strconv.Itoa(request.N)); err != nil {
+			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
+			return data, err
+		}
+	}
+
+	if request.OutputCompression != 0 {
+		if err = builder.WriteField("output_compression", strconv.Itoa(request.OutputCompression)); err != nil {
+			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
+			return data, err
+		}
+	}
+
+	if request.OutputFormat != "" {
+		if err = builder.WriteField("output_format", request.OutputFormat); err != nil {
 			logger.Errorf(ctx, "ConvImageEditsRequest OpenAI model: %s, error: %v", o.Model, err)
 			return data, err
 		}

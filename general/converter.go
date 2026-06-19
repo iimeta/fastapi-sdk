@@ -200,6 +200,20 @@ func (g *General) ConvImageEditsRequest(ctx context.Context, request model.Image
 		}
 	}
 
+	if request.OutputCompression != 0 {
+		if err = builder.WriteField("output_compression", strconv.Itoa(request.OutputCompression)); err != nil {
+			logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
+			return data, err
+		}
+	}
+
+	if request.OutputFormat != "" {
+		if err = builder.WriteField("output_format", request.OutputFormat); err != nil {
+			logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
+			return data, err
+		}
+	}
+
 	if request.Quality != "" {
 		if err = builder.WriteField("quality", request.Quality); err != nil {
 			logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
