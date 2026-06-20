@@ -3,6 +3,7 @@ package xfyun
 import (
 	"context"
 	"slices"
+	"strings"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -87,7 +88,17 @@ func (x *Xfyun) ImageGenerations(ctx context.Context, data []byte) (response mod
 	}
 
 	imageRes := model.XfyunChatCompletionRes{}
-	bytes, responseHeader, err := util.HttpPost(ctx, x.getHttpUrl(ctx), x.header, imageData, &imageRes, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
+
+	imageUrl := x.getHttpUrl(ctx)
+	if x.Async {
+		if strings.Contains(imageUrl, "?") {
+			imageUrl += "&async=true"
+		} else {
+			imageUrl += "?async=true"
+		}
+	}
+
+	bytes, responseHeader, err := util.HttpPost(ctx, imageUrl, x.header, imageData, &imageRes, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageGenerations Xfyun model: %s, error: %v", x.Model, err)
 		return response, err

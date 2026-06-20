@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
@@ -48,6 +49,14 @@ func (g *Google) ImageGenerations(ctx context.Context, data []byte) (response mo
 		url = fmt.Sprintf("%s%s:%s", g.BaseUrl, g.Path, g.Action)
 	} else {
 		url = fmt.Sprintf("%s%s:%s?key=%s", g.BaseUrl, g.Path, g.Action, g.Key)
+	}
+
+	if g.Async {
+		if strings.Contains(url, "?") {
+			url += "&async=true"
+		} else {
+			url += "?async=true"
+		}
 	}
 
 	bytes, responseHeader, err := util.HttpPost(ctx, url, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
@@ -96,6 +105,14 @@ func (g *Google) ImageEdits(ctx context.Context, request model.ImageEditRequest)
 		url = fmt.Sprintf("%s%s:%s", g.BaseUrl, g.Path, g.Action)
 	} else {
 		url = fmt.Sprintf("%s%s:%s?key=%s", g.BaseUrl, g.Path, g.Action, g.Key)
+	}
+
+	if g.Async {
+		if strings.Contains(url, "?") {
+			url += "&async=true"
+		} else {
+			url += "?async=true"
+		}
 	}
 
 	bytes, responseHeader, err := util.HttpPost(ctx, url, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)

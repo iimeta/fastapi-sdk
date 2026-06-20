@@ -3,6 +3,7 @@ package general
 import (
 	"context"
 	"slices"
+	"strings"
 
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
@@ -20,7 +21,16 @@ func (g *General) ImageGenerations(ctx context.Context, data []byte) (response m
 		logger.Infof(ctx, "ImageGenerations General model: %s totalTime: %d ms", g.Model, gtime.TimestampMilli()-now)
 	}()
 
-	bytes, responseHeader, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	path := g.Path
+	if g.Async {
+		if strings.Contains(path, "?") {
+			path += "&async=true"
+		} else {
+			path += "?async=true"
+		}
+	}
+
+	bytes, responseHeader, err := util.HttpPost(ctx, g.BaseUrl+path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageGenerations General model: %s, error: %v", g.Model, err)
 		return response, err
@@ -56,7 +66,16 @@ func (g *General) ImageEdits(ctx context.Context, request model.ImageEditRequest
 		}
 	}
 
-	bytes, responseHeader, err := util.HttpPost(ctx, g.BaseUrl+g.Path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	path := g.Path
+	if g.Async {
+		if strings.Contains(path, "?") {
+			path += "&async=true"
+		} else {
+			path += "?async=true"
+		}
+	}
+
+	bytes, responseHeader, err := util.HttpPost(ctx, g.BaseUrl+path, g.header, data, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageEdits General model: %s, error: %v", g.Model, err)
 		return response, err

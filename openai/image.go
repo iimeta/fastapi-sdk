@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"slices"
+	"strings"
 
 	"github.com/gogf/gf/v2/os/grpool"
 	"github.com/gogf/gf/v2/os/gtime"
@@ -36,6 +37,14 @@ func (o *OpenAI) ImageGenerations(ctx context.Context, data []byte) (response mo
 			o.Path = "/images/generations?api-version=" + o.apiVersion
 		} else {
 			o.Path = "/images/generations"
+		}
+	}
+
+	if o.Async {
+		if strings.Contains(o.Path, "?") {
+			o.Path += "&async=true"
+		} else {
+			o.Path += "?async=true"
 		}
 	}
 
@@ -183,6 +192,14 @@ func (o *OpenAI) ImageEdits(ctx context.Context, request model.ImageEditRequest)
 			o.Path = "/images/edits?api-version=" + o.apiVersion
 		} else {
 			o.Path = "/images/edits"
+		}
+	}
+
+	if o.Async {
+		if strings.Contains(o.Path, "?") {
+			o.Path += "&async=true"
+		} else {
+			o.Path += "?async=true"
 		}
 	}
 
