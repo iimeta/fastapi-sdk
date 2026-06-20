@@ -10,6 +10,7 @@ import (
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/v2/common"
 	"github.com/iimeta/fastapi-sdk/v2/consts"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
@@ -135,12 +136,151 @@ func (g *General) ConvImageGenerationsResponse(ctx context.Context, data []byte)
 	return response, nil
 }
 
+func (g *General) ConvImageGenerationsStreamResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvImageGenerationsStreamResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
+	response.ResponseBytes = data
+
+	streamResponse := model.ImageStreamResponse{}
+	if err = json.Unmarshal(data, &streamResponse); err != nil {
+		logger.Error(ctx, err)
+		return response, err
+	}
+
+	response.Created = streamResponse.CreatedAt
+	response.Usage = streamResponse.Usage
+
+	if streamResponse.B64Json != "" {
+		response.Data = []model.ImageResponseData{
+			{
+				B64Json: streamResponse.B64Json,
+			},
+		}
+	}
+
+	return response, nil
+}
+
 func (g *General) ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (data *bytes.Buffer, err error) {
 
 	now := gtime.TimestampMilli()
 	defer func() {
 		logger.Debugf(ctx, "ConvImageEditsRequest time: %d", gtime.TimestampMilli()-now)
 	}()
+
+	if len(request.Images) > 0 {
+		return g.convImageEditsRequestJSON(ctx, request)
+	}
+
+	switch v := request.Image.(type) {
+	case string:
+		request.Images = []model.ImageEditImage{{ImageUrl: v}}
+		return g.convImageEditsRequestJSON(ctx, request)
+	case []string:
+		for _, u := range v {
+			request.Images = append(request.Images, model.ImageEditImage{ImageUrl: u})
+		}
+		return g.convImageEditsRequestJSON(ctx, request)
+	case []any:
+		for _, item := range v {
+			if u, ok := item.(string); ok {
+				request.Images = append(request.Images, model.ImageEditImage{ImageUrl: u})
+			}
+		}
+		if len(request.Images) > 0 {
+			return g.convImageEditsRequestJSON(ctx, request)
+		}
+	}
+
+	return g.convImageEditsRequestForm(ctx, request)
+}
+
+func (g *General) convImageEditsRequestJSON(ctx context.Context, request model.ImageEditRequest) (data *bytes.Buffer, err error) {
+
+	jsonReq := map[string]any{
+		"prompt": request.Prompt,
+		"model":  request.Model,
+	}
+
+	jsonReq["images"] = request.Images
+
+	if request.Background != "" {
+		jsonReq["background"] = request.Background
+	}
+
+	if request.InputFidelity != "" {
+		jsonReq["input_fidelity"] = request.InputFidelity
+	}
+
+	if request.N != 0 {
+		jsonReq["n"] = request.N
+	}
+
+	if request.OutputCompression != 0 {
+		jsonReq["output_compression"] = request.OutputCompression
+	}
+
+	if request.OutputFormat != "" {
+		jsonReq["output_format"] = request.OutputFormat
+	}
+
+	if request.PartialImages != 0 {
+		jsonReq["partial_images"] = request.PartialImages
+	}
+
+	if request.Quality != "" {
+		jsonReq["quality"] = request.Quality
+	}
+
+	if request.ResponseFormat != "" {
+		jsonReq["response_format"] = request.ResponseFormat
+	}
+
+	if request.Size != "" {
+		jsonReq["size"] = gstr.Replace(request.Size, ":", "x")
+	}
+
+	if request.User != "" {
+		jsonReq["user"] = request.User
+	}
+
+	if request.AspectRatio != "" {
+		jsonReq["aspect_ratio"] = request.AspectRatio
+	}
+
+	if request.Stream {
+		jsonReq["stream"] = true
+	}
+
+	if request.Mask != nil {
+		switch v := request.Mask.(type) {
+		case string:
+			if v != "" {
+				jsonReq["mask"] = model.ImageEditImage{ImageUrl: v}
+			}
+		case model.ImageEditImage:
+			jsonReq["mask"] = v
+		default:
+			jsonReq["mask"] = v
+		}
+	}
+
+	jsonBytes, err := json.Marshal(jsonReq)
+	if err != nil {
+		logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, json.Marshal error: %v", g.Model, err)
+		return nil, err
+	}
+
+	g.header["Content-Type"] = "application/json"
+
+	return bytes.NewBuffer(jsonBytes), nil
+}
+
+func (g *General) convImageEditsRequestForm(ctx context.Context, request model.ImageEditRequest) (data *bytes.Buffer, err error) {
 
 	data = &bytes.Buffer{}
 	builder := util.NewFormBuilder(data)
@@ -154,6 +294,13 @@ func (g *General) ConvImageEditsRequest(ctx context.Context, request model.Image
 	if err = builder.WriteField("model", request.Model); err != nil {
 		logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
 		return data, err
+	}
+
+	if request.InputFidelity != "" {
+		if err = builder.WriteField("input_fidelity", request.InputFidelity); err != nil {
+			logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
+			return data, err
+		}
 	}
 
 	if fileHeaders, ok := request.Image.([]*multipart.FileHeader); ok && len(fileHeaders) > 0 {
@@ -214,6 +361,13 @@ func (g *General) ConvImageEditsRequest(ctx context.Context, request model.Image
 		}
 	}
 
+	if request.PartialImages != 0 {
+		if err = builder.WriteField("partial_images", strconv.Itoa(request.PartialImages)); err != nil {
+			logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
+			return data, err
+		}
+	}
+
 	if request.Quality != "" {
 		if err = builder.WriteField("quality", request.Quality); err != nil {
 			logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
@@ -229,7 +383,7 @@ func (g *General) ConvImageEditsRequest(ctx context.Context, request model.Image
 	}
 
 	if request.Size != "" {
-		if err = builder.WriteField("size", request.Size); err != nil {
+		if err = builder.WriteField("size", gstr.Replace(request.Size, ":", "x")); err != nil {
 			logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
 			return data, err
 		}
@@ -237,6 +391,13 @@ func (g *General) ConvImageEditsRequest(ctx context.Context, request model.Image
 
 	if request.User != "" {
 		if err = builder.WriteField("user", request.User); err != nil {
+			logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
+			return data, err
+		}
+	}
+
+	if request.Stream {
+		if err = builder.WriteField("stream", "true"); err != nil {
 			logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
 			return data, err
 		}
