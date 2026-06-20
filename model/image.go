@@ -21,7 +21,6 @@ type ImageGenerationRequest struct {
 	User              string           `json:"user,omitempty"`
 	AspectRatio       string           `json:"aspect_ratio,omitempty"`
 	Stream            bool             `json:"stream,omitempty"`
-	Async             bool             `json:"async,omitempty"`
 	Image             any              `json:"image,omitempty"`
 	Images            []ImageEditImage `json:"images,omitempty"`
 }
@@ -74,6 +73,7 @@ type ImageJobResponse struct {
 	OutputFormat    string              `json:"output_format"`
 	Data            []ImageResponseData `json:"data,omitempty"`
 	ImageUrl        string              `json:"image_url,omitempty"`
+	ImageUrls       []string            `json:"image_urls,omitempty"`
 	Deleted         bool                `json:"deleted,omitempty"`
 	Error           *ImageError         `json:"error"`
 	Usage           *Usage              `json:"usage,omitempty"`
@@ -143,5 +143,4 @@ type ImageEditRequest struct {
 	User              string           `json:"user,omitempty"`
 	AspectRatio       string           `json:"aspect_ratio,omitempty"`
 	Stream            bool             `json:"stream,omitempty"`
-	Async             bool             `json:"async,omitempty"`
 }

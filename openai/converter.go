@@ -282,10 +282,6 @@ func (o *OpenAI) convImageEditsRequestJSON(ctx context.Context, request model.Im
 		jsonReq["stream"] = true
 	}
 
-	if request.Async {
-		jsonReq["async"] = true
-	}
-
 	if request.Mask != nil {
 		switch v := request.Mask.(type) {
 		case string:
