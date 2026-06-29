@@ -15,7 +15,6 @@ const (
 	PROVIDER_AWS_CLAUDE     = "AWSClaude"
 	PROVIDER_GCP_CLAUDE     = "GCPClaude"
 	PROVIDER_GCP_GEMINI     = "GCPGemini"
-	PROVIDER_MIDJOURNEY     = "Midjourney"
 	PROVIDER_FASTAPI        = "FastAPI"
 )
 
