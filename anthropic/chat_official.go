@@ -94,160 +94,163 @@ func (a *Anthropic) ChatCompletionsStreamOfficial(ctx context.Context, data []by
 		}
 	}()
 
-	request := make(map[string]any)
-	if err = json.Unmarshal(data, &request); err != nil {
-		logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, data: %s, json.Unmarshal error: %v", a.Model, data, err)
-		return responseChan, err
-	}
+	if a.isGcp || a.isAws {
 
-	if a.isGcp {
-		delete(request, "model")
-	}
-
-	if a.isAws {
-
-		request["anthropic_version"] = "bedrock-2023-05-31"
-		delete(request, "stream")
-		delete(request, "model")
-
-		data = gjson.MustEncode(request)
-
-		a.header = aws.SignHeader(a.Path, a.region, a.accessKey, a.secretKey, data)
-
-		stream, err := util.SSEClient(ctx, a.BaseUrl+a.Path, a.header, data, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
-		if err != nil {
-			logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, error: %v", a.Model, err)
+		request := make(map[string]any)
+		if err = json.Unmarshal(data, &request); err != nil {
+			logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, data: %s, json.Unmarshal error: %v", a.Model, data, err)
 			return responseChan, err
 		}
 
-		streamResponseHeaders := stream.Response.Header
+		if a.isGcp {
+			delete(request, "model")
+		}
 
-		payloadBuf := make([]byte, 10*1024)
+		if a.isAws {
 
-		duration := gtime.TimestampMilli()
+			request["anthropic_version"] = "bedrock-2023-05-31"
+			delete(request, "stream")
+			delete(request, "model")
 
-		responseChan = make(chan any)
+			data = gjson.MustEncode(request)
 
-		if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
+			a.header = aws.SignHeader(a.Path, a.region, a.accessKey, a.secretKey, data)
 
-			defer func() {
-				if err := stream.Close(); err != nil {
-					logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, stream.Close error: %v", a.Model, err)
-				}
-
-				end := gtime.TimestampMilli()
-				logger.Infof(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", a.Model, duration-now, end-duration, end-now)
-			}()
-
-			for {
-
-				payloadBuf = payloadBuf[0:0]
-
-				decodedMessage, err := aws.DecodeMessage(stream.Response.Body, payloadBuf)
-				if err != nil {
-
-					if errors.Is(err, io.EOF) {
-						logger.Infof(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s finished", a.Model)
-					} else {
-						logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, error: %v", a.Model, err)
-					}
-
-					end := gtime.TimestampMilli()
-					responseChan <- &model.ChatCompletionResponse{
-						ConnTime:  duration - now,
-						Duration:  end - duration,
-						TotalTime: end - now,
-						Error:     err,
-					}
-
-					return
-				}
-
-				payload := make(map[string]any)
-				if err := json.Unmarshal(decodedMessage.Payload, &payload); err != nil {
-					logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic json.Unmarshal(decodedMessage.Payload, &payload), payload: %s, error: %v", decodedMessage.Payload, err)
-
-					end := gtime.TimestampMilli()
-					responseChan <- &model.ChatCompletionResponse{
-						ConnTime:  duration - now,
-						Duration:  end - duration,
-						TotalTime: end - now,
-						Error:     err,
-					}
-				}
-
-				bytes, err := base64.StdEncoding.DecodeString(gconv.String(payload["bytes"]))
-				if err != nil {
-					logger.Errorf(ctx, `ChatCompletionsStreamOfficial Anthropic base64.StdEncoding.DecodeString(gconv.String(payload["bytes"])), bytes: %s, error: %v`, payload["bytes"], err)
-
-					end := gtime.TimestampMilli()
-					responseChan <- &model.ChatCompletionResponse{
-						ConnTime:  duration - now,
-						Duration:  end - duration,
-						TotalTime: end - now,
-						Error:     err,
-					}
-				}
-
-				chatCompletionRes := model.AnthropicChatCompletionRes{}
-				if err := json.Unmarshal(bytes, &chatCompletionRes); err != nil {
-					logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, bytes: %s, error: %v", a.Model, bytes, err)
-
-					end := gtime.TimestampMilli()
-					responseChan <- &model.AnthropicChatCompletionRes{
-						ConnTime:  duration - now,
-						Duration:  end - duration,
-						TotalTime: end - now,
-						Err:       errors.New(fmt.Sprintf("bytes: %s, error: %v", bytes, err)),
-					}
-
-					return
-				}
-
-				if chatCompletionRes.Error != nil && chatCompletionRes.Error.Type != "" {
-					logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, chatCompletionRes: %s", a.Model, gjson.MustEncodeString(chatCompletionRes))
-
-					err = a.apiErrorHandler(&chatCompletionRes)
-					logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, error: %v", a.Model, err)
-
-					end := gtime.TimestampMilli()
-					responseChan <- &model.AnthropicChatCompletionRes{
-						ConnTime:  duration - now,
-						Duration:  end - duration,
-						TotalTime: end - now,
-						Err:       err,
-					}
-
-					return
-				}
-
-				response := &model.AnthropicChatCompletionRes{
-					Id:              chatCompletionRes.Id,
-					Type:            chatCompletionRes.Type,
-					Role:            chatCompletionRes.Role,
-					Content:         chatCompletionRes.Content,
-					Model:           chatCompletionRes.Model,
-					StopReason:      chatCompletionRes.StopReason,
-					StopSequence:    chatCompletionRes.StopSequence,
-					Message:         chatCompletionRes.Message,
-					Index:           chatCompletionRes.Index,
-					Delta:           chatCompletionRes.Delta,
-					Usage:           chatCompletionRes.Usage,
-					Error:           chatCompletionRes.Error,
-					ResponseBytes:   bytes,
-					ResponseHeaders: streamResponseHeaders,
-					ConnTime:        duration - now,
-				}
-
-				end := gtime.TimestampMilli()
-				response.Duration = end - duration
-				response.TotalTime = end - now
-
-				responseChan <- response
+			stream, err := util.SSEClient(ctx, a.BaseUrl+a.Path, a.header, data, a.Timeout, a.ProxyUrl, a.requestErrorHandler)
+			if err != nil {
+				logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, error: %v", a.Model, err)
+				return responseChan, err
 			}
-		}, nil); err != nil {
-			logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, error: %v", a.Model, err)
-			return responseChan, err
+
+			streamResponseHeaders := stream.Response.Header
+
+			payloadBuf := make([]byte, 10*1024)
+
+			duration := gtime.TimestampMilli()
+
+			responseChan = make(chan any)
+
+			if err = grpool.AddWithRecover(ctx, func(ctx context.Context) {
+
+				defer func() {
+					if err := stream.Close(); err != nil {
+						logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, stream.Close error: %v", a.Model, err)
+					}
+
+					end := gtime.TimestampMilli()
+					logger.Infof(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s connTime: %d ms, duration: %d ms, totalTime: %d ms", a.Model, duration-now, end-duration, end-now)
+				}()
+
+				for {
+
+					payloadBuf = payloadBuf[0:0]
+
+					decodedMessage, err := aws.DecodeMessage(stream.Response.Body, payloadBuf)
+					if err != nil {
+
+						if errors.Is(err, io.EOF) {
+							logger.Infof(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s finished", a.Model)
+						} else {
+							logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, error: %v", a.Model, err)
+						}
+
+						end := gtime.TimestampMilli()
+						responseChan <- &model.ChatCompletionResponse{
+							ConnTime:  duration - now,
+							Duration:  end - duration,
+							TotalTime: end - now,
+							Error:     err,
+						}
+
+						return
+					}
+
+					payload := make(map[string]any)
+					if err := json.Unmarshal(decodedMessage.Payload, &payload); err != nil {
+						logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic json.Unmarshal(decodedMessage.Payload, &payload), payload: %s, error: %v", decodedMessage.Payload, err)
+
+						end := gtime.TimestampMilli()
+						responseChan <- &model.ChatCompletionResponse{
+							ConnTime:  duration - now,
+							Duration:  end - duration,
+							TotalTime: end - now,
+							Error:     err,
+						}
+					}
+
+					bytes, err := base64.StdEncoding.DecodeString(gconv.String(payload["bytes"]))
+					if err != nil {
+						logger.Errorf(ctx, `ChatCompletionsStreamOfficial Anthropic base64.StdEncoding.DecodeString(gconv.String(payload["bytes"])), bytes: %s, error: %v`, payload["bytes"], err)
+
+						end := gtime.TimestampMilli()
+						responseChan <- &model.ChatCompletionResponse{
+							ConnTime:  duration - now,
+							Duration:  end - duration,
+							TotalTime: end - now,
+							Error:     err,
+						}
+					}
+
+					chatCompletionRes := model.AnthropicChatCompletionRes{}
+					if err := json.Unmarshal(bytes, &chatCompletionRes); err != nil {
+						logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, bytes: %s, error: %v", a.Model, bytes, err)
+
+						end := gtime.TimestampMilli()
+						responseChan <- &model.AnthropicChatCompletionRes{
+							ConnTime:  duration - now,
+							Duration:  end - duration,
+							TotalTime: end - now,
+							Err:       errors.New(fmt.Sprintf("bytes: %s, error: %v", bytes, err)),
+						}
+
+						return
+					}
+
+					if chatCompletionRes.Error != nil && chatCompletionRes.Error.Type != "" {
+						logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, chatCompletionRes: %s", a.Model, gjson.MustEncodeString(chatCompletionRes))
+
+						err = a.apiErrorHandler(&chatCompletionRes)
+						logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, error: %v", a.Model, err)
+
+						end := gtime.TimestampMilli()
+						responseChan <- &model.AnthropicChatCompletionRes{
+							ConnTime:  duration - now,
+							Duration:  end - duration,
+							TotalTime: end - now,
+							Err:       err,
+						}
+
+						return
+					}
+
+					response := &model.AnthropicChatCompletionRes{
+						Id:              chatCompletionRes.Id,
+						Type:            chatCompletionRes.Type,
+						Role:            chatCompletionRes.Role,
+						Content:         chatCompletionRes.Content,
+						Model:           chatCompletionRes.Model,
+						StopReason:      chatCompletionRes.StopReason,
+						StopSequence:    chatCompletionRes.StopSequence,
+						Message:         chatCompletionRes.Message,
+						Index:           chatCompletionRes.Index,
+						Delta:           chatCompletionRes.Delta,
+						Usage:           chatCompletionRes.Usage,
+						Error:           chatCompletionRes.Error,
+						ResponseBytes:   bytes,
+						ResponseHeaders: streamResponseHeaders,
+						ConnTime:        duration - now,
+					}
+
+					end := gtime.TimestampMilli()
+					response.Duration = end - duration
+					response.TotalTime = end - now
+
+					responseChan <- response
+				}
+			}, nil); err != nil {
+				logger.Errorf(ctx, "ChatCompletionsStreamOfficial Anthropic model: %s, error: %v", a.Model, err)
+				return responseChan, err
+			}
 		}
 
 	} else {
