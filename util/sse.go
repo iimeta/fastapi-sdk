@@ -64,10 +64,22 @@ func SSEClient(ctx context.Context, rawURL string, header map[string]string, dat
 		return nil, err
 	}
 
-	request.Header.Set("Accept", "text/event-stream")
-	request.Header.Set("Cache-Control", "no-cache")
-	request.Header.Set("Connection", "keep-alive")
-	request.Header.Set("Content-Type", "application/json")
+	if request.Header.Get("Accept") == "" {
+		request.Header.Set("Accept", "text/event-stream")
+	}
+
+	if request.Header.Get("Cache-Control") == "" {
+		request.Header.Set("Cache-Control", "no-cache")
+	}
+
+	if request.Header.Get("Connection") == "" {
+		request.Header.Set("Connection", "keep-alive")
+	}
+
+	if request.Header.Get("Content-Type") == "" {
+		request.Header.Set("Content-Type", "application/json")
+	}
+
 	request.Header.Set("Trace-Id", gtrace.GetTraceID(ctx))
 
 	if header != nil {
