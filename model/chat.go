@@ -97,11 +97,12 @@ type Usage struct {
 }
 
 type PromptTokensDetails struct {
-	AudioTokens     int `json:"audio_tokens,omitempty"`
-	CachedTokens    int `json:"cached_tokens,omitempty"`
-	ReasoningTokens int `json:"reasoning_tokens,omitempty"`
-	TextTokens      int `json:"text_tokens,omitempty"`
-	ImageTokens     int `json:"image_tokens,omitempty"`
+	AudioTokens      int `json:"audio_tokens,omitempty"`
+	CachedTokens     int `json:"cached_tokens,omitempty"`
+	ReasoningTokens  int `json:"reasoning_tokens,omitempty"`
+	TextTokens       int `json:"text_tokens,omitempty"`
+	ImageTokens      int `json:"image_tokens,omitempty"`
+	CacheWriteTokens int `json:"cache_write_tokens,omitempty"`
 }
 
 type CompletionTokensDetails struct {
@@ -113,6 +114,7 @@ type CompletionTokensDetails struct {
 	ImageTokens              int `json:"image_tokens,omitempty"`
 	AcceptedPredictionTokens int `json:"accepted_prediction_tokens,omitempty"`
 	RejectedPredictionTokens int `json:"rejected_prediction_tokens,omitempty"`
+	CacheWriteTokens         int `json:"cache_write_tokens,omitempty"`
 }
 
 type InputTokensDetails struct {
