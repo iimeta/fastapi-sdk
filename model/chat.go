@@ -116,9 +116,10 @@ type CompletionTokensDetails struct {
 }
 
 type InputTokensDetails struct {
-	TextTokens   int `json:"text_tokens,omitempty"`
-	ImageTokens  int `json:"image_tokens,omitempty"`
-	CachedTokens int `json:"cached_tokens,omitempty"`
+	TextTokens       int `json:"text_tokens,omitempty"`
+	ImageTokens      int `json:"image_tokens,omitempty"`
+	CachedTokens     int `json:"cached_tokens,omitempty"`
+	CacheWriteTokens int `json:"cache_write_tokens,omitempty"`
 }
 
 type OutputTokensDetails struct {
