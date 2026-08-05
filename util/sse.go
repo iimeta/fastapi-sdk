@@ -100,6 +100,9 @@ func SSEClient(ctx context.Context, rawURL string, header map[string]string, dat
 	}
 
 	response, err := client.Do(request)
+
+	decompressResponse(response)
+
 	if err != nil {
 		logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, mustEncodeString(data), proxyURL, err)
 		if response != nil {

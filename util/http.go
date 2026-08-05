@@ -1,13 +1,16 @@
 package util
 
 import (
+	"bufio"
 	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
@@ -67,6 +70,9 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 	}
 
 	response, err := client.Do(request)
+
+	decompressResponse(response)
+
 	if err != nil {
 
 		if response != nil {
@@ -142,4 +148,43 @@ func HttpPost(ctx context.Context, rawURL string, header map[string]string, data
 
 func HttpDelete(ctx context.Context, rawURL string, header map[string]string, data, result any, timeout time.Duration, proxyURL string, requestErrorHandler RequestErrorHandler) ([]byte, http.Header, error) {
 	return HttpDo(ctx, http.MethodDelete, rawURL, header, data, result, timeout, proxyURL, requestErrorHandler)
+}
+
+// 当调用方自带 Accept-Encoding: gzip 时, Go 的 Transport 不会自动解压,
+// 此时 response.Body 是 gzip 原始字节, 日志会乱码且 json 解析失败, 故在此手动解压.
+func decompressResponse(response *http.Response) {
+
+	if response == nil || response.Body == nil {
+		return
+	}
+
+	if !strings.EqualFold(strings.TrimSpace(response.Header.Get("Content-Encoding")), "gzip") {
+		return
+	}
+
+	buf := bufio.NewReader(response.Body)
+
+	// 校验 gzip magic number, 避免响应头声明有误时损坏原始内容
+	if magic, err := buf.Peek(2); err != nil || magic[0] != 0x1f || magic[1] != 0x8b {
+		response.Body = &readCloser{Reader: buf, Closer: response.Body}
+		return
+	}
+
+	gzipReader, err := gzip.NewReader(buf)
+	if err != nil {
+		response.Body = &readCloser{Reader: buf, Closer: response.Body}
+		return
+	}
+
+	response.Body = &readCloser{Reader: gzipReader, Closer: response.Body}
+	response.Header.Del("Content-Encoding")
+	response.Header.Del("Content-Length")
+	response.ContentLength = -1
+	response.Uncompressed = true
+}
+
+// readCloser 用解压后的 Reader 读取, 但仍关闭原始的 response.Body
+type readCloser struct {
+	io.Reader
+	io.Closer
 }
