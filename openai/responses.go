@@ -148,11 +148,12 @@ func (o *OpenAI) ResponsesStream(ctx context.Context, data []byte) (responseChan
 
 				end := gtime.TimestampMilli()
 				responseChan <- &model.OpenAIResponsesStreamRes{
-					SSEEvent:  stream.Event(),
-					ConnTime:  duration - now,
-					Duration:  end - duration,
-					TotalTime: end - now,
-					Err:       err,
+					SSEEvent:      stream.Event(),
+					ResponseBytes: responseBytes,
+					ConnTime:      duration - now,
+					Duration:      end - duration,
+					TotalTime:     end - now,
+					Err:           err,
 				}
 
 				return
@@ -425,5 +426,5 @@ func (o *OpenAI) ResponsesStreamToNonStream(ctx context.Context, data []byte) (r
 }
 
 func (o *OpenAI) responsesErrorHandler(err *model.OpenAIResponsesError) error {
-	return errors.NewApiError(502, err.Code, err.Message, err.Type, err.Param)
+	return errors.NewRequestError(502, errors.New(fmt.Sprintf("error, status code: %s, error: %s", err.Code, gjson.MustEncodeString(err))))
 }
