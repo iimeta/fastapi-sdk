@@ -286,6 +286,9 @@ func (g *Google) ConvImageGenerationsRequest(ctx context.Context, data []byte) (
 		if googleImageGenerationReq.GenerationConfig.ImageConfig != nil {
 			request.Quality = googleImageGenerationReq.GenerationConfig.ImageConfig.ImageSize
 			request.AspectRatio = googleImageGenerationReq.GenerationConfig.ImageConfig.AspectRatio
+		} else if googleImageGenerationReq.GenerationConfig.ResponseFormat != nil && googleImageGenerationReq.GenerationConfig.ResponseFormat.Image != nil {
+			request.Quality = googleImageGenerationReq.GenerationConfig.ResponseFormat.Image.ImageSize
+			request.AspectRatio = googleImageGenerationReq.GenerationConfig.ResponseFormat.Image.AspectRatio
 		}
 	}
 

@@ -31,9 +31,9 @@ type GoogleChatCompletionRes struct {
 	ResponseBytes   []byte      `json:"-"`
 	ResponseHeaders http.Header `json:"-"`
 	ConnTime        int64       `json:"-"`
-	Duration      int64  `json:"-"`
-	TotalTime     int64  `json:"-"`
-	Err           error  `json:"-"`
+	Duration        int64       `json:"-"`
+	TotalTime       int64       `json:"-"`
+	Err             error       `json:"-"`
 }
 
 type Content struct {
@@ -88,17 +88,27 @@ type UsageMetadata struct {
 }
 
 type GenerationConfig struct {
-	StopSequences      []string     `json:"stopSequences,omitempty"`
-	CandidateCount     int          `json:"candidateCount,omitempty"`
-	MaxOutputTokens    int          `json:"maxOutputTokens,omitempty"`
-	Temperature        float32      `json:"temperature,omitempty"`
-	TopP               float32      `json:"topP,omitempty"`
-	TopK               int          `json:"topK,omitempty"`
-	ResponseModalities []string     `json:"responseModalities,omitempty"`
-	ImageConfig        *ImageConfig `json:"imageConfig,omitempty"`
+	StopSequences      []string              `json:"stopSequences,omitempty"`
+	CandidateCount     int                   `json:"candidateCount,omitempty"`
+	MaxOutputTokens    int                   `json:"maxOutputTokens,omitempty"`
+	Temperature        float32               `json:"temperature,omitempty"`
+	TopP               float32               `json:"topP,omitempty"`
+	TopK               int                   `json:"topK,omitempty"`
+	ResponseModalities []string              `json:"responseModalities,omitempty"`
+	ImageConfig        *ImageConfig          `json:"imageConfig,omitempty"`
+	ResponseFormat     *GoogleResponseFormat `json:"responseFormat,omitempty"`
 }
 
 type ImageConfig struct {
+	AspectRatio string `json:"aspectRatio,omitempty"`
+	ImageSize   string `json:"imageSize,omitempty"`
+}
+
+type GoogleResponseFormat struct {
+	Image *GoogleImage `json:"image,omitempty"`
+}
+
+type GoogleImage struct {
 	AspectRatio string `json:"aspectRatio,omitempty"`
 	ImageSize   string `json:"imageSize,omitempty"`
 }
