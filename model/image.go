@@ -5,24 +5,29 @@ import (
 )
 
 type ImageGenerationRequest struct {
-	Prompt            string           `json:"prompt,omitempty"`
-	Background        string           `json:"background,omitempty"`
-	Model             string           `json:"model,omitempty"`
-	Moderation        string           `json:"moderation,omitempty"`
-	InputFidelity     string           `json:"input_fidelity,omitempty"`
-	N                 int              `json:"n,omitempty"`
-	OutputCompression int              `json:"output_compression,omitempty"`
-	OutputFormat      string           `json:"output_format,omitempty"`
-	PartialImages     int              `json:"partial_images,omitempty"`
-	Quality           string           `json:"quality,omitempty"`
-	ResponseFormat    string           `json:"response_format,omitempty"`
-	Size              string           `json:"size,omitempty"`
-	Style             string           `json:"style,omitempty"`
-	User              string           `json:"user,omitempty"`
-	AspectRatio       string           `json:"aspect_ratio,omitempty"`
-	Stream            bool             `json:"stream,omitempty"`
-	Image             any              `json:"image,omitempty"`
-	Images            []ImageEditImage `json:"images,omitempty"`
+	Prompt                           string           `json:"prompt,omitempty"`
+	Background                       string           `json:"background,omitempty"`
+	Model                            string           `json:"model,omitempty"`
+	Moderation                       string           `json:"moderation,omitempty"`
+	InputFidelity                    string           `json:"input_fidelity,omitempty"`
+	N                                int              `json:"n,omitempty"`
+	OutputCompression                int              `json:"output_compression,omitempty"`
+	OutputFormat                     string           `json:"output_format,omitempty"`
+	PartialImages                    int              `json:"partial_images,omitempty"`
+	Quality                          string           `json:"quality,omitempty"`
+	ResponseFormat                   string           `json:"response_format,omitempty"`
+	Size                             string           `json:"size,omitempty"`
+	Style                            string           `json:"style,omitempty"`
+	User                             string           `json:"user,omitempty"`
+	AspectRatio                      string           `json:"aspect_ratio,omitempty"`
+	Stream                           bool             `json:"stream,omitempty"`
+	Image                            any              `json:"image,omitempty"`
+	Images                           []ImageEditImage `json:"images,omitempty"`
+	Watermark                        *bool            `json:"watermark,omitempty"`
+	LayerDecomposition               bool             `json:"layer_decomposition,omitempty"`
+	SequentialImageGeneration        string           `json:"sequential_image_generation,omitempty"`
+	SequentialImageGenerationOptions any              `json:"sequential_image_generation_options,omitempty"`
+	OptimizePromptOptions            any              `json:"optimize_prompt_options,omitempty"`
 }
 
 type ImageResponse struct {
@@ -42,6 +47,12 @@ type ImageResponseData struct {
 	Url           string `json:"url,omitempty"`
 	B64Json       string `json:"b64_json,omitempty"`
 	RevisedPrompt string `json:"revised_prompt,omitempty"`
+	Size          string `json:"size,omitempty"`
+	OutputFormat  string `json:"output_format,omitempty"`
+	ZIndex        *int   `json:"z_index,omitempty"`
+	BoundingBox   any    `json:"bounding_box,omitempty"`
+	Name          string `json:"name,omitempty"`
+	Description   string `json:"description,omitempty"`
 }
 
 type ImageStreamResponse struct {

@@ -27,13 +27,27 @@ func (v *VolcEngine) ConvChatCompletionsStreamResponseOfficial(ctx context.Conte
 }
 
 func (v *VolcEngine) ConvImageGenerationsRequestOfficial(ctx context.Context, request model.ImageGenerationRequest) ([]byte, error) {
-	//TODO implement me
-	panic("implement me")
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvImageGenerationsRequestOfficial time: %d", gtime.TimestampMilli()-now)
+	}()
+
+	return json.Marshal(request)
 }
 
 func (v *VolcEngine) ConvImageGenerationsResponseOfficial(ctx context.Context, response model.ImageResponse) ([]byte, error) {
-	//TODO implement me
-	panic("implement me")
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvImageGenerationsResponseOfficial time: %d", gtime.TimestampMilli()-now)
+	}()
+
+	if len(response.ResponseBytes) > 0 {
+		return response.ResponseBytes, nil
+	}
+
+	return json.Marshal(response)
 }
 
 func (v *VolcEngine) ConvImageEditsRequestOfficial(ctx context.Context, request model.ImageEditRequest) ([]byte, error) {

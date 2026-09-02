@@ -22,6 +22,8 @@ type AdapterOfficialGroup interface {
 type AdapterOfficial interface {
 	ChatCompletionsOfficial(ctx context.Context, data []byte) (response any, err error)
 	ChatCompletionsStreamOfficial(ctx context.Context, data []byte) (responseChan chan any, err error)
+	ImageGenerationsOfficial(ctx context.Context, data []byte) (responseBytes []byte, responseHeader http.Header, err error)
+	ImageGenerationsStreamOfficial(ctx context.Context, data []byte) (responseChan chan *model.ImageResponse, err error)
 	VideoCreateOfficial(ctx context.Context, data []byte) (responseBytes []byte, responseHeader http.Header, err error)
 	VideoListOfficial(ctx context.Context, params model.VolcVideoListReq) (responseBytes []byte, responseHeader http.Header, err error)
 	VideoRetrieveOfficial(ctx context.Context, taskId string) (responseBytes []byte, responseHeader http.Header, err error)

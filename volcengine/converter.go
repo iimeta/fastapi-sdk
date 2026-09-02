@@ -104,13 +104,70 @@ func (v *VolcEngine) ConvChatResponsesStreamResponse(ctx context.Context, data [
 }
 
 func (v *VolcEngine) ConvImageGenerationsRequest(ctx context.Context, data []byte) (request model.ImageGenerationRequest, err error) {
-	//TODO implement me
-	panic("implement me")
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvImageGenerationsRequest time: %d", gtime.TimestampMilli()-now)
+	}()
+
+	if err = json.Unmarshal(data, &request); err != nil {
+		logger.Error(ctx, err)
+		return request, err
+	}
+
+	return request, nil
 }
 
 func (v *VolcEngine) ConvImageGenerationsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
-	//TODO implement me
-	panic("implement me")
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvImageGenerationsResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
+	if err = json.Unmarshal(data, &response); err != nil {
+		logger.Error(ctx, err)
+		return response, err
+	}
+
+	response.ResponseBytes = data
+
+	return response, nil
+}
+
+func (v *VolcEngine) ConvImageGenerationsStreamResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvImageGenerationsStreamResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
+	response.ResponseBytes = data
+
+	var full model.ImageResponse
+	if e := json.Unmarshal(data, &full); e == nil && (len(full.Data) > 0 || full.Created != 0 || full.Usage.TotalTokens != 0 || full.Usage.OutputTokens != 0) {
+		full.ResponseBytes = data
+		return full, nil
+	}
+
+	streamResponse := model.ImageStreamResponse{}
+	if e := json.Unmarshal(data, &streamResponse); e != nil {
+		return response, nil
+	}
+
+	response.Created = streamResponse.CreatedAt
+	response.Usage = streamResponse.Usage
+	if streamResponse.B64Json != "" || streamResponse.Size != "" {
+		response.Data = []model.ImageResponseData{
+			{
+				B64Json:      streamResponse.B64Json,
+				Size:         streamResponse.Size,
+				OutputFormat: streamResponse.OutputFormat,
+			},
+		}
+	}
+
+	return response, nil
 }
 
 func (v *VolcEngine) ConvImageEditsRequest(ctx context.Context, request model.ImageEditRequest) (data *bytes.Buffer, err error) {
