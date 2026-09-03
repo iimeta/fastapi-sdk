@@ -76,9 +76,10 @@ func (g *Google) ConvChatCompletionsResponse(ctx context.Context, data []byte) (
 		Created: gtime.Timestamp(),
 		Model:   g.Model,
 		Usage: &model.Usage{
-			PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
-			CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
-			TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
+			PromptTokens:         chatCompletionRes.UsageMetadata.PromptTokenCount,
+			CompletionTokens:     chatCompletionRes.UsageMetadata.CandidatesTokenCount,
+			CacheReadInputTokens: chatCompletionRes.UsageMetadata.CachedContentTokenCount,
+			TotalTokens:          chatCompletionRes.UsageMetadata.TotalTokenCount,
 			OutputTokensDetails: model.OutputTokensDetails{
 				ReasoningTokens: chatCompletionRes.UsageMetadata.ThoughtsTokenCount,
 			},
@@ -199,9 +200,10 @@ func (g *Google) ConvChatCompletionsStreamResponse(ctx context.Context, data []b
 	if chatCompletionRes.UsageMetadata != nil {
 
 		response.Usage = &model.Usage{
-			PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
-			CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
-			TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
+			PromptTokens:         chatCompletionRes.UsageMetadata.PromptTokenCount,
+			CompletionTokens:     chatCompletionRes.UsageMetadata.CandidatesTokenCount,
+			CacheReadInputTokens: chatCompletionRes.UsageMetadata.CachedContentTokenCount,
+			TotalTokens:          chatCompletionRes.UsageMetadata.TotalTokenCount,
 			OutputTokensDetails: model.OutputTokensDetails{
 				ReasoningTokens: chatCompletionRes.UsageMetadata.ThoughtsTokenCount,
 			},
@@ -340,9 +342,10 @@ func (g *Google) ConvImageGenerationsResponse(ctx context.Context, data []byte) 
 	if chatCompletionRes.UsageMetadata != nil {
 
 		response.Usage = model.Usage{
-			PromptTokens:     chatCompletionRes.UsageMetadata.PromptTokenCount,
-			CompletionTokens: chatCompletionRes.UsageMetadata.CandidatesTokenCount,
-			TotalTokens:      chatCompletionRes.UsageMetadata.TotalTokenCount,
+			PromptTokens:         chatCompletionRes.UsageMetadata.PromptTokenCount,
+			CompletionTokens:     chatCompletionRes.UsageMetadata.CandidatesTokenCount,
+			CacheReadInputTokens: chatCompletionRes.UsageMetadata.CachedContentTokenCount,
+			TotalTokens:          chatCompletionRes.UsageMetadata.TotalTokenCount,
 			OutputTokensDetails: model.OutputTokensDetails{
 				ReasoningTokens: chatCompletionRes.UsageMetadata.ThoughtsTokenCount,
 			},

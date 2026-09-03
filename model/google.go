@@ -73,18 +73,22 @@ type SafetyRating struct {
 }
 
 type UsageMetadata struct {
-	PromptTokenCount     int `json:"promptTokenCount"`
-	CandidatesTokenCount int `json:"candidatesTokenCount"`
-	TotalTokenCount      int `json:"totalTokenCount"`
-	PromptTokensDetails  []struct {
-		Modality   string `json:"modality"`
-		TokenCount int    `json:"tokenCount"`
-	} `json:"promptTokensDetails"`
-	CandidatesTokensDetails []struct {
-		Modality   string `json:"modality"`
-		TokenCount int    `json:"tokenCount"`
-	} `json:"candidatesTokensDetails"`
-	ThoughtsTokenCount int `json:"thoughtsTokenCount"`
+	PromptTokenCount           int                  `json:"promptTokenCount"`           // 提示中的 token 数量。如果设置了 cachedContent，这仍然是有效提示的总大小，这意味着它包含缓存内容中的词元数。
+	CachedContentTokenCount    int                  `json:"cachedContentTokenCount"`    // 提示的缓存部分（缓存内容）中的 token 数量
+	CandidatesTokenCount       int                  `json:"candidatesTokenCount"`       // 所有生成的回答候选项中的 token 总数。
+	ToolUsePromptTokenCount    int                  `json:"toolUsePromptTokenCount"`    // 仅限输出。工具使用提示中的 token 数量。
+	ThoughtsTokenCount         int                  `json:"thoughtsTokenCount"`         // 仅限输出。思考模型用于思考的 token 数量。
+	TotalTokenCount            int                  `json:"totalTokenCount"`            // 生成请求（提示 + 想法 + 回答候选）的总 token 数量。
+	PromptTokensDetails        []ModalityTokenCount `json:"promptTokensDetails"`        // 仅限输出。请求输入中处理的模态列表。
+	CacheTokensDetails         []ModalityTokenCount `json:"cacheTokensDetails"`         // 仅限输出。请求输入中缓存内容的模态列表。
+	CandidatesTokensDetails    []ModalityTokenCount `json:"candidatesTokensDetails"`    // 仅限输出。响应中返回的模态列表。
+	ToolUsePromptTokensDetails []ModalityTokenCount `json:"toolUsePromptTokensDetails"` // 仅限输出。为工具使用请求输入处理的模态列表。
+	ServiceTier                string               `json:"serviceTier"`                // 仅限输出。请求的服务等级。[unspecified:默认服务层级（标准）, standard:标准服务层级, flex:灵活服务层级, priority:优先服务层级]
+}
+
+type ModalityTokenCount struct {
+	Modality   string `json:"modality"`   // 与此 token 数量关联的模态。[MODALITY_UNSPECIFIED:未指定模态, TEXT:纯文本, IMAGE:图片, VIDEO:视频, AUDIO:音频, DOCUMENT:文档，例如 PDF]
+	TokenCount int    `json:"tokenCount"` // 令牌数量。
 }
 
 type GenerationConfig struct {
