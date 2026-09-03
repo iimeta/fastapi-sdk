@@ -7,6 +7,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/v2/aliyun"
 	"github.com/iimeta/fastapi-sdk/v2/anthropic"
 	"github.com/iimeta/fastapi-sdk/v2/baidu"
+	"github.com/iimeta/fastapi-sdk/v2/bailian"
 	"github.com/iimeta/fastapi-sdk/v2/consts"
 	"github.com/iimeta/fastapi-sdk/v2/deepseek"
 	"github.com/iimeta/fastapi-sdk/v2/general"
@@ -93,6 +94,8 @@ func NewConverter(ctx context.Context, options *options.AdapterOptions) Converte
 		return &zhipuai.ZhipuAI{AdapterOptions: options}
 	case consts.PROVIDER_VOLC_ENGINE:
 		return &volcengine.VolcEngine{AdapterOptions: options}
+	case consts.PROVIDER_BAILIAN:
+		return &bailian.Bailian{AdapterOptions: options}
 	case consts.PROVIDER_AWS_CLAUDE:
 		return &anthropic.Anthropic{AdapterOptions: options}
 	case consts.PROVIDER_GCP_CLAUDE:

@@ -12,6 +12,7 @@ const (
 	PROVIDER_XFYUN          = "Xfyun"
 	PROVIDER_ZHIPUAI        = "ZhipuAI"
 	PROVIDER_VOLC_ENGINE    = "VolcEngine"
+	PROVIDER_BAILIAN        = "Bailian"
 	PROVIDER_AWS_CLAUDE     = "AWSClaude"
 	PROVIDER_GCP_CLAUDE     = "GCPClaude"
 	PROVIDER_GCP_GEMINI     = "GCPGemini"

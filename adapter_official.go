@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/iimeta/fastapi-sdk/v2/anthropic"
+	"github.com/iimeta/fastapi-sdk/v2/bailian"
 	"github.com/iimeta/fastapi-sdk/v2/consts"
 	"github.com/iimeta/fastapi-sdk/v2/general"
 	"github.com/iimeta/fastapi-sdk/v2/google"
@@ -47,6 +48,8 @@ func NewAdapterOfficial(ctx context.Context, options *options.AdapterOptions) Ad
 		return google.NewGcpAdapter(ctx, options)
 	case consts.PROVIDER_VOLC_ENGINE:
 		return volcengine.NewAdapter(ctx, options)
+	case consts.PROVIDER_BAILIAN:
+		return bailian.NewAdapter(ctx, options)
 	default:
 		return general.NewAdapter(ctx, options)
 	}
