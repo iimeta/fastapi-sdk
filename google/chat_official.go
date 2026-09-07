@@ -41,7 +41,7 @@ func (g *Google) ChatCompletionsOfficial(ctx context.Context, data []byte) (resp
 
 	res.ResponseHeaders = responseHeader
 
-	if res.Error.Code != 0 || (res.Candidates[0].FinishReason != "STOP" && res.Candidates[0].FinishReason != "MAX_TOKENS") {
+	if res.Error.Code != 0 || (len(res.Candidates) > 0 && ((res.Candidates[0].FinishReason != "STOP" && res.Candidates[0].FinishReason != "MAX_TOKENS") || res.Candidates[0].FinishMessage != "")) {
 		logger.Errorf(ctx, "ChatCompletionsOfficial Google model: %s, chatCompletionRes: %s", g.Model, gjson.MustEncodeString(res))
 
 		err = g.apiErrorHandler(res)

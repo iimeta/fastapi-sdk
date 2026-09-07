@@ -61,7 +61,7 @@ func (g *Google) ConvChatCompletionsResponse(ctx context.Context, data []byte) (
 		return response, err
 	}
 
-	if chatCompletionRes.Error.Code != 0 || (chatCompletionRes.Candidates[0].FinishReason != "STOP" && chatCompletionRes.Candidates[0].FinishReason != "MAX_TOKENS") {
+	if chatCompletionRes.Error.Code != 0 || (len(chatCompletionRes.Candidates) > 0 && ((chatCompletionRes.Candidates[0].FinishReason != "STOP" && chatCompletionRes.Candidates[0].FinishReason != "MAX_TOKENS") || chatCompletionRes.Candidates[0].FinishMessage != "")) {
 		logger.Errorf(ctx, "ConvChatCompletionsResponse Google model: %s, chatCompletionRes: %s", g.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = g.apiErrorHandler(&chatCompletionRes)
@@ -310,7 +310,7 @@ func (g *Google) ConvImageGenerationsResponse(ctx context.Context, data []byte) 
 		return response, err
 	}
 
-	if chatCompletionRes.Error.Code != 0 || (chatCompletionRes.Candidates[0].FinishReason != "STOP" && chatCompletionRes.Candidates[0].FinishReason != "MAX_TOKENS") {
+	if chatCompletionRes.Error.Code != 0 || (len(chatCompletionRes.Candidates) > 0 && ((chatCompletionRes.Candidates[0].FinishReason != "STOP" && chatCompletionRes.Candidates[0].FinishReason != "MAX_TOKENS") || chatCompletionRes.Candidates[0].FinishMessage != "")) {
 		logger.Errorf(ctx, "ConvImageGenerationsResponse Google model: %s, chatCompletionRes: %s", g.Model, gjson.MustEncodeString(chatCompletionRes))
 
 		err = g.apiErrorHandler(&chatCompletionRes)
