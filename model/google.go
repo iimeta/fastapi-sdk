@@ -63,6 +63,7 @@ type FileData struct {
 type Candidate struct {
 	Content       Content        `json:"content"`
 	FinishReason  string         `json:"finishReason"`
+	FinishMessage string         `json:"finishMessage"`
 	Index         int            `json:"index"`
 	SafetyRatings []SafetyRating `json:"safetyRatings"`
 }
