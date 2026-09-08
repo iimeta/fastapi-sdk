@@ -70,6 +70,7 @@ type OpenAIResponsesStreamRes struct {
 	Delta           string                  `json:"delta"`
 	Part            OpenAIResponsesPart     `json:"part"`
 	Arguments       any                     `json:"arguments"`
+	Error           *OpenAIResponsesError   `json:"error"`
 	SSEEvent        string                  `json:"-"`
 	ResponseBytes   []byte                  `json:"-"`
 	ResponseHeaders http.Header             `json:"-"`

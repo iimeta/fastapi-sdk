@@ -140,10 +140,10 @@ func (o *OpenAI) ResponsesStream(ctx context.Context, data []byte) (responseChan
 				return
 			}
 
-			if responsesRes.Response.Error != nil {
+			if apiErr := streamResponsesAPIError(responsesRes, responseBytes); apiErr != nil {
 				logger.Errorf(ctx, "ResponsesStream OpenAI model: %s, responsesRes: %s", o.Model, gjson.MustEncodeString(responsesRes))
 
-				err = o.responsesErrorHandler(responsesRes.Response.Error)
+				err = o.responsesErrorHandler(apiErr)
 				logger.Errorf(ctx, "ResponsesStream OpenAI model: %s, error: %v", o.Model, err)
 
 				end := gtime.TimestampMilli()
@@ -427,4 +427,26 @@ func (o *OpenAI) ResponsesStreamToNonStream(ctx context.Context, data []byte) (r
 
 func (o *OpenAI) responsesErrorHandler(err *model.OpenAIResponsesError) error {
 	return errors.NewRequestError(502, errors.New(fmt.Sprintf("error, status code: %s, error: %s", err.Code, gjson.MustEncodeString(err))))
+}
+
+// 流式错误可能在顶层 error / type=error, 也可能在 response.error / response.failed
+func streamResponsesAPIError(res model.OpenAIResponsesStreamRes, responseBytes []byte) *model.OpenAIResponsesError {
+
+	if res.Error != nil {
+		return res.Error
+	}
+
+	if res.Response.Error != nil {
+		return res.Response.Error
+	}
+
+	if res.Type == "error" || res.Type == "response.failed" || res.Response.Status == "failed" {
+		return &model.OpenAIResponsesError{
+			Type:           res.Type,
+			SequenceNumber: res.SequenceNumber,
+			Message:        string(responseBytes),
+		}
+	}
+
+	return nil
 }
