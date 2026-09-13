@@ -1,6 +1,8 @@
 package model
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 )
 
@@ -154,4 +156,30 @@ type ImageEditRequest struct {
 	User              string           `json:"user,omitempty"`
 	AspectRatio       string           `json:"aspect_ratio,omitempty"`
 	Stream            bool             `json:"stream,omitempty"`
+}
+
+// 兼容 images 传字符串 URL 或 {image_url/file_id} 对象两种写法
+func (i *ImageEditImage) UnmarshalJSON(data []byte) error {
+
+	data = bytes.TrimSpace(data)
+	if len(data) == 0 || string(data) == "null" {
+		return nil
+	}
+
+	if data[0] == '"' {
+		var imageUrl string
+		if err := json.Unmarshal(data, &imageUrl); err != nil {
+			return err
+		}
+		i.ImageUrl = imageUrl
+		return nil
+	}
+
+	type imageEditImage ImageEditImage
+	var tmp imageEditImage
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+	*i = ImageEditImage(tmp)
+	return nil
 }
