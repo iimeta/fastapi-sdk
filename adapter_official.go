@@ -10,6 +10,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/v2/general"
 	"github.com/iimeta/fastapi-sdk/v2/google"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
+	"github.com/iimeta/fastapi-sdk/v2/minimax"
 	"github.com/iimeta/fastapi-sdk/v2/model"
 	"github.com/iimeta/fastapi-sdk/v2/options"
 	"github.com/iimeta/fastapi-sdk/v2/volcengine"
@@ -50,6 +51,8 @@ func NewAdapterOfficial(ctx context.Context, options *options.AdapterOptions) Ad
 		return volcengine.NewAdapter(ctx, options)
 	case consts.PROVIDER_BAILIAN:
 		return bailian.NewAdapter(ctx, options)
+	case consts.PROVIDER_MINIMAX:
+		return minimax.NewAdapter(ctx, options)
 	default:
 		return general.NewAdapter(ctx, options)
 	}
