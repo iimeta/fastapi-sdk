@@ -31,7 +31,7 @@ func (m *MiniMax) VideoCreate(ctx context.Context, request model.VideoCreateRequ
 	}
 
 	if m.Path == "" {
-		m.Path = "/v2/video_generation"
+		m.Path = "/video_generation"
 	}
 
 	bytes, responseHeader, err := util.HttpPost(ctx, m.BaseUrl+m.Path, m.header, data, nil, m.Timeout, m.ProxyUrl, m.requestErrorHandler)
