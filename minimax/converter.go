@@ -260,7 +260,11 @@ func (m *MiniMax) ConvVideoJobResponse(ctx context.Context, data []byte) (respon
 		return response, nil
 	}
 
-	return response, nil
+	err = errors.New("MiniMax video response missing task_id")
+
+	logger.Errorf(ctx, "ConvVideoJobResponse MiniMax model: %s, error: %v", m.Model, err)
+
+	return response, err
 }
 
 func (m *MiniMax) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (data *bytes.Buffer, err error) {
