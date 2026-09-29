@@ -22,6 +22,7 @@ type ImageGenerationRequest struct {
 	Style                            string           `json:"style,omitempty"`
 	User                             string           `json:"user,omitempty"`
 	AspectRatio                      string           `json:"aspect_ratio,omitempty"`
+	Resolution                       string           `json:"resolution,omitempty"`
 	Stream                           bool             `json:"stream,omitempty"`
 	Image                            any              `json:"image,omitempty"`
 	Images                           []ImageEditImage `json:"images,omitempty"`
@@ -30,6 +31,7 @@ type ImageGenerationRequest struct {
 	SequentialImageGeneration        string           `json:"sequential_image_generation,omitempty"`
 	SequentialImageGenerationOptions any              `json:"sequential_image_generation_options,omitempty"`
 	OptimizePromptOptions            any              `json:"optimize_prompt_options,omitempty"`
+	StorageOptions                   any              `json:"storage_options,omitempty"`
 }
 
 type ImageResponse struct {
@@ -46,15 +48,27 @@ type ImageResponse struct {
 }
 
 type ImageResponseData struct {
-	Url           string `json:"url,omitempty"`
-	B64Json       string `json:"b64_json,omitempty"`
-	RevisedPrompt string `json:"revised_prompt,omitempty"`
-	Size          string `json:"size,omitempty"`
-	OutputFormat  string `json:"output_format,omitempty"`
-	ZIndex        *int   `json:"z_index,omitempty"`
-	BoundingBox   any    `json:"bounding_box,omitempty"`
-	Name          string `json:"name,omitempty"`
-	Description   string `json:"description,omitempty"`
+	Url           string           `json:"url,omitempty"`
+	B64Json       string           `json:"b64_json,omitempty"`
+	RevisedPrompt string           `json:"revised_prompt,omitempty"`
+	Size          string           `json:"size,omitempty"`
+	OutputFormat  string           `json:"output_format,omitempty"`
+	ZIndex        *int             `json:"z_index,omitempty"`
+	BoundingBox   any              `json:"bounding_box,omitempty"`
+	Name          string           `json:"name,omitempty"`
+	Description   string           `json:"description,omitempty"`
+	MimeType      string           `json:"mime_type,omitempty"`
+	StorageError  string           `json:"storage_error,omitempty"`
+	FileOutput    *ImageFileOutput `json:"file_output,omitempty"`
+}
+
+type ImageFileOutput struct {
+	FileId             string `json:"file_id,omitempty"`
+	Filename           string `json:"filename,omitempty"`
+	PublicUrl          string `json:"public_url,omitempty"`
+	PublicUrlError     string `json:"public_url_error,omitempty"`
+	ExpiresAt          *int64 `json:"expires_at,omitempty"`
+	PublicUrlExpiresAt *int64 `json:"public_url_expires_at,omitempty"`
 }
 
 type ImageStreamResponse struct {
@@ -155,6 +169,8 @@ type ImageEditRequest struct {
 	Size              string           `json:"size,omitempty"`
 	User              string           `json:"user,omitempty"`
 	AspectRatio       string           `json:"aspect_ratio,omitempty"`
+	Resolution        string           `json:"resolution,omitempty"`
+	StorageOptions    any              `json:"storage_options,omitempty"`
 	Stream            bool             `json:"stream,omitempty"`
 }
 

@@ -35,6 +35,10 @@ type ChatCompletionRequest struct {
 	Audio               *Audio                        `json:"audio,omitempty"`
 	WebSearchOptions    any                           `json:"web_search_options,omitempty"`
 	EnableThinking      *bool                         `json:"enable_thinking,omitempty"`
+	SearchParameters    any                           `json:"search_parameters,omitempty"`
+	Deferred            *bool                         `json:"deferred,omitempty"`
+	PromptCacheKey      string                        `json:"prompt_cache_key,omitempty"`
+	SafetyIdentifier    string                        `json:"safety_identifier,omitempty"`
 }
 
 type ChatCompletionResponse struct {
@@ -48,6 +52,8 @@ type ChatCompletionResponse struct {
 	SystemFingerprint string                 `json:"system_fingerprint,omitempty"`
 	Obfuscation       string                 `json:"obfuscation,omitempty"`
 	PromptAnnotations []PromptAnnotation     `json:"prompt_annotations,omitempty"`
+	Citations         []any                  `json:"citations,omitempty"`
+	OutputFiles       any                    `json:"output_files,omitempty"`
 	SSEEvent          string                 `json:"-"`
 	ResponseBytes     []byte                 `json:"-"`
 	ResponseHeaders   http.Header            `json:"-"` // 响应头
@@ -94,6 +100,7 @@ type Usage struct {
 	OutputTokens               int                     `json:"output_tokens,omitempty"`
 	InputTokensDetails         InputTokensDetails      `json:"input_tokens_details,omitempty"`
 	OutputTokensDetails        OutputTokensDetails     `json:"output_tokens_details,omitempty"`
+	CostInUsdTicks             int64                   `json:"cost_in_usd_ticks,omitempty"`
 }
 
 type PromptTokensDetails struct {

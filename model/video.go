@@ -6,11 +6,26 @@ import (
 )
 
 type VideoCreateRequest struct {
-	Model          string                `json:"model"`
-	Prompt         string                `json:"prompt"`
-	InputReference *multipart.FileHeader `json:"input_reference"`
-	Seconds        string                `json:"seconds"`
-	Size           string                `json:"size"`
+	Model           string                `json:"model"`
+	Prompt          string                `json:"prompt"`
+	InputReference  *multipart.FileHeader `json:"input_reference"`
+	Seconds         string                `json:"seconds"`
+	Size            string                `json:"size"`
+	Duration        int                   `json:"duration,omitempty"`
+	AspectRatio     string                `json:"aspect_ratio,omitempty"`
+	Resolution      string                `json:"resolution,omitempty"`
+	Image           any                   `json:"image,omitempty"`
+	Video           any                   `json:"video,omitempty"`
+	LastFrame       any                   `json:"last_frame,omitempty"`
+	Keyframes       any                   `json:"keyframes,omitempty"`
+	ReferenceImages any                   `json:"reference_images,omitempty"`
+	ReferenceAudios any                   `json:"reference_audios,omitempty"`
+	GenerateAudio   *bool                 `json:"generate_audio,omitempty"`
+	StorageOptions  any                   `json:"storage_options,omitempty"`
+	User            string                `json:"user,omitempty"`
+	ImageUrl        string                `json:"image_url,omitempty"`
+	VideoUrl        string                `json:"video_url,omitempty"`
+	LastFrameUrl    string                `json:"last_frame_url,omitempty"`
 }
 
 type VideoRemixRequest struct {

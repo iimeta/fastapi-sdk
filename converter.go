@@ -18,6 +18,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/v2/openai"
 	"github.com/iimeta/fastapi-sdk/v2/options"
 	"github.com/iimeta/fastapi-sdk/v2/volcengine"
+	"github.com/iimeta/fastapi-sdk/v2/xai"
 	"github.com/iimeta/fastapi-sdk/v2/xfyun"
 	"github.com/iimeta/fastapi-sdk/v2/zhipuai"
 )
@@ -99,6 +100,8 @@ func NewConverter(ctx context.Context, options *options.AdapterOptions) Converte
 		return &bailian.Bailian{AdapterOptions: options}
 	case consts.PROVIDER_MINIMAX:
 		return &minimax.MiniMax{AdapterOptions: options}
+	case consts.PROVIDER_X:
+		return &xai.XAI{AdapterOptions: options}
 	case consts.PROVIDER_AWS_CLAUDE:
 		return &anthropic.Anthropic{AdapterOptions: options}
 	case consts.PROVIDER_GCP_CLAUDE:

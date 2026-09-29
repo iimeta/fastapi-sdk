@@ -28,7 +28,7 @@ func NewAdapter(ctx context.Context, options *options.AdapterOptions) *MiniMax {
 	}
 
 	if minimax.BaseUrl == "" {
-		minimax.BaseUrl = "https://api.minimax.cn"
+		minimax.BaseUrl = "https://api.minimax.cn/v2"
 	}
 
 	for k, v := range minimax.PassthroughHeader {

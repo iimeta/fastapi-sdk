@@ -14,6 +14,7 @@ import (
 	"github.com/iimeta/fastapi-sdk/v2/model"
 	"github.com/iimeta/fastapi-sdk/v2/options"
 	"github.com/iimeta/fastapi-sdk/v2/volcengine"
+	"github.com/iimeta/fastapi-sdk/v2/xai"
 )
 
 type AdapterOfficialGroup interface {
@@ -53,6 +54,8 @@ func NewAdapterOfficial(ctx context.Context, options *options.AdapterOptions) Ad
 		return bailian.NewAdapter(ctx, options)
 	case consts.PROVIDER_MINIMAX:
 		return minimax.NewAdapter(ctx, options)
+	case consts.PROVIDER_X:
+		return xai.NewAdapter(ctx, options)
 	default:
 		return general.NewAdapter(ctx, options)
 	}
