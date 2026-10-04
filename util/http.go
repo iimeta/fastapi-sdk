@@ -72,6 +72,7 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 	response, err := client.Do(request)
 
 	decompressResponse(response)
+	noteUpstreamRequestId(ctx, response)
 
 	if err != nil {
 

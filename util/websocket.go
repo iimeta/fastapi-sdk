@@ -35,6 +35,7 @@ func WebSocketClient(ctx context.Context, wsURL string, requestHeader http.Heade
 	}
 
 	conn, response, err := client.Dial(wsURL, requestHeader)
+	noteUpstreamRequestId(ctx, response)
 	if err != nil {
 		logger.Error(ctx, err)
 

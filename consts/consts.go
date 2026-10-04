@@ -67,3 +67,5 @@ const (
 	FinishReasonContentFilter = "content_filter"
 	FinishReasonNull          = "null"
 )
+
+const UPSTREAM_REQUEST_IDS_KEY = "upstream_request_ids"
