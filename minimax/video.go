@@ -73,7 +73,7 @@ func (m *MiniMax) VideoRetrieve(ctx context.Context, request model.VideoRetrieve
 		logger.Infof(ctx, "VideoRetrieve MiniMax model: %s totalTime: %d ms", m.Model, response.TotalTime)
 	}()
 
-	bytes, _, err := util.HttpGet(ctx, m.BaseUrl+fmt.Sprintf("/v2/query/video_generation/%s", request.VideoId), m.header, nil, nil, m.Timeout, m.ProxyUrl, m.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, m.BaseUrl+fmt.Sprintf("/query/video_generation/%s", request.VideoId), m.header, nil, nil, m.Timeout, m.ProxyUrl, m.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoRetrieve MiniMax model: %s, error: %v", m.Model, err)
 		return response, err

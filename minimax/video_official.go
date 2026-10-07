@@ -49,7 +49,7 @@ func (m *MiniMax) VideoRetrieveOfficial(ctx context.Context, taskId string) (res
 		logger.Infof(ctx, "VideoRetrieveOfficial MiniMax model: %s totalTime: %d ms", m.Model, gtime.TimestampMilli()-now)
 	}()
 
-	if responseBytes, responseHeader, err = util.HttpGet(ctx, m.BaseUrl+fmt.Sprintf("/v2/query/video_generation/%s", taskId), m.header, nil, nil, m.Timeout, m.ProxyUrl, m.requestErrorHandler); err != nil {
+	if responseBytes, responseHeader, err = util.HttpGet(ctx, m.BaseUrl+fmt.Sprintf("/query/video_generation/%s", taskId), m.header, nil, nil, m.Timeout, m.ProxyUrl, m.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "VideoRetrieveOfficial MiniMax model: %s, error: %v", m.Model, err)
 		return nil, nil, err
 	}
