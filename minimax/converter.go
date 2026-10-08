@@ -218,6 +218,13 @@ func (m *MiniMax) ConvVideoJobResponse(ctx context.Context, data []byte) (respon
 		expiresAt := raw.Task.CreatedAt + 7*24*60*60
 		response.ExpiresAt = &expiresAt
 
+		if raw.Task.Progress != nil {
+			response.Progress = int(*raw.Task.Progress * 100)
+			if response.Progress <= 0 && *raw.Task.Progress > 0 {
+				response.Progress = 1
+			}
+		}
+
 		if raw.Task.Status == "succeeded" {
 			response.Progress = 100
 			if raw.Task.UpdatedAt > 0 {

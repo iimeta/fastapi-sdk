@@ -64,6 +64,7 @@ type MiniMaxVideoTask struct {
 	Ratio      string               `json:"ratio,omitempty"`
 	TaskType   string               `json:"task_type,omitempty"` // generation / h3_context_ir / regeneration
 	Modality   string               `json:"modality,omitempty"`  // video / text
+	Progress   *float64             `json:"progress,omitempty"`  // 0-1, 执行中为采样进度, 终态为 1
 }
 
 // MiniMaxVideoError 任务错误信息
@@ -80,10 +81,10 @@ type MiniMaxVideoContent struct {
 
 // MiniMaxVideoUsage 本次请求用量
 type MiniMaxVideoUsage struct {
-	TotalSeconds      int `json:"total_seconds,omitempty"`
-	InputSeconds      int `json:"input_seconds,omitempty"`
-	OutputSeconds     int `json:"output_seconds,omitempty"`
-	InputImageCount   int `json:"input_image_count,omitempty"`
+	TotalSeconds      int `json:"total_seconds"`
+	InputSeconds      int `json:"input_seconds"`
+	OutputSeconds     int `json:"output_seconds"`
+	InputImageCount   int `json:"input_image_count"`
 	InputAudioSeconds int `json:"input_audio_seconds,omitempty"`
 	TotalTokens       int `json:"total_tokens,omitempty"`
 	PromptTokens      int `json:"prompt_tokens,omitempty"`
