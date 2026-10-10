@@ -102,6 +102,12 @@ type GenerationConfig struct {
 	ResponseModalities []string              `json:"responseModalities,omitempty"`
 	ImageConfig        *ImageConfig          `json:"imageConfig,omitempty"`
 	ResponseFormat     *GoogleResponseFormat `json:"responseFormat,omitempty"`
+	ThinkingConfig     *ThinkingConfig       `json:"thinkingConfig,omitempty"`
+}
+
+type ThinkingConfig struct {
+	ThinkingBudget *int   `json:"thinkingBudget,omitempty"`
+	ThinkingLevel  string `json:"thinkingLevel,omitempty"`
 }
 
 type ImageConfig struct {

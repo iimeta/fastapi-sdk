@@ -15,29 +15,39 @@ type AnthropicChatCompletionReq struct {
 	Tools            any                     `json:"tools,omitempty"`
 	TopK             int                     `json:"top_k,omitempty"`
 	TopP             float32                 `json:"top_p,omitempty"`
+	Thinking         *AnthropicThinking      `json:"thinking,omitempty"`
+	OutputConfig     *AnthropicOutputConfig  `json:"output_config,omitempty"`
 	AnthropicVersion string                  `json:"anthropic_version,omitempty"`
 }
 
+type AnthropicThinking struct {
+	Type string `json:"type,omitempty"`
+}
+
+type AnthropicOutputConfig struct {
+	Effort string `json:"effort,omitempty"`
+}
+
 type AnthropicChatCompletionRes struct {
-	Id            string             `json:"id"`
-	Type          string             `json:"type"`
-	Role          string             `json:"role"`
-	Content       []AnthropicContent `json:"content"`
-	Model         string             `json:"model"`
-	StopReason    string             `json:"stop_reason"`
-	StopSequence  string             `json:"stop_sequence"`
-	Message       AnthropicMessage   `json:"message"`
-	Index         int                `json:"index"`
-	Delta         AnthropicContent   `json:"delta"`
-	Usage         *AnthropicUsage    `json:"usage,omitempty"`
-	Error         *AnthropicError    `json:"error,omitempty"`
-	SSEEvent        string      `json:"-"`
-	ResponseBytes   []byte      `json:"-"`
-	ResponseHeaders http.Header `json:"-"`
-	ConnTime        int64       `json:"-"`
-	Duration      int64              `json:"-"`
-	TotalTime     int64              `json:"-"`
-	Err           error              `json:"-"`
+	Id              string             `json:"id"`
+	Type            string             `json:"type"`
+	Role            string             `json:"role"`
+	Content         []AnthropicContent `json:"content"`
+	Model           string             `json:"model"`
+	StopReason      string             `json:"stop_reason"`
+	StopSequence    string             `json:"stop_sequence"`
+	Message         AnthropicMessage   `json:"message"`
+	Index           int                `json:"index"`
+	Delta           AnthropicContent   `json:"delta"`
+	Usage           *AnthropicUsage    `json:"usage,omitempty"`
+	Error           *AnthropicError    `json:"error,omitempty"`
+	SSEEvent        string             `json:"-"`
+	ResponseBytes   []byte             `json:"-"`
+	ResponseHeaders http.Header        `json:"-"`
+	ConnTime        int64              `json:"-"`
+	Duration        int64              `json:"-"`
+	TotalTime       int64              `json:"-"`
+	Err             error              `json:"-"`
 }
 
 type Metadata struct {
