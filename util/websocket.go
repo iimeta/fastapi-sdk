@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/gogf/gf/v2/net/gclient"
+	"github.com/gogf/gf/v2/net/gtrace"
 	"github.com/gorilla/websocket"
+	"github.com/iimeta/fastapi-sdk/v2/consts"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
 )
 
@@ -32,6 +34,18 @@ func WebSocketClient(ctx context.Context, wsURL string, requestHeader http.Heade
 		} else {
 			client.Proxy = http.ProxyURL(proxyUrl)
 		}
+	}
+
+	if requestHeader == nil {
+		requestHeader = http.Header{}
+	}
+
+	if requestHeader.Get(consts.TRACE_ID) == "" {
+		requestHeader.Set(consts.TRACE_ID, gtrace.GetTraceID(ctx))
+	}
+
+	if requestHeader.Get(consts.FASTAPI_REQUEST_ID) == "" {
+		requestHeader.Set(consts.FASTAPI_REQUEST_ID, gtrace.GetTraceID(ctx))
 	}
 
 	conn, response, err := client.Dial(wsURL, requestHeader)

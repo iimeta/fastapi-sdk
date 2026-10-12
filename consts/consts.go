@@ -68,4 +68,9 @@ const (
 	FinishReasonNull          = "null"
 )
 
+const (
+	TRACE_ID           = "Trace-Id"
+	FASTAPI_REQUEST_ID = "X-Fastapi-Request-Id"
+)
+
 const UPSTREAM_REQUEST_IDS_KEY = "upstream_request_ids"

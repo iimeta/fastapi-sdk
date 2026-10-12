@@ -12,6 +12,7 @@ import (
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/net/gtrace"
+	"github.com/iimeta/fastapi-sdk/v2/consts"
 	"github.com/iimeta/fastapi-sdk/v2/errors"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
 )
@@ -80,7 +81,8 @@ func SSEClient(ctx context.Context, rawURL string, header map[string]string, dat
 		request.Header.Set("Content-Type", "application/json")
 	}
 
-	request.Header.Set("Trace-Id", gtrace.GetTraceID(ctx))
+	request.Header.Set(consts.TRACE_ID, gtrace.GetTraceID(ctx))
+	request.Header.Set(consts.FASTAPI_REQUEST_ID, gtrace.GetTraceID(ctx))
 
 	if header != nil {
 		for k, v := range header {
