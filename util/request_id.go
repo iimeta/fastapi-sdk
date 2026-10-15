@@ -11,7 +11,7 @@ import (
 
 func noteUpstreamRequestId(ctx context.Context, response *http.Response) {
 
-	if ctx == nil || response == nil || len(response.Header) == 0 {
+	if ctx == nil {
 		return
 	}
 
@@ -20,22 +20,33 @@ func noteUpstreamRequestId(ctx context.Context, response *http.Response) {
 		return
 	}
 
-	ids, _ := r.GetCtxVar(consts.UPSTREAM_REQUEST_IDS_KEY).Val().(map[string]string)
-	if ids == nil {
-		ids = make(map[string]string)
-		r.SetCtxVar(consts.UPSTREAM_REQUEST_IDS_KEY, ids)
+	if response == nil || len(response.Header) == 0 {
+		r.SetCtxVar(consts.UPSTREAM_REQUEST_IDS_KEY, nil)
+		return
 	}
 
-	for key, values := range response.Header {
+	ids := requestIdsFromHeader(response.Header)
 
-		if ids[key] != "" || !isRequestIdHeader(key) {
-			continue
-		}
-
-		if value := strings.TrimSpace(strings.Join(values, ", ")); value != "" {
-			ids[key] = value
-		}
+	if len(ids) == 0 {
+		r.SetCtxVar(consts.UPSTREAM_REQUEST_IDS_KEY, nil)
+		return
 	}
+
+	r.SetCtxVar(consts.UPSTREAM_REQUEST_IDS_KEY, ids)
+}
+
+func ResetUpstreamRequestIds(ctx context.Context) {
+
+	if ctx == nil {
+		return
+	}
+
+	r := ghttp.RequestFromCtx(ctx)
+	if r == nil {
+		return
+	}
+
+	r.SetCtxVar(consts.UPSTREAM_REQUEST_IDS_KEY, nil)
 }
 
 func UpstreamRequestIds(ctx context.Context) map[string]string {
@@ -56,6 +67,24 @@ func UpstreamRequestIds(ctx context.Context) map[string]string {
 	}
 
 	return out
+}
+
+func requestIdsFromHeader(header http.Header) map[string]string {
+
+	ids := make(map[string]string)
+
+	for key, values := range header {
+
+		if !isRequestIdHeader(key) {
+			continue
+		}
+
+		if value := strings.TrimSpace(strings.Join(values, ", ")); value != "" {
+			ids[key] = value
+		}
+	}
+
+	return ids
 }
 
 func isRequestIdHeader(name string) bool {
