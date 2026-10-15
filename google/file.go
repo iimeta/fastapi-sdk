@@ -147,6 +147,29 @@ func (g *Google) FileDelete(ctx context.Context, request model.FileDeleteRequest
 }
 
 func (g *Google) FileContent(ctx context.Context, request model.FileContentRequest) (response model.FileContentResponse, err error) {
-	//TODO implement me
-	return response, err
+
+	logger.Infof(ctx, "FileContent Google model: %s, fileId: %s start", g.Model, request.FileId)
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		response.TotalTime = gtime.TimestampMilli() - now
+		logger.Infof(ctx, "FileContent Google model: %s totalTime: %d ms", g.Model, response.TotalTime)
+	}()
+
+	if err = g.waitFileActive(ctx, request.FileId); err != nil {
+		logger.Errorf(ctx, "FileContent Google waitFileActive error: %v", err)
+		return response, err
+	}
+
+	bytes, _, err := util.HttpGet(ctx, g.fileDownloadURL(request.FileId), g.header, nil, nil, g.Timeout, g.ProxyUrl, g.requestErrorHandler)
+	if err != nil {
+		logger.Errorf(ctx, "FileContent Google model: %s, error: %v", g.Model, err)
+		return response, err
+	}
+
+	response.Data = bytes
+
+	logger.Infof(ctx, "FileContent Google model: %s, fileId: %s finished, size: %d bytes", g.Model, request.FileId, len(bytes))
+
+	return response, nil
 }

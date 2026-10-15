@@ -3,6 +3,7 @@ package google
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"reflect"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/gogf/gf/v2/util/grand"
 	"github.com/iimeta/fastapi-sdk/v2/common"
 	"github.com/iimeta/fastapi-sdk/v2/consts"
+	"github.com/iimeta/fastapi-sdk/v2/errors"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
 	"github.com/iimeta/fastapi-sdk/v2/model"
 	"github.com/iimeta/fastapi-sdk/v2/util"
@@ -298,6 +300,21 @@ func (g *Google) ConvImageGenerationsRequest(ctx context.Context, data []byte) (
 		}
 	}
 
+	if request.Prompt == "" {
+		if interactionReq, ok := convInteractionImageRequest(data, g.Model); ok {
+			if request.Model == "" {
+				request.Model = interactionReq.Model
+			}
+			request.Prompt = interactionReq.Prompt
+			if request.Quality == "" {
+				request.Quality = interactionReq.Quality
+			}
+			if request.AspectRatio == "" {
+				request.AspectRatio = interactionReq.AspectRatio
+			}
+		}
+	}
+
 	return request, nil
 }
 
@@ -307,6 +324,27 @@ func (g *Google) ConvImageGenerationsResponse(ctx context.Context, data []byte) 
 	defer func() {
 		logger.Debugf(ctx, "ConvImageGenerationsResponse time: %d", gtime.TimestampMilli()-now)
 	}()
+
+	interactionRes := model.GoogleInteractionRes{}
+	if err = json.Unmarshal(data, &interactionRes); err == nil && (len(interactionRes.Steps) > 0 || interactionRes.Id != "") {
+
+		if interactionRes.Error.Code != 0 {
+			err = g.interactionErrorHandler(&interactionRes)
+			logger.Errorf(ctx, "ConvImageGenerationsResponse Google model: %s, error: %v", g.Model, err)
+			return response, err
+		}
+
+		response = model.ImageResponse{
+			Created: gtime.Now().Unix(),
+			Data:    extractInteractionImages(interactionRes.Steps),
+		}
+
+		if usage := convInteractionUsage(interactionRes.Usage); usage != nil {
+			response.Usage = *usage
+		}
+
+		return response, nil
+	}
 
 	chatCompletionRes := model.GoogleChatCompletionRes{}
 	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
@@ -429,23 +467,194 @@ func (g *Google) ConvTextEmbeddingsResponse(ctx context.Context, data []byte) (r
 }
 
 func (g *Google) ConvVideoCreateRequest(ctx context.Context, request model.VideoCreateRequest) (data *bytes.Buffer, err error) {
-	//TODO implement me
-	panic("implement me")
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvVideoCreateRequest time: %d", gtime.TimestampMilli()-now)
+	}()
+
+	modelName := request.Model
+	if modelName == "" {
+		modelName = g.Model
+	}
+
+	body := map[string]any{
+		"model":      modelName,
+		"background": true,
+	}
+
+	input := make([]any, 0)
+
+	appendImage := func(value any) {
+		if part := interactionMediaPart(value, "image"); part != nil {
+			input = append(input, part)
+		}
+	}
+	appendVideo := func(value any) {
+		if part := interactionMediaPart(value, "video"); part != nil {
+			input = append(input, part)
+		}
+	}
+
+	appendImage(request.Image)
+	if request.ImageUrl != "" {
+		appendImage(request.ImageUrl)
+	}
+	if request.InputReference != nil {
+		dataURL, convErr := fileHeaderToDataURL(request.InputReference)
+		if convErr != nil {
+			logger.Errorf(ctx, "ConvVideoCreateRequest Google model: %s, fileHeaderToDataURL error: %v", g.Model, convErr)
+			return nil, convErr
+		}
+		appendImage(dataURL)
+	}
+	appendImage(request.LastFrame)
+	if request.LastFrameUrl != "" {
+		appendImage(request.LastFrameUrl)
+	}
+	appendVideo(request.Video)
+	if request.VideoUrl != "" {
+		appendVideo(request.VideoUrl)
+	}
+
+	if request.Prompt != "" {
+		input = append(input, map[string]any{
+			"type": "text",
+			"text": request.Prompt,
+		})
+	}
+
+	if len(input) == 1 {
+		if part, ok := input[0].(map[string]any); ok && gconv.String(part["type"]) == "text" {
+			body["input"] = request.Prompt
+		} else {
+			body["input"] = input
+		}
+	} else if len(input) > 1 {
+		body["input"] = input
+	} else {
+		body["input"] = request.Prompt
+	}
+
+	responseFormat := map[string]any{
+		"type":     "video",
+		"delivery": "uri",
+	}
+
+	aspectRatio := request.AspectRatio
+	resolution := request.Resolution
+	if request.Size != "" {
+		size := strings.ToLower(request.Size)
+		if strings.HasSuffix(size, "p") && resolution == "" {
+			resolution = size
+		} else if strings.Contains(request.Size, ":") && aspectRatio == "" {
+			aspectRatio = request.Size
+		} else if aspectRatio == "" {
+			aspectRatio = sizeToVideoAspectRatio(request.Size)
+		}
+	}
+	if aspectRatio != "" {
+		responseFormat["aspect_ratio"] = aspectRatio
+	}
+	if resolution != "" {
+		responseFormat["resolution"] = resolution
+	}
+
+	body["response_format"] = responseFormat
+
+	return bytes.NewBuffer(gjson.MustEncode(body)), nil
 }
 
 func (g *Google) ConvVideoListResponse(ctx context.Context, data []byte) (response model.VideoListResponse, err error) {
-	//TODO implement me
-	panic("implement me")
+	return response, errors.New("Google video does not support list")
 }
 
 func (g *Google) ConvVideoContentResponse(ctx context.Context, data []byte) (response model.VideoContentResponse, err error) {
-	//TODO implement me
-	panic("implement me")
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvVideoContentResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
+	if len(data) == 0 {
+		return response, nil
+	}
+
+	interactionRes := model.GoogleInteractionRes{}
+	if err = json.Unmarshal(data, &interactionRes); err != nil {
+		response.Data = data
+		return response, nil
+	}
+
+	_, videoData, _ := extractInteractionVideo(interactionRes.Steps)
+	if videoData == "" {
+		response.Data = data
+		return response, nil
+	}
+
+	decoded, decodeErr := base64.StdEncoding.DecodeString(videoData)
+	if decodeErr != nil {
+		logger.Error(ctx, decodeErr)
+		return response, decodeErr
+	}
+
+	response.Data = decoded
+	return response, nil
 }
 
 func (g *Google) ConvVideoJobResponse(ctx context.Context, data []byte) (response model.VideoJobResponse, err error) {
-	//TODO implement me
-	panic("implement me")
+
+	now := gtime.TimestampMilli()
+	defer func() {
+		logger.Debugf(ctx, "ConvVideoJobResponse time: %d", gtime.TimestampMilli()-now)
+	}()
+
+	interactionRes := model.GoogleInteractionRes{}
+	if err = json.Unmarshal(data, &interactionRes); err != nil {
+		logger.Error(ctx, err)
+		return response, err
+	}
+
+	if interactionRes.Error.Code != 0 {
+		err = g.interactionErrorHandler(&interactionRes)
+		logger.Errorf(ctx, "ConvVideoJobResponse Google model: %s, error: %v", g.Model, err)
+		return response, err
+	}
+
+	status := convVideoJobStatus(interactionRes.Status)
+	progress := 0
+	switch status {
+	case "completed":
+		progress = 100
+	case "in_progress":
+		progress = 50
+	}
+
+	uri, _, _ := extractInteractionVideo(interactionRes.Steps)
+
+	response = model.VideoJobResponse{
+		Id:            interactionRes.Id,
+		Object:        "video",
+		Model:         interactionRes.Model,
+		Status:        status,
+		Progress:      progress,
+		VideoUrl:      uri,
+		Usage:         convInteractionUsage(interactionRes.Usage),
+		ResponseBytes: data,
+	}
+
+	if response.Model == "" {
+		response.Model = g.Model
+	}
+
+	if interactionRes.Error.Message != "" {
+		response.Error = &model.VideoError{
+			Code:    gconv.String(interactionRes.Error.Code),
+			Message: interactionRes.Error.Message,
+		}
+	}
+
+	return response, nil
 }
 
 func (g *Google) ConvFileUploadRequest(ctx context.Context, request model.FileUploadRequest) (data *bytes.Buffer, err error) {
@@ -528,8 +737,8 @@ func (g *Google) ConvFileListResponse(ctx context.Context, data []byte) (respons
 }
 
 func (g *Google) ConvFileContentResponse(ctx context.Context, data []byte) (response model.FileContentResponse, err error) {
-	//TODO implement me
-	panic("implement me")
+	response.Data = data
+	return response, nil
 }
 
 func (g *Google) ConvFileResponse(ctx context.Context, data []byte) (response model.FileResponse, err error) {

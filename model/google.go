@@ -154,3 +154,96 @@ type GoogleImageGenerationReq struct {
 	Tools            any              `json:"tools,omitempty"`
 	GenerationConfig GenerationConfig `json:"generationConfig,omitempty"`
 }
+
+type GoogleInteractionReq struct {
+	Model                 string `json:"model,omitempty"`
+	Input                 any    `json:"input"`
+	PreviousInteractionId string `json:"previous_interaction_id,omitempty"`
+	GenerationConfig      any    `json:"generation_config,omitempty"`
+	SystemInstruction     any    `json:"system_instruction,omitempty"`
+	ResponseFormat        any    `json:"response_format,omitempty"`
+	Stream                bool   `json:"stream,omitempty"`
+	Background            any    `json:"background,omitempty"`
+	Store                 any    `json:"store,omitempty"`
+	Tools                 any    `json:"tools,omitempty"`
+}
+
+type GoogleInteractionRes struct {
+	Object                string                    `json:"object"`
+	Id                    string                    `json:"id"`
+	Status                string                    `json:"status"`
+	Model                 string                    `json:"model"`
+	PreviousInteractionId string                    `json:"previous_interaction_id,omitempty"`
+	Steps                 []GoogleInteractionStep   `json:"steps,omitempty"`
+	Usage                 *GoogleInteractionUsage   `json:"usage,omitempty"`
+	Error                 GoogleError               `json:"error"`
+	EventType             string                    `json:"event_type,omitempty"`
+	Delta                 *GoogleInteractionContent `json:"delta,omitempty"`
+	SSEEvent              string                    `json:"-"`
+	ResponseBytes         []byte                    `json:"-"`
+	ResponseHeaders       http.Header               `json:"-"`
+	ConnTime              int64                     `json:"-"`
+	Duration              int64                     `json:"-"`
+	TotalTime             int64                     `json:"-"`
+	Err                   error                     `json:"-"`
+}
+
+type GoogleError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Status  string `json:"status"`
+	Details []struct {
+		Type     string `json:"@type"`
+		Reason   string `json:"reason"`
+		Domain   string `json:"domain"`
+		Metadata struct {
+			Service string `json:"service"`
+		} `json:"metadata"`
+	} `json:"details"`
+}
+
+type GoogleInteractionStep struct {
+	Type    string                     `json:"type"`
+	Content []GoogleInteractionContent `json:"content,omitempty"`
+}
+
+type GoogleInteractionContent struct {
+	Type     string `json:"type,omitempty"`
+	Text     string `json:"text,omitempty"`
+	MimeType string `json:"mime_type,omitempty"`
+	Data     string `json:"data,omitempty"`
+	Uri      string `json:"uri,omitempty"`
+}
+
+type GoogleInteractionUsage struct {
+	InputTokens            int                              `json:"input_tokens,omitempty"`
+	OutputTokens           int                              `json:"output_tokens,omitempty"`
+	TotalTokens            int                              `json:"total_tokens,omitempty"`
+	TotalInputTokens       int                              `json:"total_input_tokens,omitempty"`
+	TotalOutputTokens      int                              `json:"total_output_tokens,omitempty"`
+	CachedTokens           int                              `json:"cached_tokens,omitempty"`
+	TotalCachedTokens      int                              `json:"total_cached_tokens,omitempty"`
+	ThoughtsTokens         int                              `json:"thoughts_tokens,omitempty"`
+	TotalThoughtTokens     int                              `json:"total_thought_tokens,omitempty"`
+	TotalToolUseTokens     int                              `json:"total_tool_use_tokens,omitempty"`
+	InputTokensByModality  []GoogleInteractionModalityToken `json:"input_tokens_by_modality,omitempty"`
+	OutputTokensByModality []GoogleInteractionModalityToken `json:"output_tokens_by_modality,omitempty"`
+	InputTokensDetails     *GoogleInteractionModalityTokens `json:"input_tokens_details,omitempty"`
+	OutputTokensDetails    *GoogleInteractionModalityTokens `json:"output_tokens_details,omitempty"`
+	UsageMetadata          *UsageMetadata                   `json:"usageMetadata,omitempty"`
+}
+
+type GoogleInteractionModalityToken struct {
+	Modality   string `json:"modality"`
+	Tokens     int    `json:"tokens,omitempty"`
+	TokenCount int    `json:"tokenCount,omitempty"`
+	TokenCountSnake int `json:"token_count,omitempty"`
+}
+
+type GoogleInteractionModalityTokens struct {
+	TextTokens  int `json:"text_tokens,omitempty"`
+	ImageTokens int `json:"image_tokens,omitempty"`
+	AudioTokens int `json:"audio_tokens,omitempty"`
+	VideoTokens int `json:"video_tokens,omitempty"`
+	CachedTokens int `json:"cached_tokens,omitempty"`
+}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/iimeta/fastapi-sdk/v2/errors"
@@ -78,4 +79,52 @@ func (g *Google) requestErrorHandler(ctx context.Context, response *http.Respons
 
 func (g *Google) apiErrorHandler(response *model.GoogleChatCompletionRes) error {
 	return errors.NewApiError(response.Error.Code, response.Error.Code, gjson.MustEncodeString(response), "api_error", "")
+}
+
+func (g *Google) interactionErrorHandler(response *model.GoogleInteractionRes) error {
+	return errors.NewApiError(response.Error.Code, response.Error.Code, gjson.MustEncodeString(response), "api_error", "")
+}
+
+func isGenerateContentPath(path string) bool {
+	if path == "" {
+		return false
+	}
+	if strings.Contains(path, ":") {
+		return true
+	}
+	return strings.Contains(path, "/models/")
+}
+
+func (g *Google) interactionsPath() string {
+	path := g.Path
+	if isGenerateContentPath(path) {
+		path = ""
+	}
+	if path == "" {
+		return "/interactions"
+	}
+	return path
+}
+
+func (g *Google) interactionsURL(id string, sse bool) string {
+
+	path := g.interactionsPath()
+	if id != "" {
+		id = strings.TrimPrefix(id, "interactions/")
+		if !strings.HasSuffix(path, "/") {
+			path += "/"
+		}
+		path += id
+	}
+
+	rawURL := g.BaseUrl + path
+	if sse {
+		if strings.Contains(rawURL, "?") {
+			rawURL += "&alt=sse"
+		} else {
+			rawURL += "?alt=sse"
+		}
+	}
+
+	return rawURL
 }
