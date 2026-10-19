@@ -22,13 +22,9 @@ func (x *XAI) ImageGenerationsOfficial(ctx context.Context, data []byte) (respon
 		logger.Infof(ctx, "ImageGenerationsOfficial xAI model: %s totalTime: %d ms", x.Model, gtime.TimestampMilli()-now)
 	}()
 
-	if x.Path == "" {
-		x.Path = "/images/generations"
-	}
-
 	data = sanitizeImageGenerationsJSON(data)
 
-	if responseBytes, responseHeader, err = util.HttpPost(ctx, x.BaseUrl+x.Path, x.header, data, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler); err != nil {
+	if responseBytes, responseHeader, err = util.HttpPost(ctx, x.BaseUrl+x.withImageAsyncQuery(x.imageGenerationsPath()), x.header, data, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "ImageGenerationsOfficial xAI model: %s, error: %v", x.Model, err)
 		return nil, nil, err
 	}
@@ -49,11 +45,8 @@ func (x *XAI) ImageGenerationsStreamOfficial(ctx context.Context, data []byte) (
 		}
 	}()
 
-	if x.Path == "" {
-		x.Path = "/images/generations"
-	}
-
-	stream, err := util.SSEClient(ctx, x.BaseUrl+x.Path, x.header, data, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
+	data = sanitizeImageGenerationsJSON(data)
+	stream, err := util.SSEClient(ctx, x.BaseUrl+x.imageGenerationsPath(), x.header, data, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageGenerationsStreamOfficial xAI model: %s, error: %v", x.Model, err)
 		return responseChan, err

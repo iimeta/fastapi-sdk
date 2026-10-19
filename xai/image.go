@@ -2,6 +2,7 @@ package xai
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"slices"
 	"strings"
@@ -36,19 +37,7 @@ func (x *XAI) ImageGenerations(ctx context.Context, data []byte) (response model
 		request = convImageGenerationsOfficialJSON(convReq)
 	}
 
-	if x.Path == "" {
-		x.Path = "/images/generations"
-	}
-
-	if x.Async {
-		if strings.Contains(x.Path, "?") {
-			x.Path += "&async=true"
-		} else {
-			x.Path += "?async=true"
-		}
-	}
-
-	responseBytes, responseHeader, err := util.HttpPost(ctx, x.BaseUrl+x.Path, x.header, request, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
+	responseBytes, responseHeader, err := util.HttpPost(ctx, x.BaseUrl+x.withImageAsyncQuery(x.imageGenerationsPath()), x.header, request, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageGenerations xAI model: %s, error: %v", x.Model, err)
 		return response, err
@@ -88,11 +77,7 @@ func (x *XAI) ImageGenerationsStream(ctx context.Context, data []byte) (response
 		request = convImageGenerationsOfficialJSON(convReq)
 	}
 
-	if x.Path == "" {
-		x.Path = "/images/generations"
-	}
-
-	stream, err := util.SSEClient(ctx, x.BaseUrl+x.Path, x.header, request, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, x.BaseUrl+x.imageGenerationsPath(), x.header, request, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageGenerationsStream xAI model: %s, error: %v", x.Model, err)
 		return responseChan, err
@@ -187,19 +172,7 @@ func (x *XAI) ImageEdits(ctx context.Context, request model.ImageEditRequest) (r
 		return response, err
 	}
 
-	if x.Path == "" {
-		x.Path = "/images/generations"
-	}
-
-	if x.Async {
-		if strings.Contains(x.Path, "?") {
-			x.Path += "&async=true"
-		} else {
-			x.Path += "?async=true"
-		}
-	}
-
-	responseBytes, responseHeader, err := util.HttpPost(ctx, x.BaseUrl+x.Path, x.header, data, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
+	responseBytes, responseHeader, err := util.HttpPost(ctx, x.BaseUrl+x.withImageAsyncQuery(x.imageEditsPath()), x.header, data, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageEdits xAI model: %s, error: %v", x.Model, err)
 		return response, err
@@ -233,11 +206,7 @@ func (x *XAI) ImageEditsStream(ctx context.Context, request model.ImageEditReque
 		return nil, err
 	}
 
-	if x.Path == "" {
-		x.Path = "/images/generations"
-	}
-
-	stream, err := util.SSEClient(ctx, x.BaseUrl+x.Path, x.header, data, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
+	stream, err := util.SSEClient(ctx, x.BaseUrl+x.imageEditsPath(), x.header, data, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "ImageEditsStream xAI model: %s, error: %v", x.Model, err)
 		return responseChan, err
@@ -314,4 +283,43 @@ func (x *XAI) ImageEditsStream(ctx context.Context, request model.ImageEditReque
 	}
 
 	return responseChan, nil
+}
+
+func (x *XAI) imageGenerationsPath() string {
+	if x.Path != "" && !isXAIImageRetrievePath(x.Path) && !strings.HasSuffix(strings.TrimRight(x.Path, "/"), "/edits") {
+		return x.Path
+	}
+	return "/images/generations"
+}
+
+func (x *XAI) imageEditsPath() string {
+	if x.Path != "" && !isXAIImageRetrievePath(x.Path) && !strings.HasSuffix(strings.TrimRight(x.Path, "/"), "/generations") {
+		return x.Path
+	}
+	return "/images/edits"
+}
+
+func (x *XAI) imageRetrievePath(requestId string) string {
+	return fmt.Sprintf("/images/%s", requestId)
+}
+
+func (x *XAI) withImageAsyncQuery(path string) string {
+	if !x.Async {
+		return path
+	}
+	if strings.Contains(path, "async=true") {
+		return path
+	}
+	if strings.Contains(path, "?") {
+		return path + "&async=true"
+	}
+	return path + "?async=true"
+}
+
+func isXAIImageRetrievePath(path string) bool {
+	path = strings.TrimRight(path, "/")
+	if path == "" || strings.HasSuffix(path, "/generations") || strings.HasSuffix(path, "/edits") {
+		return false
+	}
+	return strings.Contains(path, "/images/")
 }

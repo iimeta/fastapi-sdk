@@ -31,11 +31,7 @@ func (x *XAI) VideoCreate(ctx context.Context, request model.VideoCreateRequest)
 		}
 	}
 
-	if x.Path == "" {
-		x.Path = "/videos/generations"
-	}
-
-	responseBytes, responseHeader, err := util.HttpPost(ctx, x.BaseUrl+x.Path, x.header, data, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
+	responseBytes, responseHeader, err := util.HttpPost(ctx, x.BaseUrl+x.videoCreatePath(), x.header, data, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoCreate xAI model: %s, error: %v", x.Model, err)
 		return response, err
@@ -64,21 +60,15 @@ func (x *XAI) VideoRemix(ctx context.Context, request model.VideoRemixRequest) (
 		logger.Infof(ctx, "VideoRemix xAI model: %s totalTime: %d ms", x.Model, response.TotalTime)
 	}()
 
-	if x.Path == "" {
-		x.Path = "/videos/generations"
+	official := model.XAIVideoCreateReq{
+		Model:  x.Model,
+		Prompt: request.Prompt,
+		Video:  convVideoContent(request.VideoId),
 	}
 
-	responseBytes, responseHeader, err := func() ([]byte, map[string][]string, error) {
-		video := map[string]any{}
-		if strings.HasPrefix(request.VideoId, "http") || strings.HasPrefix(request.VideoId, "data:") {
-			video["url"] = request.VideoId
-		} else {
-			video["file_id"] = request.VideoId
-		}
-		body := map[string]any{"model": x.Model, "prompt": request.Prompt, "video": video}
-		x.header["Content-Type"] = "application/json"
-		return util.HttpPost(ctx, x.BaseUrl+x.Path, x.header, body, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
-	}()
+	x.header["Content-Type"] = "application/json"
+
+	responseBytes, responseHeader, err := util.HttpPost(ctx, x.BaseUrl+x.videoCreatePath(), x.header, official, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoRemix xAI model: %s, error: %v", x.Model, err)
 		return response, err
@@ -107,11 +97,7 @@ func (x *XAI) VideoList(ctx context.Context, request model.VideoListRequest) (re
 		logger.Infof(ctx, "VideoList xAI model: %s totalTime: %d ms", x.Model, response.TotalTime)
 	}()
 
-	if x.Path == "" {
-		x.Path = "/videos/generations"
-	}
-
-	bytes, _, err := util.HttpGet(ctx, x.BaseUrl+x.Path, x.header, request, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, x.BaseUrl+x.videoCreatePath(), x.header, request, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoList xAI model: %s, error: %v", x.Model, err)
 		return response, err
@@ -137,11 +123,7 @@ func (x *XAI) VideoRetrieve(ctx context.Context, request model.VideoRetrieveRequ
 		logger.Infof(ctx, "VideoRetrieve xAI model: %s totalTime: %d ms", x.Model, response.TotalTime)
 	}()
 
-	if x.Path == "" {
-		x.Path = fmt.Sprintf("/videos/generations/%s", request.VideoId)
-	}
-
-	bytes, _, err := util.HttpGet(ctx, x.BaseUrl+x.Path, x.header, nil, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
+	bytes, _, err := util.HttpGet(ctx, x.BaseUrl+x.videoRetrievePath(request.VideoId), x.header, nil, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoRetrieve xAI model: %s, error: %v", x.Model, err)
 		return response, err
@@ -167,11 +149,7 @@ func (x *XAI) VideoDelete(ctx context.Context, request model.VideoDeleteRequest)
 		logger.Infof(ctx, "VideoDelete xAI model: %s totalTime: %d ms", x.Model, response.TotalTime)
 	}()
 
-	if x.Path == "" {
-		x.Path = fmt.Sprintf("/videos/generations/%s", request.VideoId)
-	}
-
-	bytes, _, err := util.HttpDelete(ctx, x.BaseUrl+x.Path, x.header, nil, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
+	bytes, _, err := util.HttpDelete(ctx, x.BaseUrl+x.videoRetrievePath(request.VideoId), x.header, nil, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
 	if err != nil {
 		logger.Errorf(ctx, "VideoDelete xAI model: %s, error: %v", x.Model, err)
 		return response, err
@@ -220,4 +198,23 @@ func (x *XAI) VideoContent(ctx context.Context, request model.VideoContentReques
 	logger.Infof(ctx, "VideoContent xAI model: %s finished", x.Model)
 
 	return response, nil
+}
+
+func (x *XAI) videoCreatePath() string {
+	if x.Path != "" && !isXAIVideoRetrievePath(x.Path) {
+		return x.Path
+	}
+	return "/videos/generations"
+}
+
+func (x *XAI) videoRetrievePath(requestId string) string {
+	return fmt.Sprintf("/videos/%s", requestId)
+}
+
+func isXAIVideoRetrievePath(path string) bool {
+	path = strings.TrimRight(path, "/")
+	if path == "" || strings.HasSuffix(path, "/generations") {
+		return false
+	}
+	return strings.Contains(path, "/videos/")
 }

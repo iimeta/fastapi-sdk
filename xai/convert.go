@@ -118,20 +118,15 @@ func convXAIImageToUnified(official model.XAIImageRes, raw []byte) model.ImageRe
 
 func convXAIVideoToUnified(official model.XAIVideoJobRes, raw []byte) model.VideoJobResponse {
 	response := model.VideoJobResponse{
-		Id:            firstNonEmpty(official.Id, official.RequestId),
-		Object:        official.Object,
+		Id:            official.RequestId,
 		Model:         official.Model,
-		Prompt:        official.Prompt,
 		Usage:         ConvertUsage(official.Usage),
 		ResponseBytes: raw,
 	}
 	response.Status = convVideoStatus(official.Status, nil)
-	if official.Duration > 0 {
-		response.Seconds = itoa(official.Duration)
-	}
 	if official.Video != nil {
 		response.VideoUrl = official.Video.Url
-		if response.Seconds == "" && official.Video.Duration > 0 {
+		if official.Video.Duration > 0 {
 			response.Seconds = itoa(official.Video.Duration)
 		}
 	}

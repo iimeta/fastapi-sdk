@@ -164,11 +164,41 @@ func sanitizeImageGenerationsJSON(data []byte) []byte {
 	}
 	delete(raw, "size")
 
+	if image, ok := raw["image"]; ok {
+		if converted := convImageContent(image); converted != nil {
+			raw["image"] = converted
+		}
+	}
+	if images, ok := raw["images"]; ok {
+		raw["images"] = convImageList(images)
+	}
+
 	bytes, err := json.Marshal(raw)
 	if err != nil {
 		return data
 	}
 	return bytes
+}
+
+func convImageList(v any) any {
+	switch items := v.(type) {
+	case []any:
+		converted := make([]any, 0, len(items))
+		for _, item := range items {
+			if content := convImageContent(item); content != nil {
+				converted = append(converted, content)
+			}
+		}
+		if len(converted) == 0 {
+			return v
+		}
+		return converted
+	default:
+		if content := convImageContent(v); content != nil {
+			return []any{content}
+		}
+		return v
+	}
 }
 
 func (x *XAI) ConvImageGenerationsResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
@@ -289,42 +319,33 @@ func (x *XAI) ConvImageEditsRequest(ctx context.Context, request model.ImageEdit
 		}
 	}
 
-	jsonReq := map[string]any{
-		"prompt": request.Prompt,
-		"model":  request.Model,
+	jsonReq := model.XAIImageReq{
+		Prompt:         request.Prompt,
+		Model:          request.Model,
+		N:              request.N,
+		Quality:        request.Quality,
+		ResponseFormat: request.ResponseFormat,
+		Resolution:     request.Resolution,
+		User:           request.User,
 	}
 
 	if len(images) == 1 {
-		jsonReq["image"] = images[0]
+		jsonReq.Image = images[0]
 	} else if len(images) > 1 {
-		jsonReq["images"] = images
+		jsonReq.Images = images
 	}
 
-	if request.N != 0 {
-		jsonReq["n"] = request.N
-	}
-	if request.Quality != "" {
-		jsonReq["quality"] = request.Quality
-	}
-	if request.ResponseFormat != "" {
-		jsonReq["response_format"] = request.ResponseFormat
-	}
-	if request.User != "" {
-		jsonReq["user"] = request.User
-	}
-
-	aspectRatio := request.AspectRatio
-	if aspectRatio == "" && request.Size != "" {
-		aspectRatio = sizeToAspectRatio(request.Size)
-	}
-	if aspectRatio != "" {
-		jsonReq["aspect_ratio"] = aspectRatio
-	}
-	if request.Resolution != "" {
-		jsonReq["resolution"] = request.Resolution
+	jsonReq.AspectRatio = request.AspectRatio
+	if jsonReq.AspectRatio == "" && request.Size != "" {
+		jsonReq.AspectRatio = sizeToAspectRatio(request.Size)
 	}
 	if request.StorageOptions != nil {
-		jsonReq["storage_options"] = request.StorageOptions
+		if b, err := json.Marshal(request.StorageOptions); err == nil {
+			var storage model.XAIStorageOptions
+			if json.Unmarshal(b, &storage) == nil {
+				jsonReq.StorageOptions = &storage
+			}
+		}
 	}
 
 	jsonBytes, err := json.Marshal(jsonReq)
@@ -383,7 +404,11 @@ func convImageContent(v any) any {
 		if item == "" {
 			return nil
 		}
-		return map[string]any{"url": item}
+		content := map[string]any{"url": item}
+		if !strings.HasPrefix(item, "file-") {
+			content["type"] = "image_url"
+		}
+		return content
 	case model.ImageEditImage:
 		return convImageEditImage(item)
 	case map[string]any:
@@ -400,6 +425,7 @@ func convImageEditImage(item model.ImageEditImage) map[string]any {
 	}
 	if item.ImageUrl != "" {
 		content["url"] = item.ImageUrl
+		content["type"] = "image_url"
 	}
 	if len(content) == 0 {
 		return nil
@@ -416,6 +442,11 @@ func convImageMap(item map[string]any) map[string]any {
 		content["url"] = url
 	} else if imageUrl, _ := item["image_url"].(string); imageUrl != "" {
 		content["url"] = imageUrl
+	}
+	if typ, _ := item["type"].(string); typ != "" {
+		content["type"] = typ
+	} else if _, ok := content["url"]; ok {
+		content["type"] = "image_url"
 	}
 	if len(content) == 0 {
 		return nil
@@ -576,87 +607,13 @@ func (x *XAI) ConvVideoCreateRequest(ctx context.Context, request model.VideoCre
 		logger.Debugf(ctx, "ConvVideoCreateRequest time: %d", gtime.TimestampMilli()-now)
 	}()
 
-	jsonReq := map[string]any{
-		"model":  request.Model,
-		"prompt": request.Prompt,
+	official, convErr := convVideoCreateToXAIReq(ctx, x.Model, request)
+	if convErr != nil {
+		logger.Errorf(ctx, "ConvVideoCreateRequest xAI model: %s, convVideoCreateToXAIReq error: %v", x.Model, convErr)
+		return nil, convErr
 	}
 
-	duration := request.Duration
-	if duration == 0 && request.Seconds != "" {
-		if parsed, parseErr := strconv.Atoi(strings.TrimSpace(request.Seconds)); parseErr == nil {
-			duration = parsed
-		}
-	}
-	if duration > 0 {
-		jsonReq["duration"] = duration
-	}
-
-	aspectRatio := request.AspectRatio
-	resolution := request.Resolution
-	if request.Size != "" {
-		size := strings.ToLower(request.Size)
-		if strings.HasSuffix(size, "p") && resolution == "" {
-			resolution = size
-		} else if strings.Contains(request.Size, ":") && aspectRatio == "" {
-			aspectRatio = request.Size
-		} else if aspectRatio == "" {
-			aspectRatio = sizeToAspectRatio(request.Size)
-		}
-	}
-	if aspectRatio != "" {
-		jsonReq["aspect_ratio"] = aspectRatio
-	}
-	if resolution != "" {
-		jsonReq["resolution"] = resolution
-	}
-
-	if image := convImageContent(request.Image); image != nil {
-		jsonReq["image"] = image
-	} else if request.ImageUrl != "" {
-		jsonReq["image"] = convImageContent(request.ImageUrl)
-	} else if request.InputReference != nil {
-		dataURL, convErr := fileHeaderToDataURL(request.InputReference)
-		if convErr != nil {
-			logger.Errorf(ctx, "ConvVideoCreateRequest xAI model: %s, fileHeaderToDataURL error: %v", x.Model, convErr)
-			return nil, convErr
-		}
-		if image = convImageContent(dataURL); image != nil {
-			jsonReq["image"] = image
-		}
-	}
-
-	if video := convVideoContent(request.Video); video != nil {
-		jsonReq["video"] = video
-	} else if request.VideoUrl != "" {
-		jsonReq["video"] = convVideoContent(request.VideoUrl)
-	}
-
-	if lastFrame := convImageContent(request.LastFrame); lastFrame != nil {
-		jsonReq["last_frame"] = lastFrame
-	} else if request.LastFrameUrl != "" {
-		jsonReq["last_frame"] = convImageContent(request.LastFrameUrl)
-	}
-
-	if request.Keyframes != nil {
-		jsonReq["keyframes"] = request.Keyframes
-	}
-	if request.ReferenceImages != nil {
-		jsonReq["reference_images"] = request.ReferenceImages
-	}
-	if request.ReferenceAudios != nil {
-		jsonReq["reference_audios"] = request.ReferenceAudios
-	}
-	if request.GenerateAudio != nil {
-		jsonReq["generate_audio"] = *request.GenerateAudio
-	}
-	if request.StorageOptions != nil {
-		jsonReq["storage_options"] = request.StorageOptions
-	}
-	if request.User != "" {
-		jsonReq["user"] = request.User
-	}
-
-	jsonBytes, err := json.Marshal(jsonReq)
+	jsonBytes, err := json.Marshal(official)
 	if err != nil {
 		logger.Errorf(ctx, "ConvVideoCreateRequest xAI model: %s, json.Marshal error: %v", x.Model, err)
 		return nil, err
@@ -664,6 +621,77 @@ func (x *XAI) ConvVideoCreateRequest(ctx context.Context, request model.VideoCre
 
 	x.header["Content-Type"] = "application/json"
 	return bytes.NewBuffer(jsonBytes), nil
+}
+
+func convVideoCreateToXAIReq(ctx context.Context, modelName string, request model.VideoCreateRequest) (model.XAIVideoCreateReq, error) {
+
+	official := model.XAIVideoCreateReq{
+		Model:           firstNonEmpty(request.Model, modelName),
+		Prompt:          request.Prompt,
+		Duration:        request.Duration,
+		AspectRatio:     request.AspectRatio,
+		Resolution:      request.Resolution,
+		Keyframes:       request.Keyframes,
+		ReferenceImages: request.ReferenceImages,
+		ReferenceAudios: request.ReferenceAudios,
+		GenerateAudio:   request.GenerateAudio,
+		User:            request.User,
+	}
+
+	if official.Duration == 0 && request.Seconds != "" {
+		if parsed, parseErr := strconv.Atoi(strings.TrimSpace(request.Seconds)); parseErr == nil {
+			official.Duration = parsed
+		}
+	}
+
+	if request.Size != "" {
+		size := strings.ToLower(request.Size)
+		if strings.HasSuffix(size, "p") && official.Resolution == "" {
+			official.Resolution = size
+		} else if strings.Contains(request.Size, ":") && official.AspectRatio == "" {
+			official.AspectRatio = request.Size
+		} else if official.AspectRatio == "" {
+			official.AspectRatio = sizeToAspectRatio(request.Size)
+		}
+	}
+
+	if image := convImageContent(request.Image); image != nil {
+		official.Image = image
+	} else if request.ImageUrl != "" {
+		official.Image = convImageContent(request.ImageUrl)
+	} else if request.InputReference != nil {
+		dataURL, convErr := fileHeaderToDataURL(request.InputReference)
+		if convErr != nil {
+			return official, convErr
+		}
+		if image = convImageContent(dataURL); image != nil {
+			official.Image = image
+		}
+	}
+
+	if video := convVideoContent(request.Video); video != nil {
+		official.Video = video
+	} else if request.VideoUrl != "" {
+		official.Video = convVideoContent(request.VideoUrl)
+	}
+
+	if lastFrame := convImageContent(request.LastFrame); lastFrame != nil {
+		official.LastFrame = lastFrame
+	} else if request.LastFrameUrl != "" {
+		official.LastFrame = convImageContent(request.LastFrameUrl)
+	}
+
+	if request.StorageOptions != nil {
+		if b, err := json.Marshal(request.StorageOptions); err == nil {
+			var storage model.XAIStorageOptions
+			if json.Unmarshal(b, &storage) == nil {
+				official.StorageOptions = &storage
+			}
+		}
+	}
+
+	_ = ctx
+	return official, nil
 }
 
 func (x *XAI) ConvVideoListResponse(ctx context.Context, data []byte) (response model.VideoListResponse, err error) {
@@ -723,6 +751,11 @@ func (x *XAI) ConvVideoJobResponse(ctx context.Context, data []byte) (response m
 			}
 		}
 	}
+
+	if response.Status == "" && response.Id != "" {
+		response.Status = "queued"
+	}
+
 	return response, nil
 }
 

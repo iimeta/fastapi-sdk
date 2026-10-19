@@ -2,7 +2,6 @@ package xai
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/gogf/gf/v2/os/gtime"
@@ -20,11 +19,7 @@ func (x *XAI) VideoCreateOfficial(ctx context.Context, data []byte) (responseByt
 		logger.Infof(ctx, "VideoCreateOfficial xAI model: %s totalTime: %d ms", x.Model, gtime.TimestampMilli()-now)
 	}()
 
-	if x.Path == "" {
-		x.Path = "/videos/generations"
-	}
-
-	if responseBytes, responseHeader, err = util.HttpPost(ctx, x.BaseUrl+x.Path, x.header, data, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler); err != nil {
+	if responseBytes, responseHeader, err = util.HttpPost(ctx, x.BaseUrl+x.videoCreatePath(), x.header, data, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "VideoCreateOfficial xAI model: %s, error: %v", x.Model, err)
 		return nil, nil, err
 	}
@@ -43,11 +38,7 @@ func (x *XAI) VideoListOfficial(ctx context.Context, params model.VolcVideoListR
 		logger.Infof(ctx, "VideoListOfficial xAI model: %s totalTime: %d ms", x.Model, gtime.TimestampMilli()-now)
 	}()
 
-	if x.Path == "" {
-		x.Path = "/videos/generations"
-	}
-
-	if responseBytes, responseHeader, err = util.HttpGet(ctx, x.BaseUrl+x.Path, x.header, params, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler); err != nil {
+	if responseBytes, responseHeader, err = util.HttpGet(ctx, x.BaseUrl+x.videoCreatePath(), x.header, params, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "VideoListOfficial xAI model: %s, error: %v", x.Model, err)
 		return nil, nil, err
 	}
@@ -66,7 +57,7 @@ func (x *XAI) VideoRetrieveOfficial(ctx context.Context, taskId string) (respons
 		logger.Infof(ctx, "VideoRetrieveOfficial xAI model: %s totalTime: %d ms", x.Model, gtime.TimestampMilli()-now)
 	}()
 
-	if responseBytes, responseHeader, err = util.HttpGet(ctx, x.BaseUrl+fmt.Sprintf("/videos/generations/%s", taskId), x.header, nil, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler); err != nil {
+	if responseBytes, responseHeader, err = util.HttpGet(ctx, x.BaseUrl+x.videoRetrievePath(taskId), x.header, nil, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "VideoRetrieveOfficial xAI model: %s, error: %v", x.Model, err)
 		return nil, nil, err
 	}
@@ -85,11 +76,7 @@ func (x *XAI) VideoDeleteOfficial(ctx context.Context, taskId string) (err error
 		logger.Infof(ctx, "VideoDeleteOfficial xAI model: %s totalTime: %d ms", x.Model, gtime.TimestampMilli()-now)
 	}()
 
-	if x.Path == "" {
-		x.Path = fmt.Sprintf("/videos/generations/%s", taskId)
-	}
-
-	if _, _, err = util.HttpDelete(ctx, x.BaseUrl+x.Path, x.header, nil, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler); err != nil {
+	if _, _, err = util.HttpDelete(ctx, x.BaseUrl+x.videoRetrievePath(taskId), x.header, nil, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler); err != nil {
 		logger.Errorf(ctx, "VideoDeleteOfficial xAI model: %s, error: %v", x.Model, err)
 		return err
 	}

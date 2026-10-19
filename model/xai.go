@@ -326,6 +326,7 @@ type XAIMedia struct {
 	ImageUrl string `json:"image_url,omitempty"`
 	FileId   string `json:"file_id,omitempty"`
 	VoiceId  string `json:"voice_id,omitempty"`
+	Type     string `json:"type,omitempty"` // image_url
 }
 
 type XAIStorageOptions struct {
@@ -348,18 +349,27 @@ type XAIImageReq struct {
 	Model          string             `json:"model,omitempty"`
 	N              int                `json:"n,omitempty"`
 	AspectRatio    string             `json:"aspect_ratio,omitempty"`
-	Resolution     string             `json:"resolution,omitempty"` // 1k / 2k / 1.5k
+	Resolution     string             `json:"resolution,omitempty"` // 1k / 2k
 	ResponseFormat string             `json:"response_format,omitempty"`
-	Quality        string             `json:"quality,omitempty"` // low / medium
+	Quality        string             `json:"quality,omitempty"` // auto / low / medium
 	User           string             `json:"user,omitempty"`
+	Deferred       *bool              `json:"deferred,omitempty"`
 	StorageOptions *XAIStorageOptions `json:"storage_options,omitempty"`
 	Image          any                `json:"image,omitempty"`
 	Images         any                `json:"images,omitempty"`
 }
 
 type XAIImageRes struct {
-	Data  []XAIImageData `json:"data"`
-	Usage *XAIUsage      `json:"usage,omitempty"`
+	RequestId string         `json:"request_id,omitempty"`
+	Status    string         `json:"status,omitempty"` // pending / done / failed
+	Model     string         `json:"model,omitempty"`
+	Data      []XAIImageData `json:"data,omitempty"`
+	Usage     *XAIUsage      `json:"usage,omitempty"`
+	Error     *XAIImageError `json:"error,omitempty"`
+}
+
+type XAIImageRetrieveReq struct {
+	RequestId string `json:"request_id" in:"path"`
 }
 
 type XAIImageData struct {
@@ -368,6 +378,11 @@ type XAIImageData struct {
 	MimeType     string         `json:"mime_type,omitempty"`
 	StorageError string         `json:"storage_error,omitempty"`
 	FileOutput   *XAIFileOutput `json:"file_output,omitempty"`
+}
+
+type XAIImageError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
 }
 
 type XAIVideoMedia struct {
@@ -389,9 +404,9 @@ type XAIVideoCreateReq struct {
 	Duration        int                `json:"duration,omitempty"`
 	AspectRatio     string             `json:"aspect_ratio,omitempty"`
 	Resolution      string             `json:"resolution,omitempty"` // 480p / 720p / 1080p
-	Image           *XAIVideoMedia     `json:"image,omitempty"`
-	Video           *XAIVideoMedia     `json:"video,omitempty"`
-	LastFrame       *XAIVideoMedia     `json:"last_frame,omitempty"`
+	Image           any                `json:"image,omitempty"`
+	Video           any                `json:"video,omitempty"`
+	LastFrame       any                `json:"last_frame,omitempty"`
 	Keyframes       any                `json:"keyframes,omitempty"`
 	ReferenceImages any                `json:"reference_images,omitempty"`
 	ReferenceAudios any                `json:"reference_audios,omitempty"`
@@ -417,18 +432,12 @@ type XAIVideoGenerated struct {
 }
 
 type XAIVideoJobRes struct {
-	RequestId   string             `json:"request_id,omitempty"`
-	Id          string             `json:"id,omitempty"`
-	Object      string             `json:"object,omitempty"`
-	Model       string             `json:"model,omitempty"`
-	Status      string             `json:"status,omitempty"`
-	Prompt      string             `json:"prompt,omitempty"`
-	Duration    int                `json:"duration,omitempty"`
-	AspectRatio string             `json:"aspect_ratio,omitempty"`
-	Resolution  string             `json:"resolution,omitempty"`
-	Video       *XAIVideoGenerated `json:"video,omitempty"`
-	Usage       *XAIUsage          `json:"usage,omitempty"`
-	Error       *XAIVideoError     `json:"error,omitempty"`
+	RequestId string             `json:"request_id,omitempty"`
+	Status    string             `json:"status,omitempty"` // pending / done / failed
+	Model     string             `json:"model,omitempty"`
+	Video     *XAIVideoGenerated `json:"video,omitempty"`
+	Error     *XAIVideoError     `json:"error,omitempty"`
+	Usage     *XAIUsage          `json:"usage,omitempty"`
 }
 
 type XAIVideoError struct {
