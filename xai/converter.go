@@ -752,6 +752,10 @@ func (x *XAI) ConvVideoJobResponse(ctx context.Context, data []byte) (response m
 		}
 	}
 
+	if response.Status == "" && response.Error != nil {
+		response.Status = "failed"
+	}
+
 	if response.Status == "" && response.Id != "" {
 		response.Status = "queued"
 	}

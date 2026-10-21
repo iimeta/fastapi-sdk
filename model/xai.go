@@ -1,6 +1,10 @@
 package model
 
-import "net/http"
+import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+)
 
 type XAISearchParameters struct {
 	Mode             string            `json:"mode,omitempty"` // auto / on / off
@@ -435,12 +439,51 @@ type XAIVideoJobRes struct {
 	RequestId string             `json:"request_id,omitempty"`
 	Status    string             `json:"status,omitempty"` // pending / done / failed
 	Model     string             `json:"model,omitempty"`
+	Progress  int                `json:"progress"`
 	Video     *XAIVideoGenerated `json:"video,omitempty"`
+	Code      string             `json:"code,omitempty"`
 	Error     *XAIVideoError     `json:"error,omitempty"`
 	Usage     *XAIUsage          `json:"usage,omitempty"`
 }
 
 type XAIVideoError struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
+	Code    string `json:"code,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+func (e *XAIVideoError) UnmarshalJSON(data []byte) error {
+
+	data = bytes.TrimSpace(data)
+	if len(data) == 0 || string(data) == "null" {
+		return nil
+	}
+
+	if data[0] == '"' {
+		return json.Unmarshal(data, &e.Message)
+	}
+
+	var obj struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+		Error   string `json:"error"`
+	}
+
+	if err := json.Unmarshal(data, &obj); err != nil {
+		return err
+	}
+
+	e.Code = obj.Code
+	e.Message = obj.Message
+	if e.Message == "" {
+		e.Message = obj.Error
+	}
+
+	return nil
+}
+
+func (e XAIVideoError) MarshalJSON() ([]byte, error) {
+	if e.Message == "" {
+		return []byte("null"), nil
+	}
+	return json.Marshal(e.Message)
 }

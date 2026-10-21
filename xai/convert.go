@@ -120,6 +120,7 @@ func convXAIVideoToUnified(official model.XAIVideoJobRes, raw []byte) model.Vide
 	response := model.VideoJobResponse{
 		Id:            official.RequestId,
 		Model:         official.Model,
+		Progress:      official.Progress,
 		Usage:         ConvertUsage(official.Usage),
 		ResponseBytes: raw,
 	}
@@ -130,10 +131,18 @@ func convXAIVideoToUnified(official model.XAIVideoJobRes, raw []byte) model.Vide
 			response.Seconds = itoa(official.Video.Duration)
 		}
 	}
+	code := official.Code
+	message := ""
 	if official.Error != nil {
-		response.Error = &model.VideoError{
-			Code:    official.Error.Code,
-			Message: official.Error.Message,
+		if official.Error.Code != "" {
+			code = official.Error.Code
+		}
+		message = official.Error.Message
+	}
+	if code != "" || message != "" {
+		response.Error = &model.VideoError{Code: code, Message: message}
+		if response.Status == "" {
+			response.Status = "failed"
 		}
 	}
 	return response
