@@ -50,6 +50,14 @@ func (x *XAI) requestErrorHandler(ctx context.Context, response *http.Response) 
 		return err
 	}
 
+	if job, convErr := x.ConvVideoJobResponse(ctx, bytes); convErr == nil && isXAIVideoHTTPError(bytes, job) {
+		job.ResponseBytes = bytes
+		if job.Status == "" {
+			job.Status = "failed"
+		}
+		return &xaiVideoJobError{HttpStatusCode: response.StatusCode, Job: job}
+	}
+
 	errorResponse := errors.ErrorResponse{}
 	if err := json.Unmarshal(bytes, &errorResponse); err != nil || errorResponse.Error == nil {
 		return &errors.RequestError{

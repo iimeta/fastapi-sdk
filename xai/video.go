@@ -2,6 +2,7 @@ package xai
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"slices"
 	"strings"
@@ -32,6 +33,11 @@ func (x *XAI) VideoCreate(ctx context.Context, request model.VideoCreateRequest)
 	}
 
 	responseBytes, responseHeader, err := util.HttpPost(ctx, x.BaseUrl+x.videoCreatePath(), x.header, data, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
+	if job, ok := xaiVideoJobFromError(err); ok {
+		job.ResponseHeaders = responseHeader
+		return job, nil
+	}
+
 	if err != nil {
 		logger.Errorf(ctx, "VideoCreate xAI model: %s, error: %v", x.Model, err)
 		return response, err
@@ -69,6 +75,11 @@ func (x *XAI) VideoRemix(ctx context.Context, request model.VideoRemixRequest) (
 	x.header["Content-Type"] = "application/json"
 
 	responseBytes, responseHeader, err := util.HttpPost(ctx, x.BaseUrl+x.videoCreatePath(), x.header, official, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
+	if job, ok := xaiVideoJobFromError(err); ok {
+		job.ResponseHeaders = responseHeader
+		return job, nil
+	}
+
 	if err != nil {
 		logger.Errorf(ctx, "VideoRemix xAI model: %s, error: %v", x.Model, err)
 		return response, err
@@ -124,6 +135,10 @@ func (x *XAI) VideoRetrieve(ctx context.Context, request model.VideoRetrieveRequ
 	}()
 
 	bytes, _, err := util.HttpGet(ctx, x.BaseUrl+x.videoRetrievePath(request.VideoId), x.header, nil, nil, x.Timeout, x.ProxyUrl, x.requestErrorHandler)
+	if job, ok := xaiVideoJobFromError(err); ok {
+		return job, nil
+	}
+
 	if err != nil {
 		logger.Errorf(ctx, "VideoRetrieve xAI model: %s, error: %v", x.Model, err)
 		return response, err
@@ -217,4 +232,84 @@ func isXAIVideoRetrievePath(path string) bool {
 		return false
 	}
 	return strings.Contains(path, "/videos/")
+}
+
+type xaiVideoJobError struct {
+	HttpStatusCode int
+	Job            model.VideoJobResponse
+}
+
+func (e *xaiVideoJobError) Error() string {
+
+	if e == nil {
+		return ""
+	}
+
+	if e.Job.Error != nil && e.Job.Error.Message != "" {
+		return e.Job.Error.Message
+	}
+
+	if e.Job.Error != nil && e.Job.Error.Code != "" {
+		return e.Job.Error.Code
+	}
+
+	return fmt.Sprintf("error, status code: %d", e.HttpStatusCode)
+}
+
+func isXAIVideoJobError(job model.VideoJobResponse) bool {
+
+	if job.Error != nil && (job.Error.Code != "" || job.Error.Message != "") {
+		return true
+	}
+
+	switch job.Status {
+	case "failed", "expired", "deleted", "cancelled":
+		return true
+	default:
+		return false
+	}
+}
+
+func isXAIVideoHTTPError(raw []byte, job model.VideoJobResponse) bool {
+
+	if !isXAIVideoJobError(job) {
+		return false
+	}
+
+	var body map[string]any
+	if err := json.Unmarshal(raw, &body); err != nil {
+		return false
+	}
+
+	if _, ok := body["video"]; ok {
+		return true
+	}
+
+	if _, ok := body["progress"]; ok {
+		return true
+	}
+
+	if usage, ok := body["usage"].(map[string]any); ok && len(usage) > 0 {
+		return true
+	}
+
+	if _, ok := body["error"].(string); ok {
+		return true
+	}
+
+	if code, _ := body["code"].(string); strings.Contains(code, "imagine:") {
+		return true
+	}
+
+	return false
+}
+
+func xaiVideoJobFromError(err error) (model.VideoJobResponse, bool) {
+
+	var jobErr *xaiVideoJobError
+	if errors.As(err, &jobErr) && jobErr != nil {
+		return jobErr.Job, true
+	}
+
+	return model.VideoJobResponse{}, false
 }
