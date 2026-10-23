@@ -3,12 +3,12 @@ module github.com/iimeta/fastapi-sdk/v2
 go 1.27
 
 require (
-	cloud.google.com/go/iam v1.14.0
+	cloud.google.com/go/iam v1.15.0
 	github.com/gogf/gf/v2 v2.10.3
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/gorilla/websocket v1.5.3
 	github.com/iimeta/tiktoken-go v0.0.0-20240913023457-97a6b8dfb0c7
-	google.golang.org/api v0.303.0
+	google.golang.org/api v0.308.0
 )
 
 require (
@@ -53,7 +53,7 @@ require (
 	golang.org/x/text v0.43.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260715232425-e75dac1f907d // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20261005182115-fad411399dd8 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20261019180522-ce908d29299b // indirect
 	google.golang.org/grpc v1.84.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
