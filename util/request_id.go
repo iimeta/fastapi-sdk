@@ -63,7 +63,7 @@ func UpstreamRequestIds(ctx context.Context) map[string]string {
 
 	out := make(map[string]string, len(ids))
 	for key, value := range ids {
-		out[key] = value
+		out[strings.Clone(key)] = strings.Clone(value)
 	}
 
 	return out
@@ -79,12 +79,27 @@ func requestIdsFromHeader(header http.Header) map[string]string {
 			continue
 		}
 
-		if value := strings.TrimSpace(strings.Join(values, ", ")); value != "" {
-			ids[key] = value
+		if value := cloneHeaderValue(values); value != "" {
+			ids[strings.Clone(key)] = value
 		}
 	}
 
 	return ids
+}
+
+// HTTP/2 HPACK Huffman 解码会把 header 值放进 bytes.Buffer 对象池.
+// strings.Join 单值时直接返回原字符串, TrimSpace 无空白时也是原串,
+// 存进 map 后若底层 buffer 被下一次解码复用, 多个 *-Request-Id 就会变成同一个值.
+func cloneHeaderValue(values []string) string {
+
+	switch len(values) {
+	case 0:
+		return ""
+	case 1:
+		return strings.Clone(strings.TrimSpace(values[0]))
+	default:
+		return strings.Clone(strings.TrimSpace(strings.Join(values, ", ")))
+	}
 }
 
 func isRequestIdHeader(name string) bool {
