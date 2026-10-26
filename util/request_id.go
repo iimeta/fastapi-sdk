@@ -69,6 +69,25 @@ func UpstreamRequestIds(ctx context.Context) map[string]string {
 	return out
 }
 
+// 保存主操作的 RequestIds, 用于辅助 HTTP 请求结束后恢复.
+func PreserveUpstreamRequestIds(ctx context.Context) func() {
+
+	if ctx == nil {
+		return func() {}
+	}
+
+	r := ghttp.RequestFromCtx(ctx)
+	if r == nil {
+		return func() {}
+	}
+
+	ids := UpstreamRequestIds(ctx)
+
+	return func() {
+		r.SetCtxVar(consts.UPSTREAM_REQUEST_IDS_KEY, ids)
+	}
+}
+
 func requestIdsFromHeader(header http.Header) map[string]string {
 
 	ids := make(map[string]string)
