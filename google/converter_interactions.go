@@ -284,20 +284,24 @@ func extractInteractionImages(steps []model.GoogleInteractionStep) []model.Image
 	images := make([]model.ImageResponseData, 0)
 	for _, step := range steps {
 		for _, content := range step.Content {
+
 			if !isImageContent(content) {
 				continue
 			}
+
 			item := model.ImageResponseData{}
-			if content.Uri != "" && (strings.HasPrefix(content.Uri, "http") || strings.HasPrefix(content.Uri, "/")) {
+			if content.Uri != "" && (strings.HasPrefix(content.Uri, "http")) {
 				item.Url = content.Uri
 			}
+
 			if content.Data != "" {
-				if strings.HasPrefix(content.Data, "http") || strings.HasPrefix(content.Data, "/") {
+				if strings.HasPrefix(content.Data, "http") {
 					item.Url = content.Data
 				} else {
 					item.B64Json = content.Data
 				}
 			}
+
 			if item.Url != "" || item.B64Json != "" {
 				images = append(images, item)
 			}

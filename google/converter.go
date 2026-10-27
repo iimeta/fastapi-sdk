@@ -376,7 +376,11 @@ func (g *Google) ConvImageGenerationsResponse(ctx context.Context, data []byte) 
 			}
 
 			if part.InlineData != nil {
-				response.Data[0].B64Json = part.InlineData.Data
+				if strings.HasPrefix(part.InlineData.Data, "http") {
+					response.Data[0].Url = part.InlineData.Data
+				} else {
+					response.Data[0].B64Json = part.InlineData.Data
+				}
 			}
 		}
 	}
