@@ -544,12 +544,6 @@ func (g *Google) ConvInteractionsResponse(ctx context.Context, data []byte) (res
 }
 
 func (g *Google) ConvInteractionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
-
-	now := gtime.TimestampMilli()
-	defer func() {
-		logger.Debugf(ctx, "ConvInteractionsStreamResponse time: %d", gtime.TimestampMilli()-now)
-	}()
-
 	return convInteractionToChatCompletion(data, g.Model, true)
 }
 

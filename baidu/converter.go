@@ -89,11 +89,6 @@ func (b *Baidu) ConvChatCompletionsResponse(ctx context.Context, data []byte) (r
 
 func (b *Baidu) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	now := gtime.TimestampMilli()
-	defer func() {
-		logger.Debugf(ctx, "ConvChatCompletionsStreamResponse time: %d", gtime.TimestampMilli()-now)
-	}()
-
 	chatCompletionRes := model.BaiduChatCompletionRes{}
 	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
 		logger.Error(ctx, err)

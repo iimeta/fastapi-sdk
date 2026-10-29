@@ -69,11 +69,6 @@ func (v *VolcEngine) ConvChatCompletionsResponse(ctx context.Context, data []byt
 
 func (v *VolcEngine) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	now := gtime.TimestampMilli()
-	defer func() {
-		logger.Debugf(ctx, "ConvChatCompletionsStreamResponse time: %d", gtime.TimestampMilli()-now)
-	}()
-
 	response.ResponseBytes = data
 
 	if err = json.Unmarshal(data, &response); err != nil {
@@ -136,11 +131,6 @@ func (v *VolcEngine) ConvImageGenerationsResponse(ctx context.Context, data []by
 }
 
 func (v *VolcEngine) ConvImageGenerationsStreamResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
-
-	now := gtime.TimestampMilli()
-	defer func() {
-		logger.Debugf(ctx, "ConvImageGenerationsStreamResponse time: %d", gtime.TimestampMilli()-now)
-	}()
 
 	response.ResponseBytes = data
 

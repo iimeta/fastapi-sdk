@@ -110,11 +110,6 @@ func (a *Anthropic) ConvChatCompletionsResponse(ctx context.Context, data []byte
 
 func (a *Anthropic) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	now := gtime.TimestampMilli()
-	defer func() {
-		logger.Debugf(ctx, "ConvChatCompletionsStreamResponse time: %d", gtime.TimestampMilli()-now)
-	}()
-
 	chatCompletionRes := model.AnthropicChatCompletionRes{}
 	if err = json.Unmarshal(data, &chatCompletionRes); err != nil {
 		logger.Error(ctx, err)

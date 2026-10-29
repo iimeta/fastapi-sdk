@@ -80,11 +80,6 @@ func (x *XAI) ConvChatCompletionsResponse(ctx context.Context, data []byte) (res
 
 func (x *XAI) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	now := gtime.TimestampMilli()
-	defer func() {
-		logger.Debugf(ctx, "ConvChatCompletionsStreamResponse time: %d", gtime.TimestampMilli()-now)
-	}()
-
 	var official model.XAIChatCompletionRes
 	if err = json.Unmarshal(data, &official); err != nil {
 		logger.Error(ctx, err)
@@ -241,11 +236,6 @@ func (x *XAI) ConvImageGenerationsResponse(ctx context.Context, data []byte) (re
 }
 
 func (x *XAI) ConvImageGenerationsStreamResponse(ctx context.Context, data []byte) (response model.ImageResponse, err error) {
-
-	now := gtime.TimestampMilli()
-	defer func() {
-		logger.Debugf(ctx, "ConvImageGenerationsStreamResponse time: %d", gtime.TimestampMilli()-now)
-	}()
 
 	response.ResponseBytes = data
 

@@ -65,11 +65,6 @@ func (d *DeepSeek) ConvChatCompletionsResponse(ctx context.Context, data []byte)
 
 func (d *DeepSeek) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte) (response model.ChatCompletionResponse, err error) {
 
-	now := gtime.TimestampMilli()
-	defer func() {
-		logger.Debugf(ctx, "ConvChatCompletionsStreamResponse time: %d", gtime.TimestampMilli()-now)
-	}()
-
 	response.ResponseBytes = data
 
 	if err = json.Unmarshal(data, &response); err != nil {
