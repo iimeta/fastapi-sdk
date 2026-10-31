@@ -110,7 +110,6 @@ func requestIdsFromHeader(header http.Header) map[string]string {
 // strings.Join 单值时直接返回原字符串, TrimSpace 无空白时也是原串,
 // 存进 map 后若底层 buffer 被下一次解码复用, 多个 *-Request-Id 就会变成同一个值.
 func cloneHeaderValue(values []string) string {
-
 	switch len(values) {
 	case 0:
 		return ""
@@ -122,10 +121,5 @@ func cloneHeaderValue(values []string) string {
 }
 
 func isRequestIdHeader(name string) bool {
-	n := strings.ToLower(name)
-	return n == "trace-id" || n == "request-id" ||
-		strings.HasSuffix(n, "-request-id") ||
-		strings.HasSuffix(n, "-requestid") ||
-		strings.HasSuffix(n, "-log-id") ||
-		strings.HasSuffix(n, "-logid")
+	return strings.HasSuffix(strings.ToLower(name), "id")
 }
