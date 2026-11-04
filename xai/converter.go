@@ -16,7 +16,6 @@ import (
 	"github.com/gogf/gf/v2/encoding/gjson"
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/iimeta/fastapi-sdk/v2/common"
-	"github.com/iimeta/fastapi-sdk/v2/consts"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
 	"github.com/iimeta/fastapi-sdk/v2/model"
 	"github.com/iimeta/fastapi-sdk/v2/util"
@@ -86,15 +85,6 @@ func (x *XAI) ConvChatCompletionsStreamResponse(ctx context.Context, data []byte
 		return response, err
 	}
 	response = convXAIChatToUnified(official, data)
-
-	if response.Usage != nil {
-		if len(response.Choices) == 0 {
-			response.Choices = append(response.Choices, model.ChatCompletionChoice{
-				Delta:        new(model.ChatCompletionStreamChoiceDelta),
-				FinishReason: consts.FinishReasonStop,
-			})
-		}
-	}
 
 	return response, nil
 }

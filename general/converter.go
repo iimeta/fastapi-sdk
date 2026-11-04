@@ -12,7 +12,6 @@ import (
 	"github.com/gogf/gf/v2/os/gtime"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/iimeta/fastapi-sdk/v2/common"
-	"github.com/iimeta/fastapi-sdk/v2/consts"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
 	"github.com/iimeta/fastapi-sdk/v2/model"
 	"github.com/iimeta/fastapi-sdk/v2/util"
@@ -72,15 +71,6 @@ func (g *General) ConvChatCompletionsStreamResponse(ctx context.Context, data []
 	if err = json.Unmarshal(data, &response); err != nil {
 		logger.Error(ctx, err)
 		return response, err
-	}
-
-	if response.Usage != nil {
-		if len(response.Choices) == 0 {
-			response.Choices = append(response.Choices, model.ChatCompletionChoice{
-				Delta:        new(model.ChatCompletionStreamChoiceDelta),
-				FinishReason: consts.FinishReasonStop,
-			})
-		}
 	}
 
 	return response, nil

@@ -100,15 +100,6 @@ func (o *OpenAI) ConvChatCompletionsStreamResponse(ctx context.Context, data []b
 		return response, err
 	}
 
-	if response.Usage != nil {
-		if len(response.Choices) == 0 {
-			response.Choices = append(response.Choices, model.ChatCompletionChoice{
-				Delta:        new(model.ChatCompletionStreamChoiceDelta),
-				FinishReason: consts.FinishReasonStop,
-			})
-		}
-	}
-
 	return response, nil
 }
 
