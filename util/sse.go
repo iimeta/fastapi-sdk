@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/gogf/gf/v2/encoding/gjson"
@@ -43,8 +42,15 @@ func SSEClient(ctx context.Context, rawURL string, header map[string]string, dat
 
 	logger.Debugf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s", rawURL, header, mustEncodeString(data), proxyURL)
 
+	transport, err := httpTransport(proxyURL)
+	if err != nil {
+		logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, mustEncodeString(data), proxyURL, err)
+		return nil, err
+	}
+
 	client := &http.Client{
-		Timeout: timeout,
+		Transport: transport,
+		Timeout:   timeout,
 	}
 
 	var bodyReader io.Reader
@@ -87,17 +93,6 @@ func SSEClient(ctx context.Context, rawURL string, header map[string]string, dat
 	if header != nil {
 		for k, v := range header {
 			request.Header.Set(k, v)
-		}
-	}
-
-	if proxyURL != "" {
-		if proxyUrl, err := url.Parse(proxyURL); err != nil {
-			logger.Errorf(ctx, "SSEClient url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", rawURL, header, mustEncodeString(data), proxyURL, err)
-			return nil, err
-		} else {
-			client.Transport = &http.Transport{
-				Proxy: http.ProxyURL(proxyUrl),
-			}
 		}
 	}
 

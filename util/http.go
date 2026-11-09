@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -24,19 +23,15 @@ func HttpDo(ctx context.Context, method, rawURL string, header map[string]string
 
 	logger.Debugf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s", method, rawURL, header, mustEncodeString(data), proxyURL)
 
-	client := &http.Client{
-		Timeout: timeout,
+	transport, err := httpTransport(proxyURL)
+	if err != nil {
+		logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", method, rawURL, header, mustEncodeString(data), proxyURL, err)
+		return nil, nil, err
 	}
 
-	if proxyURL != "" {
-		if proxyUrl, err := url.Parse(proxyURL); err != nil {
-			logger.Errorf(ctx, "method: %s, url: %s, header: %+v, data: %s, proxyURL: %s, error: %v", method, rawURL, header, mustEncodeString(data), proxyURL, err)
-			return nil, nil, err
-		} else {
-			client.Transport = &http.Transport{
-				Proxy: http.ProxyURL(proxyUrl),
-			}
-		}
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   timeout,
 	}
 
 	var bodyReader io.Reader
