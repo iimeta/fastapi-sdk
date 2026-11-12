@@ -16,6 +16,8 @@ type ImageGenerationRequest struct {
 	OutputCompression                int              `json:"output_compression,omitempty"`
 	OutputFormat                     string           `json:"output_format,omitempty"`
 	PartialImages                    int              `json:"partial_images,omitempty"`
+	FrameCount                       int              `json:"frame_count,omitempty"`
+	FrameDurationMs                  int              `json:"frame_duration_ms,omitempty"`
 	Quality                          string           `json:"quality,omitempty"`
 	ResponseFormat                   string           `json:"response_format,omitempty"`
 	Size                             string           `json:"size,omitempty"`
@@ -164,6 +166,8 @@ type ImageEditRequest struct {
 	OutputCompression int              `json:"output_compression,omitempty"`
 	OutputFormat      string           `json:"output_format,omitempty"`
 	PartialImages     int              `json:"partial_images,omitempty"`
+	FrameCount        int              `json:"frame_count,omitempty"`
+	FrameDurationMs   int              `json:"frame_duration_ms,omitempty"`
 	Quality           string           `json:"quality,omitempty"`
 	ResponseFormat    string           `json:"response_format,omitempty"`
 	Size              string           `json:"size,omitempty"`

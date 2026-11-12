@@ -212,6 +212,14 @@ func (g *General) convImageEditsRequestJSON(ctx context.Context, request model.I
 		jsonReq["partial_images"] = request.PartialImages
 	}
 
+	if request.FrameCount != 0 {
+		jsonReq["frame_count"] = request.FrameCount
+	}
+
+	if request.FrameDurationMs != 0 {
+		jsonReq["frame_duration_ms"] = request.FrameDurationMs
+	}
+
 	if request.Quality != "" {
 		jsonReq["quality"] = request.Quality
 	}
@@ -343,6 +351,20 @@ func (g *General) convImageEditsRequestForm(ctx context.Context, request model.I
 
 	if request.PartialImages != 0 {
 		if err = builder.WriteField("partial_images", strconv.Itoa(request.PartialImages)); err != nil {
+			logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
+			return data, err
+		}
+	}
+
+	if request.FrameCount != 0 {
+		if err = builder.WriteField("frame_count", strconv.Itoa(request.FrameCount)); err != nil {
+			logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
+			return data, err
+		}
+	}
+
+	if request.FrameDurationMs != 0 {
+		if err = builder.WriteField("frame_duration_ms", strconv.Itoa(request.FrameDurationMs)); err != nil {
 			logger.Errorf(ctx, "ConvImageEditsRequest General model: %s, error: %v", g.Model, err)
 			return data, err
 		}
