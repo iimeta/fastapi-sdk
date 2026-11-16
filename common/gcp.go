@@ -3,13 +3,19 @@ package common
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"net/url"
+	"time"
 
-	credentials "cloud.google.com/go/iam/credentials/apiv1"
-	"cloud.google.com/go/iam/credentials/apiv1/credentialspb"
 	"github.com/gogf/gf/v2/os/gtime"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/iimeta/fastapi-sdk/v2/errors"
 	"github.com/iimeta/fastapi-sdk/v2/logger"
-	"google.golang.org/api/option"
+	"github.com/iimeta/fastapi-sdk/v2/util"
+)
+
+const (
+	gcpTokenUrl   = "https://oauth2.googleapis.com/token"
+	gcpTokenScope = "https://www.googleapis.com/auth/cloud-platform"
 )
 
 type ApplicationDefaultCredentials struct {
@@ -26,6 +32,13 @@ type ApplicationDefaultCredentials struct {
 	UniverseDomain          string `json:"universe_domain"`
 }
 
+type GcpTokenResponse struct {
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int64  `json:"expires_in"`
+	TokenType   string `json:"token_type"`
+}
+
+// 使用服务账号密钥签发JWT, 通过OAuth2 JWT Bearer方式直接换取access_token, 有效期1小时
 func GetGcpToken(ctx context.Context, credential, proxyUrl string) (string, error) {
 
 	now := gtime.TimestampMilli()
@@ -39,26 +52,48 @@ func GetGcpToken(ctx context.Context, credential, proxyUrl string) (string, erro
 		return "", err
 	}
 
-	client, err := credentials.NewIamCredentialsClient(ctx, option.WithCredentialsJSON([]byte(credential)))
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(adc.PrivateKey))
 	if err != nil {
-		logger.Errorf(ctx, "GetGcpToken NewIamCredentialsClient key: %s, error: %v", credential, err)
+		logger.Errorf(ctx, "GetGcpToken ParseRSAPrivateKeyFromPEM key: %s, error: %v", credential, err)
 		return "", err
 	}
 
-	defer func() {
-		if err = client.Close(); err != nil {
-			logger.Error(ctx, err)
-		}
-	}()
+	iat := time.Now().Add(-10 * time.Second)
 
-	request := &credentialspb.GenerateAccessTokenRequest{
-		Name:  fmt.Sprintf("projects/-/serviceAccounts/%s", adc.ClientEmail),
-		Scope: []string{"https://www.googleapis.com/auth/cloud-platform"},
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+		"iss":   adc.ClientEmail,
+		"scope": gcpTokenScope,
+		"aud":   gcpTokenUrl,
+		"iat":   iat.Unix(),
+		"exp":   iat.Add(time.Hour).Unix(),
+	})
+
+	token.Header["kid"] = adc.PrivateKeyId
+
+	assertion, err := token.SignedString(privateKey)
+	if err != nil {
+		logger.Errorf(ctx, "GetGcpToken SignedString key: %s, error: %v", credential, err)
+		return "", err
 	}
 
-	response, err := client.GenerateAccessToken(ctx, request)
-	if err != nil {
-		logger.Errorf(ctx, "GetGcpToken GenerateAccessToken key: %s, error: %v", credential, err)
+	header := map[string]string{
+		"Content-Type": "application/x-www-form-urlencoded",
+	}
+
+	data := url.Values{
+		"grant_type": {"urn:ietf:params:oauth:grant-type:jwt-bearer"},
+		"assertion":  {assertion},
+	}
+
+	response := GcpTokenResponse{}
+	if _, _, err = util.HttpPost(ctx, gcpTokenUrl, header, []byte(data.Encode()), &response, 30*time.Second, proxyUrl, nil); err != nil {
+		logger.Errorf(ctx, "GetGcpToken HttpPost key: %s, error: %v", credential, err)
+		return "", err
+	}
+
+	if response.AccessToken == "" {
+		err = errors.New("GetGcpToken access_token is empty")
+		logger.Errorf(ctx, "GetGcpToken key: %s, error: %v", credential, err)
 		return "", err
 	}
 
