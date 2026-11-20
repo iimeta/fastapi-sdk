@@ -48,10 +48,9 @@ func (o *OpenAI) ConvChatCompletionsRequest(ctx context.Context, data any) (requ
 	if request.Stream {
 		// 默认让流式返回usage
 		if request.StreamOptions == nil {
-			request.StreamOptions = &model.StreamOptions{
-				IncludeUsage: true,
-			}
+			request.StreamOptions = new(model.StreamOptions)
 		}
+		request.StreamOptions.IncludeUsage = true
 	}
 
 	if gstr.HasPrefix(request.Model, "o") || gstr.HasPrefix(request.Model, "gpt-5") {

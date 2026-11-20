@@ -45,10 +45,9 @@ func (x *XAI) ConvChatCompletionsRequest(ctx context.Context, data any) (request
 	if request.Stream {
 		// 默认让流式返回usage
 		if request.StreamOptions == nil {
-			request.StreamOptions = &model.StreamOptions{
-				IncludeUsage: true,
-			}
+			request.StreamOptions = new(model.StreamOptions)
 		}
+		request.StreamOptions.IncludeUsage = true
 	}
 
 	if x.IsSupportSystemRole != nil {
